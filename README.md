@@ -31,6 +31,11 @@ WiSARD with bleaching by default:
     
     wsd = wp.Wisard(addressSize)
     
+    
+    # by default this value is false because affect the performance
+    # this make the WiSARD print the training and the classify progress
+    wsd.verbose = True
+    
     # train the input data
     wsd.train(X,y)
 
