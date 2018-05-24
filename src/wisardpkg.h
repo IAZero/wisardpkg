@@ -1,0 +1,15 @@
+
+//utils
+#include "utils.cc"
+
+//binarization
+#include "binarization/kernelcanvas.cc"
+
+//wisard model
+#include "wisard_model/ram.cc"
+#include "wisard_model/discriminator.cc"
+#include "wisard_model/wisard.cc"
+
+//cluswisard wisard_model
+#include "cluswisard_model/cluster.cc"
+#include "cluswisard_model/cluswisard.cc"
