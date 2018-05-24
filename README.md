@@ -50,6 +50,10 @@ ClusWiSARD with bleaching by default
     discriminatorLimit = 5 # limit of discriminators by clusters
     
     clus = ClusWisard(addressSize,minScore,threshold,discriminatorLimit)
+    
+    # by default this value is false because affect the performance
+    # this make the ClusWiSARD print the training and the classify progress
+    clus.verbose = True
 
     # train the input data
     clus.train(X,y)
