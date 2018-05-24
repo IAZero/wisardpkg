@@ -1,0 +1,9 @@
+# compiled
+*.pyc
+*.so
+*~
+
+# cache
+__pycache__/*
+
+
