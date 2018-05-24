@@ -12,8 +12,9 @@ class Discriminator{
 public:
   Discriminator(): entrySize(0){}
 
-  Discriminator(int addressSize, int entrySize): entrySize(entrySize){
+  Discriminator(int addressSize, int entrySize, bool ignoreZero=false, int seed=randint(0, 1000000)): entrySize(entrySize){
     int numberOfRAMS = entrySize / addressSize;
+    srand(seed);
     rams = vector<RAM>(numberOfRAMS);
     vector<int> indexes = vector<int>(entrySize);
 
@@ -22,7 +23,7 @@ public:
 
     for(unsigned int i=0; i<rams.size(); i++){
       vector<int>* subIndexes = new vector<int>(indexes.begin() + (i*addressSize), indexes.begin() + ((i+1)*addressSize));
-      rams[i] = RAM(*subIndexes);
+      rams[i] = RAM(*subIndexes, ignoreZero);
     }
   }
 

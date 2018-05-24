@@ -11,14 +11,16 @@ using namespace std;
 class RAM{
 public:
   RAM(){}
-  RAM(const int addressSize, const int entrySize){
+  RAM(const int addressSize, const int entrySize, const bool ignoreZero=false): ignoreZero(ignoreZero){
     addresses = vector<int>(addressSize);
     generateRandomAddresses(entrySize);
   }
-  RAM(const vector<int>& indexes): addresses(indexes){}
+  RAM(const vector<int>& indexes, const bool ignoreZero=false): addresses(indexes), ignoreZero(ignoreZero){}
 
   int getVote(const vector<int>& image){
     int index = getIndex(image);
+    if(ignoreZero && index == 0)
+      return 0;
     if(positions.find(index) == positions.end()){
       return 0;
     }
@@ -73,6 +75,7 @@ protected:
 private:
   vector<int> addresses;
   map<int,int> positions;
+  bool ignoreZero;
 
   void generateRandomAddresses(int entrySize){
     for(unsigned int i=0; i<addresses.size(); i++){
