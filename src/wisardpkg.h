@@ -4,6 +4,7 @@
 
 //binarization
 #include "binarization/kernelcanvas.cc"
+#include "binarization/averageentry.cc"
 
 //wisard model
 #include "wisard_model/ram.cc"
