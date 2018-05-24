@@ -1,3 +1,4 @@
+#include <time.h>
 
 class Exception{
     public:
@@ -6,6 +7,7 @@ class Exception{
 };
 
 inline int randint(int min, int max){
+  std::srand(time(NULL));
   return min + (std::rand() % (int)(max - min + 1));
 }
 

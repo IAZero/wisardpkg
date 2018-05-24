@@ -95,7 +95,7 @@ public:
 
 protected:
   void makeDiscriminator(string label, int entrySize){
-    discriminators[label] = Discriminator(label, addressSize, entrySize);
+    discriminators[label] = Discriminator(addressSize, entrySize);
   }
 
   string getBiggestCandidate(map<string,int>& candidates){

@@ -11,13 +11,7 @@ using namespace std;
 class Discriminator{
 public:
   Discriminator(): entrySize(0){}
-  Discriminator(string name, int addressSize, int entrySize): name(name), entrySize(entrySize){
-    int numberOfRAMS = entrySize / addressSize;
-    rams = vector<RAM>(numberOfRAMS);
-    for(unsigned int i=0; i<rams.size(); i++){
-      rams[i] = RAM(addressSize, entrySize);
-    }
-  }
+
   Discriminator(int addressSize, int entrySize): entrySize(entrySize){
     int numberOfRAMS = entrySize / addressSize;
     rams = vector<RAM>(numberOfRAMS);
@@ -66,7 +60,6 @@ public:
     return *mentalImage;
   }
 private:
-  string name;
   int entrySize;
   int count;
   vector<RAM> rams;
