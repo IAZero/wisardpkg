@@ -11,11 +11,11 @@ using namespace std;
 
 class Wisard{
 public:
-  Wisard(): addressSize(3), bleachingActivated(true), seed(randint(0,1000000)), verbose(true){
+  Wisard(): addressSize(3), bleachingActivated(true), seed(randint(0,1000000)), verbose(false){
     srand(seed);
   }
 
-  Wisard(int addressSize, bool bleachingActivated = true, int seed = randint(0,1000000), bool verbose = true):
+  Wisard(int addressSize, bool bleachingActivated = true, int seed = randint(0,1000000), bool verbose = false):
     addressSize(addressSize),
     bleachingActivated(bleachingActivated),
     seed(seed),
@@ -85,6 +85,14 @@ public:
     return *labels;
   }
 
+  map<string,vector<int>>& getMentalImages(){
+    map<string,vector<int>>* images = new map<string,vector<int>>();
+    for(map<string, Discriminator>::iterator d=discriminators.begin(); d!=discriminators.end(); ++d){
+      (*images)[d->first] = d->second.getMentalImage();
+    }
+    return *images;
+  }
+
   void setVerbose(bool v){
     verbose = v;
   }
@@ -95,7 +103,7 @@ public:
 
 protected:
   void makeDiscriminator(string label, int entrySize){
-    discriminators[label] = Discriminator(addressSize, entrySize);
+    discriminators[label] = Discriminator(addressSize, entrySize, false, seed);
   }
 
   string getBiggestCandidate(map<string,int>& candidates){
