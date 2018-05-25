@@ -40,6 +40,11 @@ public:
   }
 
   void train(const vector<vector<int>>& images, map<int, string>& labels){
+    if(labels.size()==0 && clusters.size()==0){
+      train(images);
+      return;
+    }
+    
     unsigned int size = images.size() > labels.size() ? images.size()-labels.size() : 0;
     vector<int> labelless = vector<int>(size);
     unsigned int j=0;
@@ -65,6 +70,15 @@ public:
     }
     if(verbose) cout << "\r" << endl;
 
+  }
+
+  void train(const vector<vector<int>>& images){
+    if((int)clusters.size()==0){
+      makeClusters("unknown", images[0].size());
+    }
+    for(unsigned int i=0; i<images.size(); i++){
+      clusters["unknown"].train(images[i]);
+    }
   }
 
   map<string, int>& classify(const vector<int>& image){

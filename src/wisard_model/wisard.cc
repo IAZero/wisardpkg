@@ -20,9 +20,11 @@ public:
       srand(seed);
   }
 
-  Wisard( int addressSize, const vector<int>& indexes=vector<int>(0),
+
+
+  Wisard( int addressSize, bool ignoreZero=false, const vector<int>& indexes=vector<int>(0),
           bool bleachingActivated = true, int seed = randint(0,1000000),
-          bool verbose = false, bool ignoreZero=false):
+          bool verbose = false):
     addressSize(addressSize),
     bleachingActivated(bleachingActivated),
     seed(seed),
