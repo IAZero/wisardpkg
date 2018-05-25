@@ -72,7 +72,7 @@ public:
 
   }
 
-  void train(const vector<vector<int>>& images){
+  void trainUnsupervised(const vector<vector<int>>& images){
     if((int)clusters.size()==0){
       unsupervisedCluster = Cluster(images[0].size(), addressSize, minScore, threshold, discriminatorsLimit);;
     }
@@ -92,6 +92,31 @@ public:
     }
 
     return Bleaching::make(allvotes, bleachingActivated);
+  }
+
+  map<string, int>& classifyUnsupervised(const vector<int>& image){
+    map<string,vector<int>> allvotes;
+    vector<vector<int>> votes = unsupervisedCluster.classify(image);
+    for(unsigned int i=0; i<votes.size(); ++i){
+      allvotes[to_string(i)] = votes[i];
+    }
+    return Bleaching::make(allvotes, bleachingActivated);
+  }
+
+
+  vector<string>& classifyUnsupervised(const vector<vector<int>>& images){
+    vector<string>* labels = new vector<string>(images.size());
+    for(unsigned int i=0; i<images.size(); i++){
+      if(verbose) cout << "\rclassifying unsupervised " << i+1 << " of " << images.size();
+      map<string,int> candidates = classifyUnsupervised(images[i]);
+      string label = Bleaching::getBiggestCandidate(candidates);
+      (*labels)[i] = label.substr(0,label.find("::"));
+
+      candidates.clear();
+      map<string,int>().swap(candidates);
+    }
+    if(verbose) cout << "\r" << endl;
+    return *labels;
   }
 
   vector<string>& classify(const vector<vector<int>>& images){

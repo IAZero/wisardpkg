@@ -22,7 +22,7 @@ for i,d in enumerate(X):
 print("\n\n")
 
 print("### WiSARD ###")
-addressSize = 3 # tamanho do endereçamento das rams
+addressSize = -3 # tamanho do endereçamento das rams
 wsd = Wisard(addressSize)
 
 print("training...")
