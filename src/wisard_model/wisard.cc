@@ -11,15 +11,24 @@ using namespace std;
 
 class Wisard{
 public:
-  Wisard(): addressSize(3), bleachingActivated(true), seed(randint(0,1000000)), verbose(false){
-    srand(seed);
+  Wisard():
+    addressSize(3),
+    bleachingActivated(true),
+    seed(randint(0,1000000)),
+    verbose(false),
+    ignoreZero(false){
+      srand(seed);
   }
 
-  Wisard(int addressSize, bool bleachingActivated = true, int seed = randint(0,1000000), bool verbose = false):
+  Wisard( int addressSize, const vector<int>& indexes=vector<int>(0),
+          bool bleachingActivated = true, int seed = randint(0,1000000),
+          bool verbose = false, bool ignoreZero=false):
     addressSize(addressSize),
     bleachingActivated(bleachingActivated),
     seed(seed),
-    verbose(verbose){
+    verbose(verbose),
+    indexes(indexes),
+    ignoreZero(ignoreZero){
       srand(seed);
   }
 
@@ -103,7 +112,12 @@ public:
 
 protected:
   void makeDiscriminator(string label, int entrySize){
-    discriminators[label] = Discriminator(addressSize, entrySize, false, seed);
+    if(indexes.size()==0){
+      discriminators[label] = Discriminator(addressSize, entrySize, ignoreZero, seed);
+    }
+    else{
+      discriminators[label] = Discriminator(indexes, addressSize, entrySize, ignoreZero, seed);
+    }
   }
 
   string getBiggestCandidate(map<string,int>& candidates){
@@ -139,5 +153,7 @@ private:
   bool bleachingActivated;
   int seed;
   bool verbose;
+  const vector<int> indexes;
+  bool ignoreZero;
   map<string, Discriminator> discriminators;
 };

@@ -27,6 +27,17 @@ public:
     }
   }
 
+  Discriminator(vector<int> indexes, int addressSize, int entrySize, bool ignoreZero=false, int seed=randint(0, 1000000)): entrySize(entrySize){
+    int numberOfRAMS = entrySize / addressSize;
+    srand(seed);
+    rams = vector<RAM>(numberOfRAMS);
+
+    for(unsigned int i=0; i<rams.size(); i++){
+      vector<int>* subIndexes = new vector<int>(indexes.begin() + (i*addressSize), indexes.begin() + ((i+1)*addressSize));
+      rams[i] = RAM(*subIndexes, ignoreZero);
+    }
+  }
+
   vector<int>& getVotes(const vector<int>& image) {
     vector<int>* votes = new vector<int>(rams.size());
     for(unsigned int i=0; i<rams.size(); i++){

@@ -33,6 +33,7 @@ PYBIND11_MODULE(wisardpkg, m)
     // models
     py::class_<Wisard>(m, "Wisard")
       .def(py::init<int>())
+      .def(py::init<int,vector<int>>())
       .def("train", (void (Wisard::*)(const vector<vector<int>>&, const vector<string>&)) &Wisard::train)
       .def("classify", (vector<string>& (Wisard::*)(const vector<vector<int>>&)) &Wisard::classify)
       .def("getMentalImages", &Wisard::getMentalImages)
