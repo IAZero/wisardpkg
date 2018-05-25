@@ -1,20 +1,24 @@
 # wisardpkg
 ## to install:
-    pip install git+http://github.com/aluiziolimafilho/wisardpkg.git
-it works to python2 and pyhton3
-if you are on linux, maybe you need a sudo before pip
+```
+pip install git+http://github.com/aluiziolimafilho/wisardpkg.git
+```
+Works to python2 and pyhton3.  
+If you are on Linux and not in a virtual environment, you may need to run as superuser.
 
 ## to uninstall:
-    pip uninstall wisardpkg
-
+```
+pip uninstall wisardpkg
+```
 ## to import:
-    import wisardpkg as wp
-
+```
+import wisardpkg as wp
+```
 ## to use:
 ### WiSARD
 WiSARD with bleaching by default:
 
-    # load a input data just zeros and ones.  
+    # load input data, just zeros and ones  
     X = [
         [1,1,1,0,0,0,0,0],
         [1,1,1,1,0,0,0,0],
@@ -22,7 +26,7 @@ WiSARD with bleaching by default:
         [0,0,0,0,0,1,1,1]
     ]
 
-    # load label data, must be string.
+    # load label data, which must be strings
     y = [
         "cold",
         "cold",
@@ -31,7 +35,7 @@ WiSARD with bleaching by default:
     ]
 
 
-    addressSize = 3 # number of bit of addressing in the ram.
+    addressSize = 3 # position of addressing bit in memory
 
     wsd = wp.Wisard(addressSize)
 
