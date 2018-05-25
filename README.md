@@ -2,7 +2,7 @@
 
 ## to install:
 ```
-pip install git+http://github.com/aluiziolimafilho/wisardpkg.git
+pip install git+http://github.com/aluiziolimafilho/wisardpkg.git@v0.0.1
 ```
 Works to python2 and pyhton3.  
 If you are on Linux and not in a virtual environment, you may need to run as superuser.
