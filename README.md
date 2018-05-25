@@ -36,8 +36,8 @@ WiSARD with bleaching by default:
 
 
     addressSize = 3 # position of addressing bit in memory
-
-    wsd = wp.Wisard(addressSize)
+    ignoreZero = False # this value is optional, this make the rams ignore the address
+    wsd = wp.Wisard(addressSize, ignoreZero)
 
 
     # by default this value is false because affect the performance
