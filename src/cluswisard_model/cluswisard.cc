@@ -16,6 +16,7 @@ public:
     addressSize(addressSize), minScore(minScore), threshold(threshold), seed(seed), bleachingActivated(true), verbose(verbose), discriminatorsLimit(discriminatorsLimit)
   {
     srand(seed);
+    checkConfigInputs(minScore, threshold, discriminatorsLimit);
   }
 
   void train(const vector<int>& image, const string& label){
@@ -140,6 +141,18 @@ protected:
   void checkLabellessSize(const int numberOfInputs, const int labellessSize){
     if(labellessSize == numberOfInputs){
       throw Exception("There is no valid index in the input labels!");
+    }
+  }
+
+  void checkConfigInputs(const float minScore, const int threshold, const int discriminatorsLimit){
+    if(minScore < 0 || minScore > 1){
+      throw Exception("min score must be between 0 and 1 inclusive!");
+    }
+    if(threshold < 1){
+      throw Exception("threshold must be bigger than 0!");
+    }
+    if(discriminatorsLimit < 1){
+      throw Exception("discriminators limit must be bigger than 0!");
     }
   }
 
