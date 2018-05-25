@@ -93,7 +93,7 @@ setup(
     name=__package_name__,
     version=__version__,
     author='Aluizio Lima Filho',
-    author_email='aluizio777@gmail.com',
+    author_email='aluizio@cos.ufrj.br',
     url='https://github.com/aluiziolimafilho/wisardpkg',
     description='A library of wisard with some models based on wisard',
     long_description='',
