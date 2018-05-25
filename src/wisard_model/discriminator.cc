@@ -13,11 +13,10 @@ public:
   Discriminator(): entrySize(0){}
 
   Discriminator(int addressSize, int entrySize, bool ignoreZero=false, int seed=randint(0, 1000000)): entrySize(entrySize){
-    int numberOfRAMS = entrySize / addressSize;
-    if( entrySize % addressSize != 0){
-      throw Exception("The entry size is not divisible by address size");
-    }
+    checkAddressSize(entrySize, addressSize);
     srand(seed);
+
+    int numberOfRAMS = entrySize / addressSize;
     rams = vector<RAM>(numberOfRAMS);
     vector<int> indexes = vector<int>(entrySize);
 
@@ -31,12 +30,11 @@ public:
   }
 
   Discriminator(vector<int> indexes, int addressSize, int entrySize, bool ignoreZero=false, int seed=randint(0, 1000000)): entrySize(entrySize){
-    int numberOfRAMS = entrySize / addressSize;
-    if( entrySize % addressSize != 0){
-      throw Exception("The entry size is not divisible by address size");
-    }
-    
+    checkAddressSize(entrySize, addressSize);
+    checkListOfIndexes(indexes, entrySize);
     srand(seed);
+
+    int numberOfRAMS = entrySize / addressSize;
     rams = vector<RAM>(numberOfRAMS);
 
     for(unsigned int i=0; i<rams.size(); i++){
@@ -46,6 +44,7 @@ public:
   }
 
   vector<int>& getVotes(const vector<int>& image) {
+    checkEntrySize(image.size());
     vector<int>* votes = new vector<int>(rams.size());
     for(unsigned int i=0; i<rams.size(); i++){
       (*votes)[i] = rams[i].getVote(image);
@@ -54,6 +53,7 @@ public:
   }
 
   void train(const vector<int>& image){
+    checkEntrySize(image.size());
     count++;
     for(unsigned int i=0; i<rams.size(); i++){
       rams[i].train(image);
@@ -79,6 +79,44 @@ public:
     return *mentalImage;
   }
 private:
+
+  void checkEntrySize(const int entry) const {
+    if(entrySize != entry){
+      throw Exception("The entry size defined on creation of discriminator is different of entry size given as input!");
+    }
+  }
+
+  void checkAddressSize(const int entrySize, const int addressSize) const{
+    if( addressSize < 2){
+      throw Exception("The address size cann't be lesser than 2!");
+    }
+    if( entrySize < 2 ){
+      throw Exception("The entry size cann't be lesser than 2!");
+    }
+    if( entrySize < addressSize){
+      throw Exception("The address size cann't be bigger than entry size!");
+    }
+  }
+
+  void checkListOfIndexes(const vector<int>& indexes, const int entrySize) const{
+    if((int)indexes.size() != entrySize){
+      throw Exception("The list of indexes is not compatible with entry size!");
+    }
+
+    map<int, int> values;
+    for(unsigned int i=0; i<indexes.size(); i++){
+      if(indexes[i] >= entrySize){
+        throw Exception("The list of indexes has a index out of range of entry");
+      }
+      if(values.find(indexes[i]) == values.end()){
+        values[indexes[i]] = i;
+      }
+      else{
+        throw Exception("The list of indexes contain repeated indexes!");
+      }
+    }
+  }
+
   int entrySize;
   int count;
   vector<RAM> rams;

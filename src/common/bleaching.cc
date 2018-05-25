@@ -2,7 +2,6 @@
 class Bleaching{
 public:
   static std::map<std::string, int>& make(std::map<std::string,std::vector<int>>& allvotes, const bool bleachingActivated) {
-    std::cout << "make bleaching..." << std::endl;
     std::map<std::string, int>* labels = new std::map<std::string, int>;
     int bleaching = 1;
     std::tuple<bool,int> ambiguity;
@@ -25,7 +24,6 @@ public:
   }
 
   static std::string getBiggestCandidate(std::map<std::string,int>& candidates) {
-    std::cout << "biggest" << std::endl;
     std::string label = "";
     int biggest = 0;
     for(std::map<std::string,int>::iterator i=candidates.begin(); i != candidates.end(); ++i){

@@ -20,10 +20,6 @@ public:
   }
 
   void train(const vector<int>& image){
-    if(image.size() != entrySize){
-      throw Exception("Input size is different from setup in the cluster");
-    }
-
     if(discriminators.size()==0){
       discriminators[0] = new Discriminator(addressSize, entrySize);
       discriminators[0]->train(image);
