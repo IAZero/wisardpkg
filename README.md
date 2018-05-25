@@ -41,7 +41,7 @@ y = [
 
 
 addressSize = 3     # number of addressing bits in the ram
-ignoreZero = False  # optional; causes the rams to ignore the address 0
+ignoreZero  = False # optional; causes the rams to ignore the address 0
     
 wsd = wp.Wisard(addressSize, ignoreZero)
 
@@ -54,7 +54,7 @@ wsd.verbose = True
 wsd.train(X,y)
 
 # classify some data
-out=wsd.classify(X)
+out = wsd.classify(X)
 
 # the output of classify is a string list in the same sequence as the input
 for i,d in enumerate(X):
@@ -65,10 +65,10 @@ for i,d in enumerate(X):
 
 ClusWiSARD with bleaching by default:
 ```python
-addressSize = 3         # number of addressing bits in the ram.
-minScore = 0.1          # min score of training process
-threshold = 10          # limit of training cycles by discriminator
-discriminatorLimit = 5  # limit of discriminators by clusters
+addressSize        = 3    # number of addressing bits in the ram.
+minScore           = 0.1  # min score of training process
+threshold          = 10   # limit of training cycles by discriminator
+discriminatorLimit = 5    # limit of discriminators by clusters
 
 clus = ClusWisard(addressSize,minScore,threshold,discriminatorLimit)
 
@@ -79,9 +79,10 @@ clus.verbose = True
 # train using the input data
 clus.train(X,y)
 
-# you can train using arbitrary labels for the data
-# input some labels in a dict, the keys must be integers and values must be strings
-# the keys are indices indicating which input array the label is associated to
+# optionally you can train using arbitrary labels for the data
+# input some labels in a dict, 
+# the keys must be integer indices indicating which input array the entry is associated to,
+# the values are the labels which must be strings 
 y2 = {
   1: "cold"
   3: "hot"
@@ -90,7 +91,7 @@ y2 = {
 clus.train(X,y2)
 
 # classify some data
-out=clus.classify(X)
+out = clus.classify(X)
 
 # the output of classify is a string list in the same sequence as the input
 for i,d in enumerate(X):
