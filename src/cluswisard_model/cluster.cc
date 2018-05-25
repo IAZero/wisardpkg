@@ -4,7 +4,8 @@ class Cluster {
 public:
   Cluster(){}
   Cluster(int entrySize, int addressSize, float minScore, int threshold, int discriminatorsLimit):
-    addressSize(addressSize), entrySize(entrySize), minScore(minScore), threshold(threshold), discriminatorsLimit(discriminatorsLimit){}
+    addressSize(addressSize), entrySize(entrySize), minScore(minScore), threshold(threshold), discriminatorsLimit(discriminatorsLimit){
+    }
 
   float getScore(const vector<int>& votes) const{
     int max = 0;
@@ -26,7 +27,7 @@ public:
       return;
     }
 
-    float bestValue = 0;
+    float bestValue = 0.0;
     bool trained = false;
     Discriminator* bestDiscriminator = NULL;
 

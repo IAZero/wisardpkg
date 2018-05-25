@@ -28,6 +28,7 @@ public:
   void train(const vector<int>& image){
     map<string,int> candidates = classify(image);
     string label = Bleaching::getBiggestCandidate(candidates);
+    label = label.substr(0,label.find("::"));
     clusters[label].train(image);
   }
 
@@ -40,7 +41,8 @@ public:
   }
 
   void train(const vector<vector<int>>& images, map<int, string>& labels){
-    unsigned int size = images.size() > labels.size() ? images.size()-labels.size() : 0;
+    checkInputLabels(images.size(), labels);
+    unsigned int size = images.size()-labels.size();
     vector<int> labelless = vector<int>(size);
     unsigned int j=0;
     for(unsigned int i=0; i<images.size(); i++){
@@ -58,6 +60,8 @@ public:
       }
     }
     if(verbose) cout << "\r" << endl;
+
+    checkLabellessSize(images.size(), labelless.size());
 
     for(unsigned int i=0; i<labelless.size(); i++){
       if(verbose) cout << "\rtraining unsupervised " << i+1 << " of " << labelless.size();
@@ -127,6 +131,18 @@ public:
   }
 
 protected:
+  void checkInputLabels(const int numberOfInputs, map<int, string>& labels){
+    if((int)labels.size() > numberOfInputs){
+      throw Exception("The total of labels given is bigger than the inputs given!");
+    }
+  }
+
+  void checkLabellessSize(const int numberOfInputs, const int labellessSize){
+    if(labellessSize == numberOfInputs){
+      throw Exception("There is no valid index in the input labels!");
+    }
+  }
+
   void makeClusters(const string label,const int entrySize){
     clusters[label] = Cluster(entrySize, addressSize, minScore, threshold, discriminatorsLimit);
   }
