@@ -1,11 +1,5 @@
 #include <time.h>
 
-class Exception{
-    public:
-        Exception(std::string msg): msg(msg){}
-        const std::string msg;
-};
-
 inline int randint(int min, int max){
   std::srand(time(NULL));
   return min + (std::rand() % (int)(max - min + 1));

@@ -21,7 +21,7 @@ public:
 
   void train(const vector<int>& image){
     if(image.size() != entrySize){
-      throw Exception("Error: input size is different from setup in the cluster");
+      throw Exception("Input size is different from setup in the cluster");
     }
 
     if(discriminators.size()==0){

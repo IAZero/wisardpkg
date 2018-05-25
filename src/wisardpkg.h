@@ -1,6 +1,8 @@
 
-//utils
-#include "utils.cc"
+//common
+#include "common/utils.cc"
+#include "common/exceptions.cc"
+#include "common/bleaching.cc"
 
 //binarization
 #include "binarization/kernelcanvas.cc"

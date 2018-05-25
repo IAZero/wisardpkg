@@ -27,7 +27,7 @@ public:
 
   void train(const vector<int>& image){
     map<string,int> candidates = classify(image);
-    string label = getBiggestCandidate(candidates);
+    string label = Bleaching::getBiggestCandidate(candidates);
     clusters[label].train(image);
   }
 
@@ -40,11 +40,6 @@ public:
   }
 
   void train(const vector<vector<int>>& images, map<int, string>& labels){
-    if(labels.size()==0 && clusters.size()==0){
-      train(images);
-      return;
-    }
-    
     unsigned int size = images.size() > labels.size() ? images.size()-labels.size() : 0;
     vector<int> labelless = vector<int>(size);
     unsigned int j=0;
@@ -74,15 +69,14 @@ public:
 
   void train(const vector<vector<int>>& images){
     if((int)clusters.size()==0){
-      makeClusters("unknown", images[0].size());
+      unsupervisedCluster = Cluster(images[0].size(), addressSize, minScore, threshold, discriminatorsLimit);;
     }
     for(unsigned int i=0; i<images.size(); i++){
-      clusters["unknown"].train(images[i]);
+      unsupervisedCluster.train(images[i]);
     }
   }
 
   map<string, int>& classify(const vector<int>& image){
-    map<string, int>* labels = new map<string, int>;
     map<string,vector<int>> allvotes;
 
     for(map<string,Cluster>::iterator i=clusters.begin(); i!=clusters.end(); ++i){
@@ -92,23 +86,7 @@ public:
       }
     }
 
-    int bleaching = 1;
-    tuple<bool,int> ambiguity;
-    do{
-      for(map<string,vector<int>>::iterator i=allvotes.begin(); i!=allvotes.end(); ++i){
-        (*labels)[i->first] = 0;
-        for(unsigned int j=0; j<i->second.size(); j++){
-          if(i->second[j] >= bleaching){
-            (*labels)[i->first]++;
-          }
-        }
-      }
-      if(!bleachingActivated) break;
-      bleaching++;
-      ambiguity = isThereAmbiguity(*labels);
-    }while( get<0>(ambiguity) && get<1>(ambiguity) > 1 );
-
-    return *labels;
+    return Bleaching::make(allvotes, bleachingActivated);
   }
 
   vector<string>& classify(const vector<vector<int>>& images){
@@ -116,7 +94,9 @@ public:
     for(unsigned int i=0; i<images.size(); i++){
       if(verbose) cout << "\rclassifying " << i+1 << " of " << images.size();
       map<string,int> candidates = classify(images[i]);
-      (*labels)[i] = getBiggestCandidate(candidates);
+      string label = Bleaching::getBiggestCandidate(candidates);
+      (*labels)[i] = label.substr(0,label.find("::"));
+
       candidates.clear();
       map<string,int>().swap(candidates);
     }
@@ -151,41 +131,14 @@ protected:
     clusters[label] = Cluster(entrySize, addressSize, minScore, threshold, discriminatorsLimit);
   }
 
-  string getBiggestCandidate(map<string,int>& candidates) const{
-    string label = "";
-    int biggest = 0;
-    for(map<string,int>::iterator i=candidates.begin(); i != candidates.end(); ++i){
-      if(i->second >= biggest){
-        biggest = i->second;
-        label = i->first;
-      }
-    }
-    return label.substr(0,label.find("::"));
-  }
-
-  tuple<bool, int> isThereAmbiguity(map<string,int>& candidates) const{
-    int biggest = 0;
-    bool ambiguity = false;
-    for(map<string,int>::iterator i=candidates.begin(); i != candidates.end(); ++i){
-      if(i->second > biggest){
-        biggest = i->second;
-        ambiguity = false;
-      }
-      else if(i->second == biggest){
-        ambiguity = true;
-      }
-    }
-    tuple<bool, int> ambiguityAndHighest = make_tuple(ambiguity, biggest);
-    return ambiguityAndHighest;
-  }
-
 private:
   int addressSize;
   float minScore;
   int threshold;
   int seed;
-  map<string, Cluster> clusters;
   bool bleachingActivated;
   bool verbose;
+  map<string, Cluster> clusters;
+  Cluster unsupervisedCluster;
   int discriminatorsLimit;
 };

@@ -58,31 +58,13 @@ public:
   }
 
   map<string, int>& classify(const vector<int>& image){
-    map<string, int>* labels = new map<string, int>;
     map<string,vector<int>> allvotes;
 
     for(map<string,Discriminator>::iterator i=discriminators.begin(); i!=discriminators.end(); ++i){
       vector<int> votes = i->second.getVotes(image);
       allvotes[i->first] = votes;
     }
-
-    int bleaching = 1;
-    tuple<bool,int> ambiguity;
-    do{
-      for(map<string,vector<int>>::iterator i=allvotes.begin(); i!=allvotes.end(); ++i){
-        (*labels)[i->first] = 0;
-        for(unsigned int j=0; j<i->second.size(); j++){
-          if(i->second[j] >= bleaching){
-            (*labels)[i->first]++;
-          }
-        }
-      }
-      if(!bleachingActivated) break;
-      bleaching++;
-      ambiguity = isThereAmbiguity(*labels);
-    }while( get<0>(ambiguity) && get<1>(ambiguity) > 1 );
-
-    return *labels;
+    return Bleaching::make(allvotes, bleachingActivated);
   }
 
   vector<string>& classify(const vector<vector<int>>& images){
@@ -90,7 +72,7 @@ public:
     for(unsigned int i=0; i<images.size(); i++){
       if(verbose) cout << "\rclassifying " << i+1 << " of " << images.size();
       map<string,int> candidates = classify(images[i]);
-      (*labels)[i] = getBiggestCandidate(candidates);
+      (*labels)[i] = Bleaching::getBiggestCandidate(candidates);
     }
     if(verbose) cout << "\r" << endl;
     return *labels;
@@ -120,34 +102,6 @@ protected:
     else{
       discriminators[label] = Discriminator(indexes, addressSize, entrySize, ignoreZero, seed);
     }
-  }
-
-  string getBiggestCandidate(map<string,int>& candidates){
-    string label = "";
-    int biggest = 0;
-    for(map<string,int>::iterator i=candidates.begin(); i != candidates.end(); ++i){
-      if(i->second >= biggest){
-        biggest = i->second;
-        label = i->first;
-      }
-    }
-    return label;
-  }
-
-  tuple<bool, int> isThereAmbiguity(map<string,int>& candidates){
-    int biggest = 0;
-    bool ambiguity = false;
-    for(map<string,int>::iterator i=candidates.begin(); i != candidates.end(); ++i){
-      if(i->second > biggest){
-        biggest = i->second;
-        ambiguity = false;
-      }
-      else if(i->second == biggest){
-        ambiguity = true;
-      }
-    }
-    tuple<bool, float> ambiguityAndHighest = make_tuple(ambiguity, biggest);
-    return ambiguityAndHighest;
   }
 
 private:

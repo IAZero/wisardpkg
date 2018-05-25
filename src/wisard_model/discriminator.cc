@@ -14,6 +14,9 @@ public:
 
   Discriminator(int addressSize, int entrySize, bool ignoreZero=false, int seed=randint(0, 1000000)): entrySize(entrySize){
     int numberOfRAMS = entrySize / addressSize;
+    if( entrySize % addressSize != 0){
+      throw Exception("The entry size is not divisible by address size");
+    }
     srand(seed);
     rams = vector<RAM>(numberOfRAMS);
     vector<int> indexes = vector<int>(entrySize);
@@ -29,6 +32,10 @@ public:
 
   Discriminator(vector<int> indexes, int addressSize, int entrySize, bool ignoreZero=false, int seed=randint(0, 1000000)): entrySize(entrySize){
     int numberOfRAMS = entrySize / addressSize;
+    if( entrySize % addressSize != 0){
+      throw Exception("The entry size is not divisible by address size");
+    }
+    
     srand(seed);
     rams = vector<RAM>(numberOfRAMS);
 
