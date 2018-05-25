@@ -1,16 +1,19 @@
 # wisardpkg
 ## to install:
-   pip install git+http://github.com/aluiziolimafilho/wisardpkg.git
-
+```
+pip install git+http://github.com/aluiziolimafilho/wisardpkg.git
+```
 Works to python2 and pyhton3.  
 If you are on Linux and not in a virtual environment, you may need to run as superuser.
 
 ## to uninstall:
-   pip uninstall wisardpkg
-
+```
+pip uninstall wisardpkg
+```
 ## to import:
-   import wisardpkg as wp
-
+```
+import wisardpkg as wp
+```
 ## to use:
 ### WiSARD
 WiSARD with bleaching by default:
