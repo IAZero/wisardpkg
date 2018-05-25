@@ -45,7 +45,6 @@ ignoreZero  = False # optional; causes the rams to ignore the address 0
     
 wsd = wp.Wisard(addressSize, ignoreZero)
 
-
 # False by default for performance reasons,
 # when True, WiSARD prints the progress of train() and classify()
 wsd.verbose = True
@@ -70,7 +69,7 @@ minScore           = 0.1  # min score of training process
 threshold          = 10   # limit of training cycles by discriminator
 discriminatorLimit = 5    # limit of discriminators by clusters
 
-clus = ClusWisard(addressSize,minScore,threshold,discriminatorLimit)
+clus = ClusWisard(addressSize, minScore, threshold, discriminatorLimit)
 
 # False by default for performance reasons
 # when enabled,e ClusWiSARD prints the progress of train() and classify()
@@ -95,5 +94,5 @@ out = clus.classify(X)
 
 # the output of classify is a string list in the same sequence as the input
 for i,d in enumerate(X):
-    print(out[i],d)
+    print(out[i], d)
 ```
