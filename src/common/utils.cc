@@ -1,7 +1,8 @@
 #include <time.h>
 
-inline int randint(int min, int max){
-  std::srand(time(NULL));
+inline int randint(int min, int max, bool isSeed=true){
+  if(isSeed)
+    std::srand(time(NULL));
   return min + (std::rand() % (int)(max - min + 1));
 }
 

@@ -97,10 +97,10 @@ public:
 protected:
   void makeDiscriminator(string label, int entrySize){
     if(indexes.size()==0){
-      discriminators[label] = Discriminator(addressSize, entrySize, ignoreZero, seed);
+      discriminators[label] = Discriminator(addressSize, entrySize, ignoreZero);
     }
     else{
-      discriminators[label] = Discriminator(indexes, addressSize, entrySize, ignoreZero, seed);
+      discriminators[label] = Discriminator(indexes, addressSize, entrySize, ignoreZero);
     }
   }
 

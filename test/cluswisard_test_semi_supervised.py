@@ -1,7 +1,7 @@
 from wisardpkg import ClusWisard
 
 print("\n\n")
-print("### ClusWiSARD SEMI SUPERVISED###")
+print("### ClusWiSARD SEMI SUPERVISED ###")
 print("### Input ###")
 
 X = [
@@ -41,4 +41,4 @@ print("out:")
 for i,d in enumerate(X):
     print(out[i],d)
 
-print("### DONE ClusWiSARD SEMI SUPERVISED###")
+print("### DONE ClusWiSARD SEMI SUPERVISED ###")

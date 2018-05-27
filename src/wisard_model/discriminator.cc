@@ -12,15 +12,28 @@ class Discriminator{
 public:
   Discriminator(): entrySize(0){}
 
-  Discriminator(int addressSize, int entrySize, bool ignoreZero=false, int seed=randint(0, 1000000)): entrySize(entrySize){
+  Discriminator(int addressSize, int entrySize, bool ignoreZero=false, bool completeAddressing=true, int seed=-1): entrySize(entrySize){
     checkAddressSize(entrySize, addressSize);
-    srand(seed);
+    if(seed != -1)
+      srand(seed);
 
     int numberOfRAMS = entrySize / addressSize;
-    rams = vector<RAM>(numberOfRAMS);
-    vector<int> indexes = vector<int>(entrySize);
+    int remain = entrySize % addressSize;
+    int indexesSize = entrySize;
+    if(completeAddressing && remain > 0) {
+      numberOfRAMS++;
+      indexesSize += addressSize-remain;
+    }
 
-    for(int i=0; i<entrySize; i++) indexes[i]=i;
+    rams = vector<RAM>(numberOfRAMS);
+    vector<int> indexes(indexesSize);
+
+    for(int i=0; i<entrySize; i++) {
+      indexes[i]=i;
+    }
+    for(unsigned int i=entrySize; i<indexes.size(); i++){
+      indexes[i] = randint(0, entrySize-1, false);
+    }
     random_shuffle(indexes.begin(), indexes.end());
 
     for(unsigned int i=0; i<rams.size(); i++){
@@ -29,10 +42,9 @@ public:
     }
   }
 
-  Discriminator(vector<int> indexes, int addressSize, int entrySize, bool ignoreZero=false, int seed=randint(0, 1000000)): entrySize(entrySize){
+  Discriminator(vector<int> indexes, int addressSize, int entrySize, bool ignoreZero=false): entrySize(entrySize){
     checkAddressSize(entrySize, addressSize);
     checkListOfIndexes(indexes, entrySize);
-    srand(seed);
 
     int numberOfRAMS = entrySize / addressSize;
     rams = vector<RAM>(numberOfRAMS);
@@ -88,7 +100,7 @@ private:
 
   void checkAddressSize(const int entrySize, const int addressSize) const{
     if( addressSize < 2){
-      throw Exception("The address size cann't be lesser than 2!");
+      throw Exception("The address size cann't be lesser than 2;");
     }
     if( entrySize < 2 ){
       throw Exception("The entry size cann't be lesser than 2!");
