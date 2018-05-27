@@ -1,5 +1,7 @@
 from wisardpkg import ClusWisard
 
+print("\n\n")
+print("### ClusWiSARD UNSUPERVISED ###")
 print("### Input ###")
 
 X = [
@@ -12,9 +14,8 @@ X = [
 for i,d in enumerate(X):
     print("unknown",d)
 
-print("\n\n")
+print("\n")
 
-print("### ClusWiSARD ###")
 addressSize = 3 # tamanho do endereçamento das rams
 minScore = 0.1 # score mínimo do processo de treino
 threshold = 10 # limite de treinos por discriminador
@@ -31,3 +32,5 @@ out=clus.classifyUnsupervised(X)
 print("out:")
 for i,d in enumerate(X):
     print(out[i],d)
+
+print("### DONE ClusWiSARD UNSUPERVISED ###")

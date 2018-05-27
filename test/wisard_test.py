@@ -1,5 +1,7 @@
 from wisardpkg import Wisard
 
+print("\n\n")
+print("### WiSARD ###")
 print("### Input ###")
 
 X = [
@@ -19,10 +21,9 @@ for i,d in enumerate(X):
     print(y[i],d)
 
 
-print("\n\n")
+print("\n")
 
-print("### WiSARD ###")
-addressSize = -3 # tamanho do endereçamento das rams
+addressSize = 3 # tamanho do endereçamento das rams
 wsd = Wisard(addressSize)
 
 print("training...")
@@ -34,3 +35,5 @@ out=wsd.classify(X)
 print("out:")
 for i,d in enumerate(X):
     print(out[i],d)
+
+print("### DONE WiSARD ###")
