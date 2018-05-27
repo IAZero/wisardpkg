@@ -12,8 +12,13 @@ using namespace std;
 class ClusWisard{
 public:
   ClusWisard(){}
-  ClusWisard(int addressSize, float minScore, int threshold, int discriminatorsLimit, int seed = randint(0,1000000), bool verbose=false):
-    addressSize(addressSize), minScore(minScore), threshold(threshold), seed(seed), bleachingActivated(true), verbose(verbose), discriminatorsLimit(discriminatorsLimit)
+  ClusWisard(int addressSize, float minScore, int threshold, int discriminatorsLimit,
+    int seed = randint(0,1000000), bool completeAddressing=true, bool verbose=false, bool ignoreZero=false):
+    addressSize(addressSize), minScore(minScore), threshold(threshold),
+    discriminatorsLimit(discriminatorsLimit),
+    seed(seed), bleachingActivated(true),
+    verbose(verbose),
+    completeAddressing(completeAddressing), ignoreZero(ignoreZero)
   {
     srand(seed);
     checkConfigInputs(minScore, threshold, discriminatorsLimit);
@@ -34,6 +39,7 @@ public:
   }
 
   void train(const vector<vector<int>>& images, const vector<string>& labels){
+    checkInputSizes(images.size(), labels.size());
     for(unsigned int i=0; i<images.size(); i++){
       if(verbose) cout << "\rtraining " << i+1 << " of " << images.size();
       train(images[i],labels[i]);
@@ -74,7 +80,7 @@ public:
 
   void trainUnsupervised(const vector<vector<int>>& images){
     if((int)clusters.size()==0){
-      unsupervisedCluster = Cluster(images[0].size(), addressSize, minScore, threshold, discriminatorsLimit);;
+      unsupervisedCluster = Cluster(images[0].size(), addressSize, minScore, threshold, discriminatorsLimit, completeAddressing, ignoreZero);
     }
     for(unsigned int i=0; i<images.size(); i++){
       unsupervisedCluster.train(images[i]);
@@ -181,18 +187,26 @@ protected:
     }
   }
 
+  void checkInputSizes(const int imageSize, const int labelsSize){
+    if(imageSize != labelsSize){
+      throw Exception("The size of data is not the same of the size of labels!");
+    }
+  }
+
   void makeClusters(const string label,const int entrySize){
-    clusters[label] = Cluster(entrySize, addressSize, minScore, threshold, discriminatorsLimit);
+    clusters[label] = Cluster(entrySize, addressSize, minScore, threshold, discriminatorsLimit, completeAddressing, ignoreZero);
   }
 
 private:
   int addressSize;
   float minScore;
   int threshold;
+  int discriminatorsLimit;
   int seed;
   bool bleachingActivated;
   bool verbose;
+  bool completeAddressing;
+  bool ignoreZero;
   map<string, Cluster> clusters;
   Cluster unsupervisedCluster;
-  int discriminatorsLimit;
 };

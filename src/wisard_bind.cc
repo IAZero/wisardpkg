@@ -26,6 +26,7 @@ PYBIND11_MODULE(wisardpkg, m)
     py::class_<Discriminator>(m, "Discriminator")
       .def(py::init<int,int>())
       .def(py::init<int,int,bool>())
+      .def(py::init<int,int,bool,bool,bool>())
       .def("train", &Discriminator::train)
       .def("classify", &Discriminator::getVotes)
     ;

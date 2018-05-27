@@ -14,28 +14,24 @@ public:
   Wisard():
     addressSize(3),
     bleachingActivated(true),
-    seed(randint(0,1000000)),
     verbose(false),
-    ignoreZero(false){
-      srand(seed);
+    ignoreZero(false),
+    completeAddressing(true){
+      srand(randint(0,1000000));
   }
 
 
 
   Wisard( int addressSize, bool ignoreZero=false, const vector<int>& indexes=vector<int>(0),
-          bool bleachingActivated = true, int seed = randint(0,1000000),
-          bool verbose = false):
+          bool bleachingActivated = true,
+          bool completeAddressing=true, bool verbose = false):
     addressSize(addressSize),
     bleachingActivated(bleachingActivated),
-    seed(seed),
     verbose(verbose),
     indexes(indexes),
-    ignoreZero(ignoreZero){
-      srand(seed);
-  }
-
-  void print(){
-    cout << "wisard: addressSize=" << addressSize << ", bleachingActivated=" << bleachingActivated << ", seed=" << seed << endl;
+    ignoreZero(ignoreZero),
+    completeAddressing(completeAddressing){
+      srand(randint(0,1000000));
   }
 
   void train(const vector<int>& image, const string& label){
@@ -46,10 +42,7 @@ public:
   }
 
   void train(const vector<vector<int>>& images, const vector<string>& labels){
-    if(images.size() != labels.size()){
-      cout << "The numer of images and of labels are differents!" << endl;
-      return;
-    }
+    checkInputSizes(images.size(), labels.size());
     for(unsigned int i=0; i<images.size(); i++){
       if(verbose) cout << "\rtraining " << i+1 << " of " << images.size();
       train(images[i], labels[i]);
@@ -97,19 +90,25 @@ public:
 protected:
   void makeDiscriminator(string label, int entrySize){
     if(indexes.size()==0){
-      discriminators[label] = Discriminator(addressSize, entrySize, ignoreZero);
+      discriminators[label] = Discriminator(addressSize, entrySize, ignoreZero, completeAddressing, false);
     }
     else{
       discriminators[label] = Discriminator(indexes, addressSize, entrySize, ignoreZero);
     }
   }
 
+  void checkInputSizes(const int imageSize, const int labelsSize){
+    if(imageSize != labelsSize){
+      throw Exception("The size of data is not the same of the size of labels!");
+    }
+  }
+
 private:
   int addressSize;
   bool bleachingActivated;
-  int seed;
   bool verbose;
   const vector<int> indexes;
   bool ignoreZero;
+  bool completeAddressing;
   map<string, Discriminator> discriminators;
 };

@@ -12,10 +12,10 @@ class Discriminator{
 public:
   Discriminator(): entrySize(0){}
 
-  Discriminator(int addressSize, int entrySize, bool ignoreZero=false, bool completeAddressing=true, int seed=-1): entrySize(entrySize){
+  Discriminator(int addressSize, int entrySize, bool ignoreZero=false, bool completeAddressing=true, bool useSeed=true): entrySize(entrySize){
     checkAddressSize(entrySize, addressSize);
-    if(seed != -1)
-      srand(seed);
+    if(useSeed)
+      srand(randint(0, 100000));
 
     int numberOfRAMS = entrySize / addressSize;
     int remain = entrySize % addressSize;
