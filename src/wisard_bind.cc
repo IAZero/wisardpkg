@@ -10,6 +10,7 @@ PYBIND11_MODULE(wisardpkg, m)
 
     // binarizations
     py::class_<KernelCanvas>(m, "KernelCanvas")
+      .def(py::init<int, int>())
       .def(py::init<int, int, int>())
       .def("show", &KernelCanvas::show)
       .def("__call__", (vector<int>& (KernelCanvas::*)(const vector<int>&)) &KernelCanvas::operator())
@@ -33,9 +34,7 @@ PYBIND11_MODULE(wisardpkg, m)
 
     // models
     py::class_<Wisard>(m, "Wisard")
-      .def(py::init<int>())
-      .def(py::init<int,bool>())
-      .def(py::init<int,bool,vector<int>>())
+      .def(py::init<int,py::kwargs>())
       .def("train", (void (Wisard::*)(const vector<vector<int>>&, const vector<string>&)) &Wisard::train)
       .def("classify", (vector<string>& (Wisard::*)(const vector<vector<int>>&)) &Wisard::classify)
       .def("getMentalImages", &Wisard::getMentalImages)
@@ -43,7 +42,7 @@ PYBIND11_MODULE(wisardpkg, m)
     ;
 
     py::class_<ClusWisard>(m, "ClusWisard")
-      .def(py::init<int, float, int, int>())
+      .def(py::init<int, float, int, int, py::kwargs>())
       .def("train", (void (ClusWisard::*)(const vector<vector<int>>&, const vector<string>&)) &ClusWisard::train)
       .def("train", (void (ClusWisard::*)(const vector<vector<int>>&, map<int, string>&)) &ClusWisard::train)
       .def("trainUnsupervised", &ClusWisard::trainUnsupervised)

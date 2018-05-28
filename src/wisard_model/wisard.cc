@@ -8,30 +8,28 @@
 
 using namespace std;
 
+namespace py = pybind11;
 
 class Wisard{
 public:
-  Wisard():
-    addressSize(3),
-    bleachingActivated(true),
-    verbose(false),
-    ignoreZero(false),
-    completeAddressing(true){
-      srand(randint(0,1000000));
-  }
+  Wisard(int addressSize, py::kwargs kwargs): addressSize(addressSize){
+    srand(randint(0,1000000));
+    for(auto arg: kwargs){
+      if(string(py::str(arg.first)).compare("bleachingActivated") == 0)
+        bleachingActivated = arg.second.cast<bool>();
 
+      if(string(py::str(arg.first)).compare("verbose") == 0)
+        verbose = arg.second.cast<bool>();
 
+      if(string(py::str(arg.first)).compare("ignoreZero") == 0)
+        ignoreZero = arg.second.cast<bool>();
 
-  Wisard( int addressSize, bool ignoreZero=false, const vector<int>& indexes=vector<int>(0),
-          bool bleachingActivated = true,
-          bool completeAddressing=true, bool verbose = false):
-    addressSize(addressSize),
-    bleachingActivated(bleachingActivated),
-    verbose(verbose),
-    indexes(indexes),
-    ignoreZero(ignoreZero),
-    completeAddressing(completeAddressing){
-      srand(randint(0,1000000));
+      if(string(py::str(arg.first)).compare("completeAddressing") == 0)
+        completeAddressing = arg.second.cast<bool>();
+
+      if(string(py::str(arg.first)).compare("indexes") == 0)
+        indexes = arg.second.cast<vector<int>>();
+    }
   }
 
   void train(const vector<int>& image, const string& label){
@@ -107,7 +105,7 @@ private:
   int addressSize;
   bool bleachingActivated;
   bool verbose;
-  const vector<int> indexes;
+  vector<int> indexes;
   bool ignoreZero;
   bool completeAddressing;
   map<string, Discriminator> discriminators;

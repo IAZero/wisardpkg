@@ -9,19 +9,26 @@
 
 using namespace std;
 
+namespace py = pybind11;
+
 class ClusWisard{
 public:
-  ClusWisard(){}
-  ClusWisard(int addressSize, float minScore, int threshold, int discriminatorsLimit,
-    int seed = randint(0,1000000), bool completeAddressing=true, bool verbose=false, bool ignoreZero=false):
-    addressSize(addressSize), minScore(minScore), threshold(threshold),
-    discriminatorsLimit(discriminatorsLimit),
-    seed(seed), bleachingActivated(true),
-    verbose(verbose),
-    completeAddressing(completeAddressing), ignoreZero(ignoreZero)
-  {
-    srand(seed);
-    checkConfigInputs(minScore, threshold, discriminatorsLimit);
+  ClusWisard(int addressSize, float minScore, int threshold, int discriminatorsLimit, py::kwargs kwargs){
+      srand(randint(0,1000000));
+      checkConfigInputs(minScore, threshold, discriminatorsLimit);
+      for(auto arg: kwargs){
+        if(string(py::str(arg.first)).compare("bleachingActivated") == 0)
+          bleachingActivated = arg.second.cast<bool>();
+
+        if(string(py::str(arg.first)).compare("verbose") == 0)
+          verbose = arg.second.cast<bool>();
+
+        if(string(py::str(arg.first)).compare("ignoreZero") == 0)
+          ignoreZero = arg.second.cast<bool>();
+
+        if(string(py::str(arg.first)).compare("completeAddressing") == 0)
+          completeAddressing = arg.second.cast<bool>();
+      }
   }
 
   void train(const vector<int>& image, const string& label){
