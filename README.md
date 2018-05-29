@@ -8,7 +8,7 @@ with supervised, unsupervised and semi-supervised learning.
 
 ## to install:
 ```
-pip install git+http://github.com/aluiziolimafilho/wisardpkg.git@v0.0.3
+pip install git+http://github.com/aluiziolimafilho/wisardpkg.git@v0.0.4
 ```
 Works to python2 and pyhton3.  
 If you are on Linux and not in a virtual environment, you may need to run as superuser.
@@ -49,11 +49,13 @@ y = [
 addressSize = 3     # number of addressing bits in the ram
 ignoreZero  = False # optional; causes the rams to ignore the address 0
 
-wsd = wp.Wisard(addressSize, ignoreZero)
-
 # False by default for performance reasons,
 # when True, WiSARD prints the progress of train() and classify()
-wsd.verbose = True
+verbose = True
+
+wsd = wp.Wisard(addressSize, ignoreZero=ignoreZero, verbose=verbose)
+
+
 
 # train using the input data
 wsd.train(X,y)
@@ -75,11 +77,13 @@ minScore           = 0.1  # min score of training process
 threshold          = 10   # limit of training cycles by discriminator
 discriminatorLimit = 5    # limit of discriminators by clusters
 
-clus = ClusWisard(addressSize, minScore, threshold, discriminatorLimit)
-
 # False by default for performance reasons
 # when enabled,e ClusWiSARD prints the progress of train() and classify()
-clus.verbose = True
+verbose = True
+
+clus = ClusWisard(addressSize, minScore, threshold, discriminatorLimit, verbose=True)
+
+
 
 # train using the input data
 clus.train(X,y)
