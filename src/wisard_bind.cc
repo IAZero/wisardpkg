@@ -25,9 +25,7 @@ PYBIND11_MODULE(wisardpkg, m)
 
     //base to models
     py::class_<Discriminator>(m, "Discriminator")
-      .def(py::init<int,int>())
-      .def(py::init<int,int,bool>())
-      .def(py::init<int,int,bool,bool,bool>())
+      .def(py::init<int,int,py::kwargs>())
       .def("train", &Discriminator::train)
       .def("classify", &Discriminator::getVotes)
     ;
@@ -38,7 +36,6 @@ PYBIND11_MODULE(wisardpkg, m)
       .def("train", (void (Wisard::*)(const vector<vector<int>>&, const vector<string>&)) &Wisard::train)
       .def("classify", (vector<string>& (Wisard::*)(const vector<vector<int>>&)) &Wisard::classify)
       .def("getMentalImages", &Wisard::getMentalImages)
-      .def_property("verbose", &Wisard::getVerbose, &Wisard::setVerbose)
     ;
 
     py::class_<ClusWisard>(m, "ClusWisard")
@@ -50,7 +47,6 @@ PYBIND11_MODULE(wisardpkg, m)
       .def("classifyUnsupervised", (vector<string>& (ClusWisard::*)(const vector<vector<int>>&)) &ClusWisard::classifyUnsupervised)
       .def("getMentalImage", &ClusWisard::getMentalImage)
       .def("getMentalImages", &ClusWisard::getMentalImages)
-      .def_property("verbose", &ClusWisard::getVerbose, &ClusWisard::setVerbose)
     ;
 
 }

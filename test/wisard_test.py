@@ -24,7 +24,7 @@ for i,d in enumerate(X):
 print("\n")
 
 addressSize = 2 # tamanho do endereçamento das rams
-wsd = Wisard(addressSize)
+wsd = Wisard(addressSize, bleachingActivated=True)
 
 print("training...")
 wsd.train(X,y)

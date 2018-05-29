@@ -13,9 +13,17 @@ namespace py = pybind11;
 
 class ClusWisard{
 public:
-  ClusWisard(int addressSize, float minScore, int threshold, int discriminatorsLimit, py::kwargs kwargs){
+  ClusWisard(int addressSize, float minScore, int threshold, int discriminatorsLimit, py::kwargs kwargs):
+    addressSize(addressSize), minScore(minScore), threshold(threshold), discriminatorsLimit(discriminatorsLimit)
+  {
       srand(randint(0,1000000));
+      bleachingActivated=true;
+      verbose=false;
+      ignoreZero=false;
+      completeAddressing=true;
+
       checkConfigInputs(minScore, threshold, discriminatorsLimit);
+
       for(auto arg: kwargs){
         if(string(py::str(arg.first)).compare("bleachingActivated") == 0)
           bleachingActivated = arg.second.cast<bool>();

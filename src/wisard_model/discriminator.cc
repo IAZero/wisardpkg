@@ -8,11 +8,13 @@
 
 using namespace std;
 
+namespace py = pybind11;
+
 class Discriminator{
 public:
   Discriminator(): entrySize(0){}
 
-  Discriminator(int addressSize, int entrySize, bool ignoreZero=false, bool completeAddressing=true, bool useSeed=true): entrySize(entrySize){
+  Discriminator(int addressSize, int entrySize, bool ignoreZero, bool completeAddressing, bool useSeed): entrySize(entrySize){
     checkAddressSize(entrySize, addressSize);
     if(useSeed)
       srand(randint(0, 100000));
@@ -53,6 +55,25 @@ public:
       vector<int>* subIndexes = new vector<int>(indexes.begin() + (i*addressSize), indexes.begin() + ((i+1)*addressSize));
       rams[i] = RAM(*subIndexes, ignoreZero);
     }
+  }
+
+  Discriminator(int addressSize, int entrySize, py::kwargs kwargs){
+    bool ignoreZero=false;
+    bool completeAddressing=true;
+    bool useSeed=true;
+
+    for(auto arg: kwargs){
+      if(string(py::str(arg.first)).compare("ignoreZero") == 0)
+        ignoreZero = arg.second.cast<bool>();
+
+      if(string(py::str(arg.first)).compare("useSeed") == 0)
+        useSeed = arg.second.cast<bool>();
+
+      if(string(py::str(arg.first)).compare("completeAddressing") == 0)
+        completeAddressing = arg.second.cast<bool>();
+    }
+
+    Discriminator(addressSize, entrySize, ignoreZero, completeAddressing, useSeed);
   }
 
   vector<int>& getVotes(const vector<int>& image) {

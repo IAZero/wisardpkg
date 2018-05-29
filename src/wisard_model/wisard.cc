@@ -13,6 +13,12 @@ namespace py = pybind11;
 class Wisard{
 public:
   Wisard(int addressSize, py::kwargs kwargs): addressSize(addressSize){
+    bleachingActivated=true;
+    verbose=false;
+    ignoreZero=false;
+    completeAddressing=true;
+    indexes=vector<int>(0);
+    
     srand(randint(0,1000000));
     for(auto arg: kwargs){
       if(string(py::str(arg.first)).compare("bleachingActivated") == 0)

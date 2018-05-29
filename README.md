@@ -1,5 +1,11 @@
 # wisardpkg
 
+## Description:
+This is a project to make available the different models based on WiSARD,
+with high performance, easy to use and to install and following a pattern of use.
+These provided models are machine learning models,
+with supervised, unsupervised and semi-supervised learning.
+
 ## to install:
 ```
 pip install git+http://github.com/aluiziolimafilho/wisardpkg.git@v0.0.3
@@ -96,3 +102,6 @@ out = clus.classify(X)
 for i,d in enumerate(X):
     print(out[i], d)
 ```
+
+## Documentation:
+You can find the complete documentation in the [wiki](https://github.com/aluiziolimafilho/wisardpkg/wiki).
