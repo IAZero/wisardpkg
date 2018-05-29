@@ -14,8 +14,9 @@ class Discriminator{
 public:
   Discriminator(): entrySize(0){}
 
-  Discriminator(int addressSize, int entrySize, bool ignoreZero, bool completeAddressing, bool useSeed): entrySize(entrySize){
+  Discriminator(int addressSize, int entrySize, bool ignoreZero, bool completeAddressing, bool useSeed, int base=2): entrySize(entrySize){
     checkAddressSize(entrySize, addressSize);
+    checkBase(base);
     if(useSeed)
       srand(randint(0, 100000));
 
@@ -40,12 +41,13 @@ public:
 
     for(unsigned int i=0; i<rams.size(); i++){
       vector<int>* subIndexes = new vector<int>(indexes.begin() + (i*addressSize), indexes.begin() + ((i+1)*addressSize));
-      rams[i] = RAM(*subIndexes, ignoreZero);
+      rams[i] = RAM(*subIndexes, ignoreZero, base);
     }
   }
 
-  Discriminator(vector<int> indexes, int addressSize, int entrySize, bool ignoreZero=false): entrySize(entrySize){
+  Discriminator(vector<int> indexes, int addressSize, int entrySize, bool ignoreZero=false, int base=2): entrySize(entrySize){
     checkAddressSize(entrySize, addressSize);
+    checkBase(base);
     checkListOfIndexes(indexes, entrySize);
 
     int numberOfRAMS = entrySize / addressSize;
@@ -53,7 +55,7 @@ public:
 
     for(unsigned int i=0; i<rams.size(); i++){
       vector<int>* subIndexes = new vector<int>(indexes.begin() + (i*addressSize), indexes.begin() + ((i+1)*addressSize));
-      rams[i] = RAM(*subIndexes, ignoreZero);
+      rams[i] = RAM(*subIndexes, ignoreZero, base);
     }
   }
 
@@ -61,6 +63,7 @@ public:
     bool ignoreZero=false;
     bool completeAddressing=true;
     bool useSeed=true;
+    int base = 2;
 
     for(auto arg: kwargs){
       if(string(py::str(arg.first)).compare("ignoreZero") == 0)
@@ -71,9 +74,12 @@ public:
 
       if(string(py::str(arg.first)).compare("completeAddressing") == 0)
         completeAddressing = arg.second.cast<bool>();
+
+      if(string(py::str(arg.first)).compare("base") == 0)
+        base = arg.second.cast<int>();
     }
 
-    Discriminator(addressSize, entrySize, ignoreZero, completeAddressing, useSeed);
+    Discriminator(addressSize, entrySize, ignoreZero, completeAddressing, useSeed, base);
   }
 
   vector<int>& getVotes(const vector<int>& image) {
@@ -119,9 +125,15 @@ private:
     }
   }
 
+  void checkBase(const int base){
+    if(base < 2){
+      throw Exception("The base can't be lesser than 2!");
+    }
+  }
+
   void checkAddressSize(const int entrySize, const int addressSize) const{
     if( addressSize < 2){
-      throw Exception("The address size cann't be lesser than 2;");
+      throw Exception("The address size cann't be lesser than 2!");
     }
     if( entrySize < 2 ){
       throw Exception("The entry size cann't be lesser than 2!");
@@ -139,7 +151,7 @@ private:
     map<int, int> values;
     for(unsigned int i=0; i<indexes.size(); i++){
       if(indexes[i] >= entrySize){
-        throw Exception("The list of indexes has a index out of range of entry");
+        throw Exception("The list of indexes has a index out of range of entry!");
       }
       if(values.find(indexes[i]) == values.end()){
         values[indexes[i]] = i;

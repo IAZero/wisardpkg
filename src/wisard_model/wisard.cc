@@ -18,7 +18,8 @@ public:
     ignoreZero=false;
     completeAddressing=true;
     indexes=vector<int>(0);
-    
+    base=2;
+
     srand(randint(0,1000000));
     for(auto arg: kwargs){
       if(string(py::str(arg.first)).compare("bleachingActivated") == 0)
@@ -35,6 +36,9 @@ public:
 
       if(string(py::str(arg.first)).compare("indexes") == 0)
         indexes = arg.second.cast<vector<int>>();
+
+      if(string(py::str(arg.first)).compare("base") == 0)
+        base = arg.second.cast<int>();
     }
   }
 
@@ -94,10 +98,10 @@ public:
 protected:
   void makeDiscriminator(string label, int entrySize){
     if(indexes.size()==0){
-      discriminators[label] = Discriminator(addressSize, entrySize, ignoreZero, completeAddressing, false);
+      discriminators[label] = Discriminator(addressSize, entrySize, ignoreZero, completeAddressing, false, base);
     }
     else{
-      discriminators[label] = Discriminator(indexes, addressSize, entrySize, ignoreZero);
+      discriminators[label] = Discriminator(indexes, addressSize, entrySize, ignoreZero, base);
     }
   }
 
@@ -114,5 +118,6 @@ private:
   vector<int> indexes;
   bool ignoreZero;
   bool completeAddressing;
+  int base;
   map<string, Discriminator> discriminators;
 };
