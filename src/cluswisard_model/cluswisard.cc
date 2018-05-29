@@ -21,6 +21,7 @@ public:
       verbose=false;
       ignoreZero=false;
       completeAddressing=true;
+      base=2;
 
       checkConfigInputs(minScore, threshold, discriminatorsLimit);
 
@@ -36,6 +37,9 @@ public:
 
         if(string(py::str(arg.first)).compare("completeAddressing") == 0)
           completeAddressing = arg.second.cast<bool>();
+
+        if(string(py::str(arg.first)).compare("base") == 0)
+          base = arg.second.cast<int>();
       }
   }
 
@@ -209,7 +213,7 @@ protected:
   }
 
   void makeClusters(const string label,const int entrySize){
-    clusters[label] = Cluster(entrySize, addressSize, minScore, threshold, discriminatorsLimit, completeAddressing, ignoreZero);
+    clusters[label] = Cluster(entrySize, addressSize, minScore, threshold, discriminatorsLimit, completeAddressing, ignoreZero, base);
   }
 
 private:
@@ -222,6 +226,7 @@ private:
   bool verbose;
   bool completeAddressing;
   bool ignoreZero;
+  int base;
   map<string, Cluster> clusters;
   Cluster unsupervisedCluster;
 };

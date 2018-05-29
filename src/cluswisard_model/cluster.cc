@@ -4,10 +4,10 @@ class Cluster {
 public:
   Cluster(){}
   Cluster(int entrySize, int addressSize, float minScore, int threshold,
-    int discriminatorsLimit, bool completeAddressing=true, bool ignoreZero=false):
+    int discriminatorsLimit, bool completeAddressing=true, bool ignoreZero=false, int base=2):
     addressSize(addressSize), entrySize(entrySize), minScore(minScore),
     threshold(threshold), discriminatorsLimit(discriminatorsLimit),
-    completeAddressing(completeAddressing), ignoreZero(ignoreZero){
+    completeAddressing(completeAddressing), ignoreZero(ignoreZero), base(base){
     }
 
   float getScore(const vector<int>& votes) const{
@@ -25,7 +25,7 @@ public:
 
   void train(const vector<int>& image){
     if(discriminators.size()==0){
-      discriminators[0] = new Discriminator(addressSize, entrySize, ignoreZero, completeAddressing, false);
+      makeDiscriminator(0);
       discriminators[0]->train(image);
       return;
     }
@@ -52,7 +52,7 @@ public:
 
     if(!trained && (int)discriminators.size() < discriminatorsLimit){
       int index = discriminators.size();
-      discriminators[index] = new Discriminator(addressSize, entrySize, ignoreZero, completeAddressing, false);
+      makeDiscriminator(index);
       discriminators[index]->train(image);
       trained = true;
     }
@@ -96,4 +96,9 @@ private:
   int discriminatorsLimit;
   bool completeAddressing;
   bool ignoreZero;
+  int base;
+
+  void makeDiscriminator(const int index){
+    discriminators[index] = new Discriminator(addressSize, entrySize, ignoreZero, completeAddressing, false, base);
+  }
 };
