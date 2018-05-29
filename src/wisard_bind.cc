@@ -23,10 +23,17 @@ PYBIND11_MODULE(wisardpkg, m)
       .def("__call__", (vector<double>& (AverageEntry::*)(const vector<double>&)) &AverageEntry::operator())
     ;
 
+    //sythesizer
+    py::class_<Synthesizer>(m, "Synthesizer")
+      .def(py::init<vector<int>>())
+      .def("make", &Synthesizer::make)
+    ;
+
     //base to models
     py::class_<Discriminator>(m, "Discriminator")
       .def(py::init<int,int,py::kwargs>())
-      .def("train", &Discriminator::train)
+      .def("train", (void (Discriminator::*)(const vector<int>&)) &Discriminator::train)
+      .def("train", (void (Discriminator::*)(const vector<vector<int>>&)) &Discriminator::train)
       .def("classify", &Discriminator::getVotes)
     ;
 

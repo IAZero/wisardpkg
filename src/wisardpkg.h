@@ -4,6 +4,9 @@
 #include "common/exceptions.cc"
 #include "common/bleaching.cc"
 
+//synthesizers
+#include "synthetic_data/synthesizers.cc"
+
 //binarization
 #include "binarization/kernelcanvas.cc"
 #include "binarization/averageentry.cc"

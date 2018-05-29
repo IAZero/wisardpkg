@@ -99,6 +99,12 @@ public:
     }
   }
 
+  void train(const vector<vector<int>>& image){
+    for(unsigned int i=0; i<image.size(); i++){
+      train(image[i]);
+    }
+  }
+
   int getNumberOfTrainings() const{
     return count;
   }
