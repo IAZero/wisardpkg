@@ -12,10 +12,10 @@
 #include "binarization/averageentry.cc"
 
 //wisard model
-#include "models/wisard_model/ram.cc"
-#include "models/wisard_model/discriminator.cc"
-#include "models/wisard_model/wisard.cc"
+#include "models/wisard/ram.cc"
+#include "models/wisard/discriminator.cc"
+#include "models/wisard/wisard.cc"
 
 //cluswisard wisard_model
-#include "models/cluswisard_model/cluster.cc"
-#include "models/cluswisard_model/cluswisard.cc"
+#include "models/cluswisard/cluster.cc"
+#include "models/cluswisard/cluswisard.cc"
