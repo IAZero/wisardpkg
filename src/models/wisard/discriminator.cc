@@ -118,6 +118,10 @@ public:
     return count;
   }
 
+  int getNumberOfRAMS() const{
+    return rams.size();
+  }
+
   vector<int>& getMentalImage(){
     vector<int>* mentalImage = new vector<int>(entrySize);
     for(unsigned int i=0; i<mentalImage->size(); i++) {

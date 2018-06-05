@@ -68,15 +68,37 @@ public:
     return Bleaching::make(allvotes, bleachingActivated);
   }
 
-  vector<string>& classify(const vector<vector<int>>& images){
-    vector<string>* labels = new vector<string>(images.size());
+  py::list classify(const vector<vector<int>>& images, py::kwargs kwargs){
+    bool searchBestConfidence=false;
+    bool returnConfidence=false;
+    bool returnActivationDegree=false;
+
+    for(auto arg: kwargs){
+      if(string(py::str(arg.first)).compare("searchBestConfidence") == 0)
+        searchBestConfidence = arg.second.cast<bool>();
+
+      if(string(py::str(arg.first)).compare("returnConfidence") == 0)
+        returnConfidence = arg.second.cast<bool>();
+
+      if(string(py::str(arg.first)).compare("returnActivationDegree") == 0)
+        returnActivationDegree = arg.second.cast<bool>();
+    }
+
+    py::list labels(images.size());
     for(unsigned int i=0; i<images.size(); i++){
       if(verbose) cout << "\rclassifying " << i+1 << " of " << images.size();
       map<string,int> candidates = classify(images[i]);
-      (*labels)[i] = Bleaching::getBiggestCandidate(candidates);
+      string aClass = Bleaching::getBiggestCandidate(candidates);
+      if(returnActivationDegree){
+        float activationDegree = candidates[aClass]/(float)discriminators[aClass].getNumberOfRAMS();
+        labels[i] = py::dict(py::arg("class")=aClass, py::arg("activationDegree")=activationDegree);
+      }
+      if(!returnActivationDegree && !returnConfidence){
+        labels[i] = aClass;
+      }
     }
     if(verbose) cout << "\r" << endl;
-    return *labels;
+    return labels;
   }
 
   map<string,vector<int>>& getMentalImages(){
