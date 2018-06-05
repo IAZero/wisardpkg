@@ -1,7 +1,20 @@
 
 class Bleaching{
 public:
-  static std::map<std::string, int>& make(std::map<std::string,std::vector<int>>& allvotes, const bool bleachingActivated) {
+  static std::map<std::string, int>& make(std::map<std::string,std::vector<int>>& allvotes, const bool bleachingActivated, bool searchBestConfidence=false) {
+    if(searchBestConfidence){
+      Bleaching::makeWithConfidence(allvotes, bleachingActivated);
+    }
+    else{
+      Bleaching::makeConfidenceless(allvotes, bleachingActivated);
+    }
+  }
+
+  static std::map<std::string, int>& makeWithConfidence(std::map<std::string,std::vector<int>>& allvotes, const bool bleachingActivated) {
+  }
+
+
+  static std::map<std::string, int>& makeConfidenceless(std::map<std::string,std::vector<int>>& allvotes, const bool bleachingActivated) {
     std::map<std::string, int>* labels = new std::map<std::string, int>;
     int bleaching = 1;
     std::tuple<bool,int> ambiguity;
@@ -33,6 +46,16 @@ public:
       }
     }
     return label;
+  }
+
+  static float getConfidence(std::map<std::string,int>& candidates, int biggest) {
+    float secondBiggest = 0;
+    for(std::map<std::string,int>::iterator i=candidates.begin(); i != candidates.end(); ++i){
+      if(i->second >= secondBiggest && i->second < biggest){
+        secondBiggest = i->second;
+      }
+    }
+    return (biggest-secondBiggest)/biggest;
   }
 
 private:

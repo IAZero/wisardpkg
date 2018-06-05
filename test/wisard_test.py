@@ -30,7 +30,7 @@ print("training...")
 wsd.train(X,y)
 
 print("classifing...")
-out=wsd.classify(X, returnActivationDegree=True)
+out=wsd.classify(X, returnActivationDegree=True, returnConfidence=True)
 
 print("out:")
 for i,d in enumerate(X):

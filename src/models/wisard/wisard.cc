@@ -58,14 +58,14 @@ public:
     if(verbose) cout << "\r" << endl;
   }
 
-  map<string, int>& classify(const vector<int>& image){
+  map<string, int>& classify(const vector<int>& image, bool searchBestConfidence=false){
     map<string,vector<int>> allvotes;
 
     for(map<string,Discriminator>::iterator i=discriminators.begin(); i!=discriminators.end(); ++i){
       vector<int> votes = i->second.getVotes(image);
       allvotes[i->first] = votes;
     }
-    return Bleaching::make(allvotes, bleachingActivated);
+    return Bleaching::make(allvotes, bleachingActivated, searchBestConfidence);
   }
 
   py::list classify(const vector<vector<int>>& images, py::kwargs kwargs){
@@ -87,11 +87,21 @@ public:
     py::list labels(images.size());
     for(unsigned int i=0; i<images.size(); i++){
       if(verbose) cout << "\rclassifying " << i+1 << " of " << images.size();
-      map<string,int> candidates = classify(images[i]);
+      map<string,int> candidates = classify(images[i],searchBestConfidence);
       string aClass = Bleaching::getBiggestCandidate(candidates);
-      if(returnActivationDegree){
+      
+      if(returnActivationDegree && !returnConfidence){
         float activationDegree = candidates[aClass]/(float)discriminators[aClass].getNumberOfRAMS();
         labels[i] = py::dict(py::arg("class")=aClass, py::arg("activationDegree")=activationDegree);
+      }
+      if(returnConfidence && !returnActivationDegree){
+        float confidence = Bleaching::getConfidence(candidates, candidates[aClass]);
+        labels[i] = py::dict(py::arg("class")=aClass, py::arg("confidence")=confidence);
+      }
+      if(returnActivationDegree && returnConfidence){
+        float activationDegree = candidates[aClass]/(float)discriminators[aClass].getNumberOfRAMS();
+        float confidence = Bleaching::getConfidence(candidates, candidates[aClass]);
+        labels[i] = py::dict(py::arg("class")=aClass, py::arg("activationDegree")=activationDegree, py::arg("confidence")=confidence);
       }
       if(!returnActivationDegree && !returnConfidence){
         labels[i] = aClass;
