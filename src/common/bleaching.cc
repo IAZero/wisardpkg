@@ -3,10 +3,10 @@ class Bleaching{
 public:
   static std::map<std::string, int>& make(std::map<std::string,std::vector<int>>& allvotes, const bool bleachingActivated, bool searchBestConfidence=false) {
     if(searchBestConfidence){
-      Bleaching::makeWithConfidence(allvotes, bleachingActivated);
+      return Bleaching::makeWithConfidence(allvotes, bleachingActivated);
     }
     else{
-      Bleaching::makeConfidenceless(allvotes, bleachingActivated);
+      return Bleaching::makeConfidenceless(allvotes, bleachingActivated);
     }
   }
 
