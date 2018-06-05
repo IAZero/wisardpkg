@@ -59,10 +59,11 @@ public:
     }
   }
 
-  Discriminator(int addressSize, int entrySize, py::kwargs kwargs){
+  Discriminator(int addressSize, int entrySize, py::kwargs kwargs): entrySize(entrySize){
     bool ignoreZero=false;
     bool completeAddressing=true;
     bool useSeed=true;
+    vector<int> indexes(0);
     int base = 2;
 
     for(auto arg: kwargs){
@@ -77,9 +78,17 @@ public:
 
       if(string(py::str(arg.first)).compare("base") == 0)
         base = arg.second.cast<int>();
+
+      if(string(py::str(arg.first)).compare("indexes") == 0)
+        indexes = arg.second.cast<vector<int>>();
     }
 
-    Discriminator(addressSize, entrySize, ignoreZero, completeAddressing, useSeed, base);
+    if(indexes.size() == 0){
+      Discriminator(addressSize, entrySize, ignoreZero, completeAddressing, useSeed, base);
+    }
+    else{
+      Discriminator(indexes, addressSize, entrySize, ignoreZero, base);
+    }
   }
 
   vector<int>& getVotes(const vector<int>& image) {
