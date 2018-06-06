@@ -4,7 +4,7 @@ from setuptools.command.build_ext import build_ext
 import sys
 import setuptools
 
-__version__ = '0.0.4'
+__version__ = '0.0.5'
 __package_name__ = 'wisardpkg'
 __src__ = 'src/wisard_bind.cc'
 
@@ -95,10 +95,15 @@ setup(
     author='Aluizio Lima Filho',
     author_email='aluizio@cos.ufrj.br',
     url='https://github.com/aluiziolimafilho/wisardpkg',
+    download_url = 'https://github.com/aluiziolimafilho/wisardpkg/archive/v'+str(__version__)+'.tar.gz',
     description='A library of wisard with some models based on wisard',
     long_description='',
     ext_modules=ext_modules,
     install_requires=['pybind11>=2.2'],
     cmdclass={'build_ext': BuildExt},
     zip_safe=False,
+    keywords = ['wisard', 'weithgless', 'neural', 'net'],
+    classifiers=[
+        "License :: OSI Approved :: MIT License"
+    ],
 )

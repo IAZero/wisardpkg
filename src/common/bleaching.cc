@@ -11,6 +11,7 @@ public:
   }
 
   static std::map<std::string, int>& makeWithConfidence(std::map<std::string,std::vector<int>>& allvotes, const bool bleachingActivated) {
+    return Bleaching::makeConfidenceless(allvotes, bleachingActivated);
   }
 
 

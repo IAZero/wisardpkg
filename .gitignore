@@ -2,8 +2,10 @@
 *.pyc
 *.so
 *~
+dist/*
+build/*
+tmp/*
+wisardpkg.egg-info/*
 
 # cache
-__pycache__/*
-
-
+__pycache__
