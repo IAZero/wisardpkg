@@ -89,19 +89,17 @@ public:
       if(verbose) cout << "\rclassifying " << i+1 << " of " << images.size();
       map<string,int> candidates = classify(images[i],searchBestConfidence);
       string aClass = Bleaching::getBiggestCandidate(candidates);
-      
+
+      if(returnActivationDegree || returnConfidence){
+        labels[i] = py::dict(py::arg("class")=aClass);
+      }
       if(returnActivationDegree && !returnConfidence){
         float activationDegree = candidates[aClass]/(float)discriminators[aClass].getNumberOfRAMS();
-        labels[i] = py::dict(py::arg("class")=aClass, py::arg("activationDegree")=activationDegree);
+        labels[i]["activationDegree"]=activationDegree;
       }
       if(returnConfidence && !returnActivationDegree){
         float confidence = Bleaching::getConfidence(candidates, candidates[aClass]);
-        labels[i] = py::dict(py::arg("class")=aClass, py::arg("confidence")=confidence);
-      }
-      if(returnActivationDegree && returnConfidence){
-        float activationDegree = candidates[aClass]/(float)discriminators[aClass].getNumberOfRAMS();
-        float confidence = Bleaching::getConfidence(candidates, candidates[aClass]);
-        labels[i] = py::dict(py::arg("class")=aClass, py::arg("activationDegree")=activationDegree, py::arg("confidence")=confidence);
+        labels[i]["confidence"]=confidence;
       }
       if(!returnActivationDegree && !returnConfidence){
         labels[i] = aClass;

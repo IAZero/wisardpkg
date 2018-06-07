@@ -119,26 +119,6 @@ public:
     return Bleaching::make(allvotes, bleachingActivated, searchBestConfidence);
   }
 
-  py::list classify(const vector<int>& image, py::kwargs kwargs){
-    bool searchBestConfidence = false;
-    for(auto arg: kwargs){
-      if(string(py::str(arg.first)).compare("searchBestConfidence") == 0)
-        searchBestConfidence = arg.second.cast<bool>();
-    }
-
-    map<string, int> candidates = classify(image, searchBestConfidence);
-    float total = 0;
-    int index = 0;
-    py::list output(candidates.size());
-    for(map<string, int>::iterator i=candidates.begin(); i!=candidates.end(); ++i) total += i->second;
-    for(map<string, int>::iterator i=candidates.begin(); i!=candidates.end(); ++i){
-      string aClass = i->first.substr(0,i->first.find("::"));
-      output[index] = py::dict(py::arg("class")=aClass, py::arg("degree")=(i->second/total));
-      index++;
-    }
-    return output;
-  }
-
   map<string, int>& classifyUnsupervised(const vector<int>& image){
     map<string,vector<int>> allvotes;
     vector<vector<int>> votes = unsupervisedCluster.classify(image);
@@ -168,6 +148,7 @@ public:
     bool searchBestConfidence=false;
     bool returnConfidence=false;
     bool returnActivationDegree=false;
+    bool returnClassesDegrees=false;
 
     for(auto arg: kwargs){
       if(string(py::str(arg.first)).compare("searchBestConfidence") == 0)
@@ -178,6 +159,9 @@ public:
 
       if(string(py::str(arg.first)).compare("returnActivationDegree") == 0)
         returnActivationDegree = arg.second.cast<bool>();
+
+      if(string(py::str(arg.first)).compare("returnClassesDegrees") == 0)
+        returnClassesDegrees = arg.second.cast<bool>();
     }
     float numberOfRAMS = calculateNumberOfRams(images[0].size(), addressSize, completeAddressing);
 
@@ -188,19 +172,23 @@ public:
       string label = Bleaching::getBiggestCandidate(candidates);
       string aClass = label.substr(0,label.find("::"));
 
-      if(returnActivationDegree && !returnConfidence){
+      if(returnConfidence || returnActivationDegree || returnClassesDegrees){
+        labels[i] = py::dict(py::arg("class")=aClass);
+      }
+
+      if(returnActivationDegree){
         float activationDegree = candidates[label]/numberOfRAMS;
-        labels[i] = py::dict(py::arg("class")=aClass, py::arg("activationDegree")=activationDegree);
+        labels[i]["activationDegree"]=activationDegree;
       }
-      if(returnConfidence && !returnActivationDegree){
+      if(returnConfidence){
         float confidence = Bleaching::getConfidence(candidates, candidates[label]);
-        labels[i] = py::dict(py::arg("class")=aClass, py::arg("confidence")=confidence);
+        labels[i]["confidence"]=confidence;
       }
-      if(returnActivationDegree && returnConfidence){
-        float activationDegree = candidates[label]/numberOfRAMS;
-        float confidence = Bleaching::getConfidence(candidates, candidates[label]);
-        labels[i] = py::dict(py::arg("class")=aClass, py::arg("activationDegree")=activationDegree, py::arg("confidence")=confidence);
+
+      if(returnClassesDegrees){
+        labels[i]["classesDegrees"] = getClassesDegrees(candidates);
       }
+
       if(!returnActivationDegree && !returnConfidence){
         labels[i] = aClass;
       }
@@ -267,6 +255,20 @@ protected:
 
   void makeClusters(const string label,const int entrySize){
     clusters[label] = Cluster(entrySize, addressSize, minScore, threshold, discriminatorsLimit, completeAddressing, ignoreZero, base);
+  }
+
+  py::list getClassesDegrees(map<string, int> candidates) const{
+    float total = 0;
+    int index = 0;
+    py::list output(candidates.size());
+    for(map<string, int>::iterator i=candidates.begin(); i!=candidates.end(); ++i) total += i->second;
+    if(total == 0) total=1;
+    for(map<string, int>::iterator i=candidates.begin(); i!=candidates.end(); ++i){
+      string aClass = i->first.substr(0,i->first.find("::"));
+      output[index] = py::dict(py::arg("class")=aClass, py::arg("degree")=(i->second/total));
+      index++;
+    }
+    return output;
   }
 
 private:
