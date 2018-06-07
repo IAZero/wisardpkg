@@ -106,7 +106,7 @@ public:
     }
   }
 
-  map<string, int>& classify(const vector<int>& image){
+  map<string, int>& classify(const vector<int>& image, bool searchBestConfidence=false){
     map<string,vector<int>> allvotes;
 
     for(map<string,Cluster>::iterator i=clusters.begin(); i!=clusters.end(); ++i){
@@ -116,7 +116,7 @@ public:
       }
     }
 
-    return Bleaching::make(allvotes, bleachingActivated);
+    return Bleaching::make(allvotes, bleachingActivated, searchBestConfidence);
   }
 
   map<string, int>& classifyUnsupervised(const vector<int>& image){
@@ -144,19 +144,52 @@ public:
     return *labels;
   }
 
-  vector<string>& classify(const vector<vector<int>>& images){
-    vector<string>* labels = new vector<string>(images.size());
+  py::list classify(const vector<vector<int>>& images, py::kwargs kwargs){
+    bool searchBestConfidence=false;
+    bool returnConfidence=false;
+    bool returnActivationDegree=false;
+
+    for(auto arg: kwargs){
+      if(string(py::str(arg.first)).compare("searchBestConfidence") == 0)
+        searchBestConfidence = arg.second.cast<bool>();
+
+      if(string(py::str(arg.first)).compare("returnConfidence") == 0)
+        returnConfidence = arg.second.cast<bool>();
+
+      if(string(py::str(arg.first)).compare("returnActivationDegree") == 0)
+        returnActivationDegree = arg.second.cast<bool>();
+    }
+    float numberOfRAMS = calculateNumberOfRams(images[0].size(), addressSize, completeAddressing);
+
+    py::list labels(images.size());
     for(unsigned int i=0; i<images.size(); i++){
       if(verbose) cout << "\rclassifying " << i+1 << " of " << images.size();
-      map<string,int> candidates = classify(images[i]);
+      map<string,int> candidates = classify(images[i], searchBestConfidence);
       string label = Bleaching::getBiggestCandidate(candidates);
-      (*labels)[i] = label.substr(0,label.find("::"));
+      string aClass = label.substr(0,label.find("::"));
+
+      if(returnActivationDegree && !returnConfidence){
+        float activationDegree = candidates[label]/numberOfRAMS;
+        labels[i] = py::dict(py::arg("class")=aClass, py::arg("activationDegree")=activationDegree);
+      }
+      if(returnConfidence && !returnActivationDegree){
+        float confidence = Bleaching::getConfidence(candidates, candidates[label]);
+        labels[i] = py::dict(py::arg("class")=aClass, py::arg("confidence")=confidence);
+      }
+      if(returnActivationDegree && returnConfidence){
+        float activationDegree = candidates[label]/numberOfRAMS;
+        float confidence = Bleaching::getConfidence(candidates, candidates[label]);
+        labels[i] = py::dict(py::arg("class")=aClass, py::arg("activationDegree")=activationDegree, py::arg("confidence")=confidence);
+      }
+      if(!returnActivationDegree && !returnConfidence){
+        labels[i] = aClass;
+      }
 
       candidates.clear();
       map<string,int>().swap(candidates);
     }
     if(verbose) cout << "\r" << endl;
-    return *labels;
+    return labels;
   }
 
   vector<vector<int>>& getMentalImage(string label){

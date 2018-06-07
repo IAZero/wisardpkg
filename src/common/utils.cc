@@ -6,6 +6,14 @@ inline int randint(int min, int max, bool isSeed=true){
   return min + (std::rand() % (int)(max - min + 1));
 }
 
+int calculateNumberOfRams(int entrySize, int addressSize, bool completeAddressing=true){
+  int numberOfRAMS = entrySize / addressSize;
+  int remain = entrySize % addressSize;
+  if(completeAddressing && remain > 0)
+    numberOfRAMS++;
+  return numberOfRAMS;
+}
+
 
 template<typename T, typename Functor>
 void foreach(std::vector<T>& v, Functor& func, bool verbose=false){
