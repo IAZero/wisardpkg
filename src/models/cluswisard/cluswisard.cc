@@ -119,6 +119,26 @@ public:
     return Bleaching::make(allvotes, bleachingActivated, searchBestConfidence);
   }
 
+  py::list classify(const vector<int>& image, py::kwargs kwargs){
+    bool searchBestConfidence = false;
+    for(auto arg: kwargs){
+      if(string(py::str(arg.first)).compare("searchBestConfidence") == 0)
+        searchBestConfidence = arg.second.cast<bool>();
+    }
+
+    map<string, int> candidates = classify(image, searchBestConfidence);
+    float total = 0;
+    int index = 0;
+    py::list output(candidates.size());
+    for(map<string, int>::iterator i=candidates.begin(); i!=candidates.end(); ++i) total += i->second;
+    for(map<string, int>::iterator i=candidates.begin(); i!=candidates.end(); ++i){
+      string aClass = i->first.substr(0,i->first.find("::"));
+      output[index] = py::dict(py::arg("class")=aClass, py::arg("degree")=(i->second/total));
+      index++;
+    }
+    return output;
+  }
+
   map<string, int>& classifyUnsupervised(const vector<int>& image){
     map<string,vector<int>> allvotes;
     vector<vector<int>> votes = unsupervisedCluster.classify(image);
