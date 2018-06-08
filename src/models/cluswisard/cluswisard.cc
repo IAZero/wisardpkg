@@ -163,6 +163,7 @@ public:
       if(string(py::str(arg.first)).compare("returnClassesDegrees") == 0)
         returnClassesDegrees = arg.second.cast<bool>();
     }
+
     float numberOfRAMS = calculateNumberOfRams(images[0].size(), addressSize, completeAddressing);
 
     py::list labels(images.size());
@@ -180,6 +181,7 @@ public:
         float activationDegree = candidates[label]/numberOfRAMS;
         labels[i]["activationDegree"]=activationDegree;
       }
+
       if(returnConfidence){
         float confidence = Bleaching::getConfidence(candidates, candidates[label]);
         labels[i]["confidence"]=confidence;

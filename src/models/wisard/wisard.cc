@@ -72,6 +72,7 @@ public:
     bool searchBestConfidence=false;
     bool returnConfidence=false;
     bool returnActivationDegree=false;
+    bool returnClassesDegrees=false;
 
     for(auto arg: kwargs){
       if(string(py::str(arg.first)).compare("searchBestConfidence") == 0)
@@ -82,6 +83,9 @@ public:
 
       if(string(py::str(arg.first)).compare("returnActivationDegree") == 0)
         returnActivationDegree = arg.second.cast<bool>();
+
+      if(string(py::str(arg.first)).compare("returnClassesDegrees") == 0)
+        returnClassesDegrees = arg.second.cast<bool>();
     }
 
     py::list labels(images.size());
@@ -90,18 +94,25 @@ public:
       map<string,int> candidates = classify(images[i],searchBestConfidence);
       string aClass = Bleaching::getBiggestCandidate(candidates);
 
-      if(returnActivationDegree || returnConfidence){
+      if(returnActivationDegree || returnConfidence || returnClassesDegrees){
         labels[i] = py::dict(py::arg("class")=aClass);
       }
+
       if(returnActivationDegree && !returnConfidence){
         float activationDegree = candidates[aClass]/(float)discriminators[aClass].getNumberOfRAMS();
         labels[i]["activationDegree"]=activationDegree;
       }
+
       if(returnConfidence && !returnActivationDegree){
         float confidence = Bleaching::getConfidence(candidates, candidates[aClass]);
         labels[i]["confidence"]=confidence;
       }
-      if(!returnActivationDegree && !returnConfidence){
+
+      if(returnClassesDegrees){
+        labels[i]["classesDegrees"] = getClassesDegrees(candidates);
+      }
+
+      if(!returnActivationDegree && !returnConfidence && !returnClassesDegrees){
         labels[i] = aClass;
       }
     }
@@ -139,6 +150,19 @@ protected:
     if(imageSize != labelsSize){
       throw Exception("The size of data is not the same of the size of labels!");
     }
+  }
+
+  py::list getClassesDegrees(map<string, int> candidates) const{
+    float total = 0;
+    int index = 0;
+    py::list output(candidates.size());
+    for(map<string, int>::iterator i=candidates.begin(); i!=candidates.end(); ++i) total += i->second;
+    if(total == 0) total=1;
+    for(map<string, int>::iterator i=candidates.begin(); i!=candidates.end(); ++i){
+      output[index] = py::dict(py::arg("class")=i->first, py::arg("degree")=(i->second/total));
+      index++;
+    }
+    return output;
   }
 
 private:

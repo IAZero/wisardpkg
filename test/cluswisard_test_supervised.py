@@ -34,7 +34,7 @@ print("training...")
 clus.train(X,y)
 
 print("classifing...")
-out=clus.classify(X, returnConfidence=True, returnActivationDegree=True, returnClassesDegrees=True)
+out=clus.classify(X,returnClassesDegrees=True)
 
 print("out:")
 for i,d in enumerate(X):
