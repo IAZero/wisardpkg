@@ -93,7 +93,7 @@ clus.train(X,y)
 # the keys must be integer indices indicating which input array the entry is associated to,
 # the values are the labels which must be strings
 y2 = {
-  1: "cold"
+  1: "cold",
   3: "hot"
 }
 
