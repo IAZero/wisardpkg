@@ -24,5 +24,6 @@ d.train(X)
 
 print("classifing...")
 out=d.classify(X[0])
+print(out)
 
 print("### DONE Discriminator ###")

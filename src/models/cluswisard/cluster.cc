@@ -99,6 +99,6 @@ private:
   int base;
 
   void makeDiscriminator(const int index){
-    discriminators[index] = new Discriminator(addressSize, entrySize, ignoreZero, completeAddressing, false, base);
+    discriminators[index] = new Discriminator(addressSize, entrySize, ignoreZero, completeAddressing, base);
   }
 };

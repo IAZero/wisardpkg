@@ -139,7 +139,7 @@ public:
 protected:
   void makeDiscriminator(string label, int entrySize){
     if(indexes.size()==0){
-      discriminators[label] = Discriminator(addressSize, entrySize, ignoreZero, completeAddressing, false, base);
+      discriminators[label] = Discriminator(addressSize, entrySize, ignoreZero, completeAddressing, base);
     }
     else{
       discriminators[label] = Discriminator(indexes, addressSize, entrySize, ignoreZero, base);

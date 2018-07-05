@@ -14,11 +14,47 @@ class Discriminator{
 public:
   Discriminator(): entrySize(0){}
 
-  Discriminator(int addressSize, int entrySize, bool ignoreZero, bool completeAddressing, bool useSeed, int base=2): entrySize(entrySize){
+  Discriminator(int addressSize, int entrySize, bool ignoreZero, bool completeAddressing, int base=2): entrySize(entrySize){
+    setRAMShuffle(addressSize, ignoreZero, completeAddressing, base);
+  }
+
+  Discriminator(vector<int> indexes, int addressSize, int entrySize, bool ignoreZero=false, int base=2): entrySize(entrySize){
+    setRAMByIndex(indexes, addressSize, ignoreZero, base);
+  }
+
+  Discriminator(int addressSize, int entrySize, py::kwargs kwargs): entrySize(entrySize){
+    bool ignoreZero=false;
+    bool completeAddressing=true;
+    vector<int> indexes(0);
+    int base = 2;
+
+    srand(randint(0, 100000));
+
+    for(auto arg: kwargs){
+      if(string(py::str(arg.first)).compare("ignoreZero") == 0)
+        ignoreZero = arg.second.cast<bool>();
+
+      if(string(py::str(arg.first)).compare("completeAddressing") == 0)
+        completeAddressing = arg.second.cast<bool>();
+
+      if(string(py::str(arg.first)).compare("base") == 0)
+        base = arg.second.cast<int>();
+
+      if(string(py::str(arg.first)).compare("indexes") == 0)
+        indexes = arg.second.cast<vector<int>>();
+    }
+
+    if(indexes.size() == 0){
+      setRAMShuffle(addressSize, ignoreZero, completeAddressing, base);
+    }
+    else{
+      setRAMByIndex(indexes, addressSize, ignoreZero, base);
+    }
+  }
+
+  void setRAMShuffle(int addressSize, bool ignoreZero, bool completeAddressing, int base){
     checkAddressSize(entrySize, addressSize);
     checkBase(base);
-    if(useSeed)
-      srand(randint(0, 100000));
 
     int numberOfRAMS = entrySize / addressSize;
     int remain = entrySize % addressSize;
@@ -28,7 +64,7 @@ public:
       indexesSize += addressSize-remain;
     }
 
-    rams = vector<RAM>(numberOfRAMS);
+    rams.resize(numberOfRAMS);
     vector<int> indexes(indexesSize);
 
     for(int i=0; i<entrySize; i++) {
@@ -45,7 +81,7 @@ public:
     }
   }
 
-  Discriminator(vector<int> indexes, int addressSize, int entrySize, bool ignoreZero=false, int base=2): entrySize(entrySize){
+  void setRAMByIndex(vector<int> indexes, int addressSize, bool ignoreZero=false, int base=2){
     checkAddressSize(entrySize, addressSize);
     checkBase(base);
     checkListOfIndexes(indexes, entrySize);
@@ -56,38 +92,6 @@ public:
     for(unsigned int i=0; i<rams.size(); i++){
       vector<int>* subIndexes = new vector<int>(indexes.begin() + (i*addressSize), indexes.begin() + ((i+1)*addressSize));
       rams[i] = RAM(*subIndexes, ignoreZero, base);
-    }
-  }
-
-  Discriminator(int addressSize, int entrySize, py::kwargs kwargs): entrySize(entrySize){
-    bool ignoreZero=false;
-    bool completeAddressing=true;
-    bool useSeed=true;
-    vector<int> indexes(0);
-    int base = 2;
-
-    for(auto arg: kwargs){
-      if(string(py::str(arg.first)).compare("ignoreZero") == 0)
-        ignoreZero = arg.second.cast<bool>();
-
-      if(string(py::str(arg.first)).compare("useSeed") == 0)
-        useSeed = arg.second.cast<bool>();
-
-      if(string(py::str(arg.first)).compare("completeAddressing") == 0)
-        completeAddressing = arg.second.cast<bool>();
-
-      if(string(py::str(arg.first)).compare("base") == 0)
-        base = arg.second.cast<int>();
-
-      if(string(py::str(arg.first)).compare("indexes") == 0)
-        indexes = arg.second.cast<vector<int>>();
-    }
-
-    if(indexes.size() == 0){
-      Discriminator(addressSize, entrySize, ignoreZero, completeAddressing, useSeed, base);
-    }
-    else{
-      Discriminator(indexes, addressSize, entrySize, ignoreZero, base);
     }
   }
 
