@@ -27,7 +27,7 @@ addressSize = 3 # tamanho do endereçamento das rams
 minScore = 0.1 # score mínimo do processo de treino
 threshold = 10 # limite de treinos por discriminador
 discriminatorLimit = 5 # limit de discriminadores por cluster
-clus = ClusWisard(addressSize,minScore,threshold,discriminatorLimit,returnActivationDegree=True, returnConfidence=True)
+clus = ClusWisard(addressSize,minScore,threshold,discriminatorLimit)
 
 
 print("training...")

@@ -111,7 +111,7 @@ public:
         labels[i]["classesDegrees"] = getClassesDegrees(candidates);
       }
 
-      if(!returnActivationDegree && !returnConfidence){
+      if(!returnActivationDegree && !returnConfidence && !returnClassesDegrees){
         labels[i] = aClass;
       }
     }
