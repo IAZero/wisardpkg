@@ -24,13 +24,13 @@ for i,d in enumerate(X):
 print("\n")
 
 addressSize = 2 # tamanho do endereçamento das rams
-wsd = Wisard(addressSize, bleachingActivated=True)
+wsd = Wisard(addressSize, bleachingActivated=True, returnActivationDegree=True, returnConfidence=True)
 
 print("training...")
 wsd.train(X,y)
 
 print("classifing...")
-out=wsd.classify(X, returnActivationDegree=True, returnConfidence=True)
+out=wsd.classify(X)
 
 print("out:")
 for i,d in enumerate(X):
