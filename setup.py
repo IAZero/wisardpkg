@@ -92,10 +92,10 @@ class BuildExt(build_ext):
 setup(
     name=__package_name__,
     version=__version__,
-    author='Aluizio Lima Filho',
+    author='IAZero',
     author_email='aluizio@cos.ufrj.br',
-    url='https://github.com/aluiziolimafilho/wisardpkg',
-    download_url = 'https://github.com/aluiziolimafilho/wisardpkg/archive/v'+str(__version__)+'.tar.gz',
+    url='https://github.com/IAZero/wisardpkg',
+    download_url = 'https://github.com/IAZero/wisardpkg/archive/v'+str(__version__)+'.tar.gz',
     description='A library of wisard with some models based on wisard',
     long_description='',
     ext_modules=ext_modules,
