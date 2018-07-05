@@ -85,6 +85,7 @@ public:
   }
 
   py::list classify(const vector<vector<int>>& images){
+    float numberOfRAMS = calculateNumberOfRams(images[0].size(), addressSize, completeAddressing);
 
     py::list labels(images.size());
     for(unsigned int i=0; i<images.size(); i++){
@@ -92,16 +93,16 @@ public:
       map<string,int> candidates = classify(images[i],searchBestConfidence);
       string aClass = Bleaching::getBiggestCandidate(candidates);
 
-      if(returnActivationDegree || returnConfidence || returnClassesDegrees){
+      if(returnConfidence || returnActivationDegree || returnClassesDegrees){
         labels[i] = py::dict(py::arg("class")=aClass);
       }
 
-      if(returnActivationDegree && !returnConfidence){
-        float activationDegree = candidates[aClass]/(float)discriminators[aClass].getNumberOfRAMS();
+      if(returnActivationDegree){
+        float activationDegree = candidates[aClass]/numberOfRAMS;
         labels[i]["activationDegree"]=activationDegree;
       }
 
-      if(returnConfidence && !returnActivationDegree){
+      if(returnConfidence){
         float confidence = Bleaching::getConfidence(candidates, candidates[aClass]);
         labels[i]["confidence"]=confidence;
       }
@@ -110,7 +111,7 @@ public:
         labels[i]["classesDegrees"] = getClassesDegrees(candidates);
       }
 
-      if(!returnActivationDegree && !returnConfidence && !returnClassesDegrees){
+      if(!returnActivationDegree && !returnConfidence){
         labels[i] = aClass;
       }
     }
