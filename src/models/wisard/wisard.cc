@@ -19,6 +19,10 @@ public:
     completeAddressing=true;
     indexes=vector<int>(0);
     base=2;
+    searchBestConfidence=false;
+    returnConfidence=false;
+    returnActivationDegree=false;
+    returnClassesDegrees=false;
 
     srand(randint(0,1000000));
     for(auto arg: kwargs){
@@ -39,6 +43,18 @@ public:
 
       if(string(py::str(arg.first)).compare("base") == 0)
         base = arg.second.cast<int>();
+
+      if(string(py::str(arg.first)).compare("searchBestConfidence") == 0)
+        searchBestConfidence = arg.second.cast<bool>();
+
+      if(string(py::str(arg.first)).compare("returnConfidence") == 0)
+        returnConfidence = arg.second.cast<bool>();
+
+      if(string(py::str(arg.first)).compare("returnActivationDegree") == 0)
+        returnActivationDegree = arg.second.cast<bool>();
+
+      if(string(py::str(arg.first)).compare("returnClassesDegrees") == 0)
+        returnClassesDegrees = arg.second.cast<bool>();
     }
   }
 
@@ -68,25 +84,7 @@ public:
     return Bleaching::make(allvotes, bleachingActivated, searchBestConfidence);
   }
 
-  py::list classify(const vector<vector<int>>& images, py::kwargs kwargs){
-    bool searchBestConfidence=false;
-    bool returnConfidence=false;
-    bool returnActivationDegree=false;
-    bool returnClassesDegrees=false;
-
-    for(auto arg: kwargs){
-      if(string(py::str(arg.first)).compare("searchBestConfidence") == 0)
-        searchBestConfidence = arg.second.cast<bool>();
-
-      if(string(py::str(arg.first)).compare("returnConfidence") == 0)
-        returnConfidence = arg.second.cast<bool>();
-
-      if(string(py::str(arg.first)).compare("returnActivationDegree") == 0)
-        returnActivationDegree = arg.second.cast<bool>();
-
-      if(string(py::str(arg.first)).compare("returnClassesDegrees") == 0)
-        returnClassesDegrees = arg.second.cast<bool>();
-    }
+  py::list classify(const vector<vector<int>>& images){
 
     py::list labels(images.size());
     for(unsigned int i=0; i<images.size(); i++){
@@ -128,14 +126,6 @@ public:
     return *images;
   }
 
-  void setVerbose(bool v){
-    verbose = v;
-  }
-
-  bool getVerbose(){
-    return verbose;
-  }
-
 protected:
   void makeDiscriminator(string label, int entrySize){
     if(indexes.size()==0){
@@ -173,5 +163,9 @@ private:
   bool ignoreZero;
   bool completeAddressing;
   int base;
+  bool searchBestConfidence;
+  bool returnConfidence;
+  bool returnActivationDegree;
+  bool returnClassesDegrees;
   map<string, Discriminator> discriminators;
 };
