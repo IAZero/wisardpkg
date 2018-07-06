@@ -3,6 +3,7 @@
 #include "common/utils.cc"
 #include "common/exceptions.cc"
 #include "common/bleaching.cc"
+#include "common/dataset.cc"
 
 //synthesizers
 #include "synthetic_data/synthesizers.cc"
