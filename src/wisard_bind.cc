@@ -7,25 +7,6 @@ namespace py = pybind11;
 
 PYBIND11_MODULE(wisardpkg, m){
 
-    // DataSet
-    py::class_<Entry>(m, "Entry")
-      .def(py::init())
-      .def_readonly("features", &Entry::features)
-      .def_readonly("label", &Entry::label)
-    ;
-
-    py::class_<DataSet>(m, "DataSet")
-      .def(py::init<>())
-      .def("append", (void (DataSet::*)(const vector<int>&)) &DataSet::append)
-      .def("append", (void (DataSet::*)(const vector<int>&, const string&)) &DataSet::append)
-      .def("__getitem__", &DataSet::operator[])
-      .def("isSupervised", &DataSet::isSupervised)
-      .def("isUnsupervised", &DataSet::isUnsupervised)
-      .def("isSemiSupervised", &DataSet::isSemiSupervised)
-      .def("size", &DataSet::size)
-      .def("__len__", &DataSet::size)
-    ;
-
     // binarizations
     py::class_<KernelCanvas>(m, "KernelCanvas")
       .def(py::init<int, int>())
