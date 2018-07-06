@@ -74,19 +74,6 @@ public:
     if(verbose) cout << "\r" << endl;
   }
 
-  void train(const DataSet& dataset){
-    if(dataset.isSupervised()){
-      for(int i=0; i<dataset.size(); i++){
-        if(verbose) cout << "\rtraining " << i+1 << " of " << dataset.size();
-        train(dataset[i].features, dataset[i].label);
-      }
-      if(verbose) cout << "\r" << endl;
-    }
-    else{
-      throw Exception("This dataset is not supervised!");
-    }
-  }
-
   map<string, int>& classify(const vector<int>& image, bool searchBestConfidence=false){
     map<string,vector<int>> allvotes;
 
@@ -128,20 +115,6 @@ public:
     for(unsigned int i=0; i<images.size(); i++){
       if(verbose) cout << "\rclassifying " << i+1 << " of " << images.size();
       map<string,int> candidates = classify(images[i],searchBestConfidence);
-      string aClass = Bleaching::getBiggestCandidate(candidates);
-      setClassifyOutput(labels, i, aClass, numberOfRAMS, candidates);
-    }
-    if(verbose) cout << "\r" << endl;
-    return labels;
-  }
-
-  py::list classify(const DataSet& dataset){
-    float numberOfRAMS = calculateNumberOfRams(dataset[0].features.size(), addressSize, completeAddressing);
-
-    py::list labels(dataset.size());
-    for(int i=0; i<dataset.size(); i++){
-      if(verbose) cout << "\rclassifying " << i+1 << " of " << dataset.size();
-      map<string,int> candidates = classify(dataset[i].features,searchBestConfidence);
       string aClass = Bleaching::getBiggestCandidate(candidates);
       setClassifyOutput(labels, i, aClass, numberOfRAMS, candidates);
     }

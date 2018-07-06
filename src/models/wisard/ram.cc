@@ -91,7 +91,7 @@ private:
 
   void checkPos(const int code) const{
     if(code >= base){
-      throw Exception("The input data has a value bigger than base of addrising!");
+      throw Exception("The input data has a value bigger than base of addresing!");
     }
   }
 
