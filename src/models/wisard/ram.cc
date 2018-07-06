@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <map>
+#include <unordered_map>
 #include <tuple>
 #include <cmath>
 #include <cstdlib>
@@ -44,7 +44,7 @@ public:
       (*mentalPiece)[i][1] = 0;
     }
 
-    for(map<int,int>::iterator j=positions.begin(); j!=positions.end(); ++j){
+    for(unordered_map<int,int>::iterator j=positions.begin(); j!=positions.end(); ++j){
       if(j->first == 0) continue;
       const vector<int> address = convertToBase(j->first);
       for(unsigned int i=0; i<mentalPiece->size(); i++){
@@ -75,7 +75,7 @@ protected:
 
 private:
   vector<int> addresses;
-  map<int,int> positions;
+  unordered_map<int,int> positions;
   bool ignoreZero;
   int base;
 
