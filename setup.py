@@ -3,8 +3,17 @@ from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
 import sys
 import setuptools
+from codecs import open  # To use a consistent encoding
+from os import path
 
-__version__ = '1.0.1'
+here = path.abspath(path.dirname(__file__))
+
+# Get the long description from the relevant file
+with open(path.join(here, 'README.md'), encoding='utf-8') as f:
+    long_description = f.read()
+    f.close()
+
+__version__ = '1.0.2'
 __package_name__ = 'wisardpkg'
 __src__ = 'src/wisard_bind.cc'
 
@@ -97,7 +106,8 @@ setup(
     url='https://github.com/IAZero/wisardpkg',
     download_url = 'https://github.com/IAZero/wisardpkg/archive/v'+str(__version__)+'.tar.gz',
     description='A library of wisard with some models based on wisard',
-    long_description='',
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     ext_modules=ext_modules,
     install_requires=['pybind11>=2.2'],
     cmdclass={'build_ext': BuildExt},
