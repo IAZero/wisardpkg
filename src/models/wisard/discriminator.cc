@@ -3,7 +3,6 @@
 #include <vector>
 #include <map>
 #include <tuple>
-#include <cmath>
 #include <cstdlib>
 
 using namespace std;

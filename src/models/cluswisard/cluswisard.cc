@@ -4,7 +4,6 @@
 #include <algorithm>    // std::random_shuffle
 #include <map>
 #include <tuple>
-#include <cmath>
 #include <cstdlib>
 
 using namespace std;
