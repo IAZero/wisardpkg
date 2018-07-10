@@ -13,19 +13,9 @@ public:
   RAM(){}
   RAM(const int addressSize, const int entrySize, const bool ignoreZero=false, int base=2): ignoreZero(ignoreZero), base(base){
     addresses = vector<int>(addressSize);
-    setBases(base, addressSize);
     generateRandomAddresses(entrySize);
   }
-  RAM(const vector<int>& indexes, const bool ignoreZero=false, int base=2): addresses(indexes), ignoreZero(ignoreZero), base(base){
-    setBases(base, indexes.size());
-  }
-
-  void setBases(int base, int size){
-    bases.resize(size);
-    for(int i =0; i<base; i++){
-      bases[i] = pow(base,i);
-    }
-  }
+  RAM(const vector<int>& indexes, const bool ignoreZero=false, int base=2): addresses(indexes), ignoreZero(ignoreZero), base(base){}
 
   int getVote(const vector<int>& image){
     int index = getIndex(image);
@@ -44,7 +34,7 @@ public:
     int index = getIndex(image);
     unordered_map<int,int>::iterator it = positions.find(index);
     if(it == positions.end()){
-      positions.insert(pair<int,int>(index, 1));
+      positions.insert(it,pair<int,int>(index, 1));
     }
     else{
       it->second++;
@@ -80,19 +70,19 @@ protected:
   int getIndex(const vector<int>& image) const{
     int index = 0;
     for(unsigned int i=0; i<addresses.size(); i++){
-      int pos = addresses[i];
-      checkPos(image[pos]);
-      index += image[pos]*bases[i];
+      int bin = image[addresses[i]];
+      checkPos(bin);
+      index += bin*(base>2?ipow(base,i):(i>0?2<<(i-1):1));
     }
     return index;
   }
+
 
 private:
   vector<int> addresses;
   unordered_map<int,int> positions;
   bool ignoreZero;
   int base;
-  vector<int> bases;
 
   const vector<int> convertToBase(const int number) const{
     vector<int> numberConverted(addresses.size());

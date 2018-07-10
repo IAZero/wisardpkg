@@ -23,3 +23,16 @@ void foreach(std::vector<T>& v, Functor& func, bool verbose=false){
   }
   std::cout << "\r" << std::endl;
 }
+
+int ipow(int base, int exp){
+  int result = 1;
+  for (;;){
+    if (exp & 1)
+      result *= base;
+    exp >>= 1;
+    if (!exp)
+      break;
+    base *= base;
+  }
+  return result;
+}
