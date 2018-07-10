@@ -4,7 +4,7 @@ from setuptools.command.build_ext import build_ext
 import sys
 import setuptools
 
-__version__ = '1.0.0'
+__version__ = '1.0.1'
 __package_name__ = 'wisardpkg'
 __src__ = 'src/wisard_bind.cc'
 
