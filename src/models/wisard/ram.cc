@@ -13,9 +13,19 @@ public:
   RAM(){}
   RAM(const int addressSize, const int entrySize, const bool ignoreZero=false, int base=2): ignoreZero(ignoreZero), base(base){
     addresses = vector<int>(addressSize);
+    setBases(base, addressSize);
     generateRandomAddresses(entrySize);
   }
-  RAM(const vector<int>& indexes, const bool ignoreZero=false, int base=2): addresses(indexes), ignoreZero(ignoreZero), base(base){}
+  RAM(const vector<int>& indexes, const bool ignoreZero=false, int base=2): addresses(indexes), ignoreZero(ignoreZero), base(base){
+    setBases(base, indexes.size());
+  }
+
+  void setBases(int base, int size){
+    bases.resize(size);
+    for(int i =0; i<base; i++){
+      bases[i] = pow(base,i);
+    }
+  }
 
   int getVote(const vector<int>& image){
     int index = getIndex(image);
@@ -53,7 +63,6 @@ public:
           (*mentalPiece)[i][0] = addresses[i];
           (*mentalPiece)[i][1] = 0;
         }
-        //if((j->first & (int)pow(2,i)) > 0){
         if(address[i] > 0){
           (*mentalPiece)[i][1] += j->second;
         }
@@ -68,7 +77,7 @@ protected:
     for(unsigned int i=0; i<addresses.size(); i++){
       int pos = addresses[i];
       checkPos(image[pos]);
-      index += (int)(image[pos]*pow(base,i));
+      index += image[pos]*bases[i];
     }
     return index;
   }
@@ -78,6 +87,7 @@ private:
   unordered_map<int,int> positions;
   bool ignoreZero;
   int base;
+  vector<int> bases;
 
   const vector<int> convertToBase(const int number) const{
     vector<int> numberConverted(addresses.size());
