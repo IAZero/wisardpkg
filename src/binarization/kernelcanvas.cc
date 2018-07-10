@@ -11,16 +11,14 @@ class KernelCanvas{
 public:
   KernelCanvas(int numberOfKernels, int entrySize, int entryColumn=0): numberOfKernels(numberOfKernels){
     if(numberOfKernels>entrySize){
-      cout << "Error: number of kernels is too big!" << endl;
-      exit(0);
+      throw Exception("Error: number of kernels is too big!");
     }
     if(entryColumn <= 0){
       entryColumn = searchColumnsNumber(entrySize);
     }
     int lines = entrySize/entryColumn;
     if(lines*entryColumn != entrySize){
-      cout << "Error: wrong number of columns!" << endl;
-      exit(0);
+      throw Exception("Error: wrong number of columns!");
     }
     kernels = vector<vector<int>>(lines, vector<int>(entryColumn));
     for(unsigned int i=0; i<kernels.size(); i++){
