@@ -31,19 +31,24 @@ public:
     int index = getIndex(image);
     if(ignoreZero && index == 0)
       return 0;
-    if(positions.find(index) == positions.end()){
+    unordered_map<int,int>::iterator it = positions.find(index);
+    if(it == positions.end()){
       return 0;
     }
     else{
-      return positions[index];
+      return it->second;
     }
   }
 
   void train(const vector<int>& image){
     int index = getIndex(image);
-    if(positions.find(index) == positions.end())
-      positions[index] = 0;
-    positions[index]++;
+    unordered_map<int,int>::iterator it = positions.find(index);
+    if(it == positions.end()){
+      positions.insert(pair<int,int>(index, 1));
+    }
+    else{
+      it->second++;
+    }
   }
 
   vector<vector<int>>& getMentalImage() {
