@@ -34,6 +34,7 @@ PYBIND11_MODULE(wisardpkg, m){
       .def("train", (void (Discriminator::*)(const vector<int>&)) &Discriminator::train)
       .def("train", (void (Discriminator::*)(const vector<vector<int>>&)) &Discriminator::train)
       .def("classify", &Discriminator::getVotes)
+      .def("json", &Discriminator::getConfigJSON)
     ;
 
     // models
