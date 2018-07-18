@@ -130,6 +130,14 @@ public:
     return *images;
   }
 
+  json getClassesJSON(){
+    json c;
+    for(map<string, Discriminator>::iterator d=discriminators.begin(); d!=discriminators.end(); ++d){
+      c[d->first] = json::parse(d->second.getConfigJSON());
+    }
+    return c;
+  }
+
   string getConfigJSON() {
     json config = {
       {"addressSize", addressSize},
@@ -142,7 +150,8 @@ public:
       {"searchBestConfidence", searchBestConfidence},
       {"returnConfidence", returnConfidence},
       {"returnActivationDegree", returnActivationDegree},
-      {"returnClassesDegrees", returnClassesDegrees}
+      {"returnClassesDegrees", returnClassesDegrees},
+      {"classes", getClassesJSON()}
     };
     return config.dump(4);
   }

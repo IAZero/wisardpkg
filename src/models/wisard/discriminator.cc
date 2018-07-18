@@ -8,6 +8,7 @@
 using namespace std;
 
 namespace py = pybind11;
+using json = nlohmann::json;
 
 class Discriminator{
 public:
@@ -138,6 +139,23 @@ public:
       }
     }
     return *mentalImage;
+  }
+
+  json getRAMSJSON(){
+    json rj = json::array();
+    for(unsigned int i=0; i<rams.size(); i++){
+      rj[i] = rams[i].getConfigJSON();
+    }
+    return rj;
+  }
+
+  string getConfigJSON(){
+    json config = {
+      {"entrySize", entrySize},
+      {"count", count},
+      {"rams", getRAMSJSON()}
+    };
+    return config.dump(4);
   }
 private:
 

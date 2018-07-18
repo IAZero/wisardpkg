@@ -6,6 +6,7 @@
 #include <cstdlib>
 
 using namespace std;
+using json = nlohmann::json;
 
 class RAM{
 public:
@@ -63,6 +64,24 @@ public:
       }
     }
     return *mentalPiece;
+  }
+
+  json positionsToJSON(){
+    json pos;
+    for(unordered_map<int,int>::iterator j=positions.begin(); j!=positions.end(); ++j){
+      pos[to_string(j->first)] = j->second;
+    }
+    return pos;
+  }
+
+  json getConfigJSON(){
+    json config = {
+      {"addresses", addresses},
+      {"base", base},
+      {"ignoreZero", ignoreZero},
+      {"positions", positionsToJSON()}
+    };
+    return config;
   }
 
 protected:
