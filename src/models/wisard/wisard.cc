@@ -8,6 +8,7 @@
 using namespace std;
 
 namespace py = pybind11;
+using json = nlohmann::json;
 
 class Wisard{
 public:
@@ -127,6 +128,23 @@ public:
       (*images)[d->first] = d->second.getMentalImage();
     }
     return *images;
+  }
+
+  string getConfigJSON() {
+    json config = {
+      {"addressSize", addressSize},
+      {"bleachingActivated", bleachingActivated},
+      {"verbose", verbose},
+      {"indexes", indexes},
+      {"ignoreZero", ignoreZero},
+      {"completeAddressing", completeAddressing},
+      {"base", base},
+      {"searchBestConfidence", searchBestConfidence},
+      {"returnConfidence", returnConfidence},
+      {"returnActivationDegree", returnActivationDegree},
+      {"returnClassesDegrees", returnClassesDegrees}
+    };
+    return config.dump(4);
   }
 
 protected:

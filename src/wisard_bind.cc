@@ -42,6 +42,7 @@ PYBIND11_MODULE(wisardpkg, m){
       .def("train", (void (Wisard::*)(const vector<vector<int>>&, const vector<string>&)) &Wisard::train)
       .def("classify", (py::list (Wisard::*)(const vector<vector<int>>&)) &Wisard::classify)
       .def("getMentalImages", &Wisard::getMentalImages)
+      .def("json", &Wisard::getConfigJSON)
     ;
 
     py::class_<ClusWisard>(m, "ClusWisard")
