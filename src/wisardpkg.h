@@ -22,3 +22,7 @@
 //cluswisard wisard_model
 #include "models/cluswisard/cluster.cc"
 #include "models/cluswisard/cluswisard.cc"
+
+//regression wisard model
+#include "models/regressionwisard/regressionram.cc"
+#include "models/regressionwisard/regressionwisard.cc"

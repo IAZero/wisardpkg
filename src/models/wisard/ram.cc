@@ -21,7 +21,7 @@ public:
     int index = getIndex(image);
     if(ignoreZero && index == 0)
       return 0;
-    unordered_map<int,int>::iterator it = positions.find(index);
+    auto it = positions.find(index);
     if(it == positions.end()){
       return 0;
     }
@@ -32,7 +32,7 @@ public:
 
   void train(const vector<int>& image){
     int index = getIndex(image);
-    unordered_map<int,int>::iterator it = positions.find(index);
+    auto it = positions.find(index);
     if(it == positions.end()){
       positions.insert(it,pair<int,int>(index, 1));
     }
@@ -49,7 +49,7 @@ public:
       (*mentalPiece)[i][1] = 0;
     }
 
-    for(unordered_map<int,int>::iterator j=positions.begin(); j!=positions.end(); ++j){
+    for(auto j=positions.begin(); j!=positions.end(); ++j){
       if(j->first == 0) continue;
       const vector<int> address = convertToBase(j->first);
       for(unsigned int i=0; i<mentalPiece->size(); i++){
@@ -68,7 +68,7 @@ public:
 
   json positionsToJSON(){
     json pos;
-    for(unordered_map<int,int>::iterator j=positions.begin(); j!=positions.end(); ++j){
+    for(auto j=positions.begin(); j!=positions.end(); ++j){
       pos[to_string(j->first)] = j->second;
     }
     return pos;
