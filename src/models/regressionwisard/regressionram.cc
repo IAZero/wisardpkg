@@ -11,7 +11,7 @@ using json = nlohmann::json;
 class RegressionRAM{
 public:
   RegressionRAM(){}
-  RegressionRAM(const vector<int>& indexes, const bool ignoreZero=false, int base=2):
+  RegressionRAM(const vector<int>& indexes, int base=2, const bool ignoreZero=false):
     addresses(indexes), ignoreZero(ignoreZero), base(base){}
 
   vector<float> getVote(const vector<int>& image){
@@ -27,7 +27,7 @@ public:
     }
   }
 
-  void train(const vector<int>& image, float y){
+  void train(const vector<int>& image, const float y){
     int index = getIndex(image);
     auto it = positions.find(index);
     if(it == positions.end()){

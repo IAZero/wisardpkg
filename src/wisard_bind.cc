@@ -57,4 +57,10 @@ PYBIND11_MODULE(wisardpkg, m){
       .def("getMentalImages", &ClusWisard::getMentalImages)
     ;
 
+    py::class_<RegressionWisard>(m, "RegressionWisard")
+      .def(py::init<int, py::kwargs>())
+      .def("train", (void (RegressionWisard::*)(const vector<vector<int>>&, const vector<float>&)) &RegressionWisard::train)
+      .def("predict", (vector<float>& (RegressionWisard::*)(const vector<vector<int>>&)) &RegressionWisard::predict)
+    ;
+
 }
