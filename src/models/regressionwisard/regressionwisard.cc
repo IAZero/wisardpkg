@@ -58,7 +58,7 @@ public:
   }
 
   void train(const vector<vector<int>>& images, const vector<float>& Y){
-    if(rams.empty()) setRAMShuffle();
+    if(rams.empty()) setRAMShuffle(images[0].size());
 
     for(unsigned int i=0; i<images.size(); i++){
       train(images[i],Y[i]);
@@ -67,10 +67,10 @@ public:
 
 
 protected:
-  void setRAMShuffle(){
+  void setRAMShuffle(int entrySize){
+    this->entrySize = entrySize;
     checkAddressSize(entrySize, addressSize);
     checkBase(base);
-
     int numberOfRAMS = entrySize / addressSize;
     int remain = entrySize % addressSize;
     int indexesSize = entrySize;
@@ -88,7 +88,7 @@ protected:
     for(unsigned int i=entrySize; i<indexes.size(); i++){
       indexes[i] = randint(0, entrySize-1, false);
     }
-    
+
     if(!orderedMapping)
       random_shuffle(indexes.begin(), indexes.end());
 
@@ -100,7 +100,7 @@ protected:
 
   void checkEntrySize(const int entry) const {
     if(entrySize != entry){
-      throw Exception("The entry size defined on creation of discriminator is different of entry size given as input!");
+      throw Exception("The entry size defined on creation of RAM is different of entry size given as input!");
     }
   }
 
