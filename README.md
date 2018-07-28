@@ -109,3 +109,7 @@ for i,d in enumerate(X):
 
 ## Documentation:
 You can find the complete documentation in the [wiki](https://github.com/aluiziolimafilho/wisardpkg/wiki).
+
+## Build on libraries:
+[pybind11](https://github.com/pybind/pybind11)
+[nlohmann/json](https://github.com/nlohmann/json)

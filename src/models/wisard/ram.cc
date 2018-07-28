@@ -16,11 +16,9 @@ public:
     base=c["base"];
     addresses = c["addresses"].get<vector<int>>();
     json pos = c["positions"];
-    if(!pos.is_null()){
-      for(json::iterator it = pos.begin(); it != pos.end(); ++it){
-        int p = stoi(it.key());
-        positions[p] = it.value();
-      }
+    for(json::iterator it = pos.begin(); it != pos.end(); ++it){
+      int p = stoi(it.key());
+      positions[p] = it.value();
     }
   }
   RAM(const int addressSize, const int entrySize, const bool ignoreZero=false, int base=2): ignoreZero(ignoreZero), base(base){
