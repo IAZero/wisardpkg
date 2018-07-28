@@ -30,22 +30,26 @@ PYBIND11_MODULE(wisardpkg, m){
 
     //base to models
     py::class_<Discriminator>(m, "Discriminator")
+      .def(py::init<string>())
       .def(py::init<int,int,py::kwargs>())
       .def("train", (void (Discriminator::*)(const vector<int>&)) &Discriminator::train)
       .def("train", (void (Discriminator::*)(const vector<vector<int>>&)) &Discriminator::train)
       .def("classify", &Discriminator::getVotes)
-      .def("json", &Discriminator::getConfigJSON)
+      .def("jsonConfig",  &Discriminator::getConfigString)
+      .def("json",  &Discriminator::getJSONString)
     ;
 
     // models
     py::class_<Wisard>(m, "Wisard")
+      .def(py::init<string>())
       .def(py::init<int,py::kwargs>())
       .def("train", (void (Wisard::*)(const vector<vector<int>>&, const vector<string>&)) &Wisard::train)
       .def("classify", (py::list (Wisard::*)(const vector<vector<int>>&)) &Wisard::classify)
       .def("getMentalImages", &Wisard::getMentalImages)
       .def("leaveOneOut", (void (Wisard::*)(const vector<int>&, const string&)) &Wisard::untrain)
       .def("leaveMoreOut", (void (Wisard::*)(const vector<vector<int>>&, const vector<string>&)) &Wisard::untrain)
-      .def("json", &Wisard::getConfigJSON)
+      .def("jsonConfig", &Wisard::getConfigJSON)
+      .def("json", &Wisard::getJSON)
     ;
 
     py::class_<ClusWisard>(m, "ClusWisard")

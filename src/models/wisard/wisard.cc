@@ -12,6 +12,32 @@ using json = nlohmann::json;
 
 class Wisard{
 public:
+  Wisard(string config){
+    json c = json::parse(config);
+
+    addressSize=c["addressSize"];
+    bleachingActivated=c["bleachingActivated"];
+    verbose=c["verbose"];
+    ignoreZero=c["ignoreZero"];
+    completeAddressing=c["completeAddressing"];
+    indexes=c["indexes"].get<vector<int>>();
+    base=c["base"];
+    searchBestConfidence=c["searchBestConfidence"];
+    returnConfidence=c["returnConfidence"];
+    returnActivationDegree=c["returnActivationDegree"];
+    returnClassesDegrees=c["returnClassesDegrees"];
+
+    json classes = c["classes"];
+    json dConfig = {
+      {"ignoreZero", ignoreZero},
+      {"base", base}
+    };
+    for(json::iterator it = classes.begin(); it != classes.end(); ++it){
+      json d = it.value();
+      d.merge_patch(dConfig);
+      discriminators[it.key()] = Discriminator(d);
+    }
+  }
   Wisard(int addressSize, py::kwargs kwargs): addressSize(addressSize){
     bleachingActivated=true;
     verbose=false;
@@ -149,12 +175,20 @@ public:
   json getClassesJSON(){
     json c;
     for(map<string, Discriminator>::iterator d=discriminators.begin(); d!=discriminators.end(); ++d){
-      c[d->first] = json::parse(d->second.getConfigJSON());
+      c[d->first] = d->second.getJSON();
     }
     return c;
   }
 
-  string getConfigJSON() {
+  json getConfigClassesJSON(){
+    json c;
+    for(map<string, Discriminator>::iterator d=discriminators.begin(); d!=discriminators.end(); ++d){
+      c[d->first] = d->second.getConfigJSON();
+    }
+    return c;
+  }
+
+  json getConfig(){
     json config = {
       {"addressSize", addressSize},
       {"bleachingActivated", bleachingActivated},
@@ -166,10 +200,21 @@ public:
       {"searchBestConfidence", searchBestConfidence},
       {"returnConfidence", returnConfidence},
       {"returnActivationDegree", returnActivationDegree},
-      {"returnClassesDegrees", returnClassesDegrees},
-      {"classes", getClassesJSON()}
+      {"returnClassesDegrees", returnClassesDegrees}
     };
-    return config.dump(4);
+    return config;
+  }
+
+  string getConfigJSON(){
+    json config = getConfig();
+    config["classes"] = getConfigClassesJSON();
+    return config.dump(2);
+  }
+
+  string getJSON() {
+    json config = getConfig();
+    config["classes"] = getClassesJSON();
+    return config.dump(2);
   }
 
 protected:

@@ -11,6 +11,18 @@ using json = nlohmann::json;
 class RAM{
 public:
   RAM(){}
+  RAM(json c){
+    ignoreZero = c["ignoreZero"];
+    base=c["base"];
+    addresses = c["addresses"].get<vector<int>>();
+    json pos = c["positions"];
+    if(!pos.is_null()){
+      for(json::iterator it = pos.begin(); it != pos.end(); ++it){
+        int p = stoi(it.key());
+        positions[p] = it.value();
+      }
+    }
+  }
   RAM(const int addressSize, const int entrySize, const bool ignoreZero=false, int base=2): ignoreZero(ignoreZero), base(base){
     addresses = vector<int>(addressSize);
     generateRandomAddresses(entrySize);
@@ -82,13 +94,22 @@ public:
     return pos;
   }
 
-  json getConfigJSON(){
+  json getConfig(){
+    json config = {
+      {"ignoreZero", ignoreZero},
+      {"base", base}
+    };
+    return config;
+  }
+
+  json getJSON(bool all=true){
     json config = {
       {"addresses", addresses},
-      {"base", base},
-      {"ignoreZero", ignoreZero},
-      {"positions", positionsToJSON()}
+      {"positions", nullptr}
     };
+    if(all){
+      config["positions"] = positionsToJSON();
+    }
     return config;
   }
 

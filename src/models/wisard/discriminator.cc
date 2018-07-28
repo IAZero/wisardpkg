@@ -13,7 +13,21 @@ using json = nlohmann::json;
 class Discriminator{
 public:
   Discriminator(): entrySize(0){}
-
+  Discriminator(string config):Discriminator(json::parse(config)){}
+  Discriminator(json config){
+    entrySize = config["entrySize"];
+    count = config["count"];
+    json jrams = config["rams"];
+    json rbase = {
+      {"ignoreZero", config["ignoreZero"]},
+      {"base", config["base"]}
+    };
+    for(json::iterator it = jrams.begin(); it != jrams.end(); ++it){
+      json base = *it;
+      base.merge_patch(rbase);
+      rams.push_back(RAM(base));
+    }
+  }
   Discriminator(int addressSize, int entrySize, bool ignoreZero, bool completeAddressing, int base=2): entrySize(entrySize){
     setRAMShuffle(addressSize, ignoreZero, completeAddressing, base);
   }
@@ -149,21 +163,50 @@ public:
     return *mentalImage;
   }
 
-  json getRAMSJSON(){
+  json getRAMSJSON(bool all=true){
     json rj = json::array();
     for(unsigned int i=0; i<rams.size(); i++){
-      rj[i] = rams[i].getConfigJSON();
+      rj[i] = rams[i].getJSON(all);
     }
     return rj;
   }
 
-  string getConfigJSON(){
+  json getConfig(){
     json config = {
       {"entrySize", entrySize},
-      {"count", count},
-      {"rams", getRAMSJSON()}
+      {"count", count}
     };
-    return config.dump(4);
+    return config;
+  }
+
+  string getConfigString(){
+    json config = getConfig();
+    if(!rams.empty()){
+      config.merge_patch(rams[0].getConfig());
+    }
+    config["rams"] = getRAMSJSON(false);
+    return config.dump(2);
+  }
+
+  string getJSONString(){
+    json config = getConfig();
+    if(!rams.empty()){
+      config.merge_patch(rams[0].getConfig());
+    }
+    config["rams"] = getRAMSJSON();
+    return config.dump(2);
+  }
+
+  json getConfigJSON(){
+    json config = getConfig();
+    config["rams"] = getRAMSJSON(false);
+    return config;
+  }
+
+  json getJSON(){
+    json config = getConfig();
+    config["rams"] = getRAMSJSON();
+    return config;
   }
 private:
 
