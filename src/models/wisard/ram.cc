@@ -41,6 +41,14 @@ public:
     }
   }
 
+  void untrain(const vector<int>& image){
+      int index = getIndex(image);
+      auto it = positions.find(index);
+      if(it != positions.end()){
+        it->second--;
+      }
+  }
+
   vector<vector<int>>& getMentalImage() {
     vector<vector<int>>* mentalPiece = new vector<vector<int>>(addresses.size());
     for(unsigned int i=0; i<mentalPiece->size(); i++){

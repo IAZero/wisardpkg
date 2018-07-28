@@ -118,6 +118,14 @@ public:
     }
   }
 
+  void untrain(const vector<int>& image){
+      checkEntrySize(image.size());
+      count--;
+      for(unsigned int i=0; i<rams.size(); i++){
+        rams[i].untrain(image);
+      }
+  }
+
   int getNumberOfTrainings() const{
     return count;
   }

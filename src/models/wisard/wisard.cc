@@ -74,6 +74,22 @@ public:
     if(verbose) cout << "\r" << endl;
   }
 
+  void untrain(const vector<int>& image, const string& label){
+    auto d = discriminators.find(label);
+    if(d != discriminators.end()){
+      d->second.untrain(image);
+    }
+  }
+
+  void untrain(const vector<vector<int>>& images, const vector<string>& labels){
+    checkInputSizes(images.size(), labels.size());
+    for(unsigned int i=0; i<images.size(); i++){
+      if(verbose) cout << "\runtraining " << i+1 << " of " << images.size();
+      untrain(images[i], labels[i]);
+    }
+    if(verbose) cout << "\r" << endl;
+  }
+
   map<string, int>& classify(const vector<int>& image, bool searchBestConfidence=false){
     map<string,vector<int>> allvotes;
 

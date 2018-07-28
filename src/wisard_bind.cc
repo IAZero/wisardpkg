@@ -43,6 +43,8 @@ PYBIND11_MODULE(wisardpkg, m){
       .def("train", (void (Wisard::*)(const vector<vector<int>>&, const vector<string>&)) &Wisard::train)
       .def("classify", (py::list (Wisard::*)(const vector<vector<int>>&)) &Wisard::classify)
       .def("getMentalImages", &Wisard::getMentalImages)
+      .def("leaveOneOut", (void (Wisard::*)(const vector<int>&, const string&)) &Wisard::untrain)
+      .def("leaveMoreOut", (void (Wisard::*)(const vector<vector<int>>&, const vector<string>&)) &Wisard::untrain)
       .def("json", &Wisard::getConfigJSON)
     ;
 

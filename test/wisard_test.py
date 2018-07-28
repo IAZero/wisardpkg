@@ -36,6 +36,6 @@ print("out:")
 for i,d in enumerate(X):
     print(out[i],d)
 
-print("\nwisard: ",wsd.json())
+#print("\nwisard: ",wsd.json())
 
 print("### DONE WiSARD ###")
