@@ -17,7 +17,7 @@ public:
     addresses = c["addresses"].get<vector<int>>();
     json pos = c["positions"];
     for(json::iterator it = pos.begin(); it != pos.end(); ++it){
-      int p = stoi(it.key());
+      unsigned int p = stoi(it.key());
       positions[p] = it.value();
     }
   }
@@ -28,7 +28,7 @@ public:
   RAM(const vector<int>& indexes, const bool ignoreZero=false, int base=2): addresses(indexes), ignoreZero(ignoreZero), base(base){}
 
   int getVote(const vector<int>& image){
-    int index = getIndex(image);
+    unsigned int index = getIndex(image);
     if(ignoreZero && index == 0)
       return 0;
     auto it = positions.find(index);
@@ -41,10 +41,10 @@ public:
   }
 
   void train(const vector<int>& image){
-    int index = getIndex(image);
+    unsigned int index = getIndex(image);
     auto it = positions.find(index);
     if(it == positions.end()){
-      positions.insert(it,pair<int,int>(index, 1));
+      positions.insert(it,pair<unsigned int,int>(index, 1));
     }
     else{
       it->second++;
@@ -52,7 +52,7 @@ public:
   }
 
   void untrain(const vector<int>& image){
-      int index = getIndex(image);
+      unsigned int index = getIndex(image);
       auto it = positions.find(index);
       if(it != positions.end()){
         it->second--;
@@ -112,12 +112,14 @@ public:
   }
 
 protected:
-  int getIndex(const vector<int>& image) const{
-    int index = 0;
+  unsigned int getIndex(const vector<int>& image) const{
+    unsigned int index = 0;
+    unsigned int p = 1;
     for(unsigned int i=0; i<addresses.size(); i++){
       int bin = image[addresses[i]];
       checkPos(bin);
-      index += bin*(base>2?ipow(base,i):(i>0?2<<(i-1):1));
+      index += bin*p;
+      p *= base;
     }
     return index;
   }
@@ -125,7 +127,7 @@ protected:
 
 private:
   vector<int> addresses;
-  unordered_map<int,int> positions;
+  unordered_map<unsigned int,int> positions;
   bool ignoreZero;
   int base;
 

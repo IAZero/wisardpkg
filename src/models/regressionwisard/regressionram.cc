@@ -15,7 +15,7 @@ public:
     addresses(indexes), ignoreZero(ignoreZero), base(base){}
 
   vector<float> getVote(const vector<int>& image){
-    int index = getIndex(image);
+    unsigned int index = getIndex(image);
     if(ignoreZero && index == 0)
       return {0,0};
     auto it = positions.find(index);
@@ -28,10 +28,10 @@ public:
   }
 
   void train(const vector<int>& image, const float y){
-    int index = getIndex(image);
+    unsigned int index = getIndex(image);
     auto it = positions.find(index);
     if(it == positions.end()){
-      positions.insert(it,pair<int,vector<float>>(index, {1,y}));
+      positions.insert(it,pair<unsigned int,vector<float>>(index, {1,y}));
     }
     else{
       it->second[0]++;
@@ -40,12 +40,14 @@ public:
   }
 
 protected:
-  int getIndex(const vector<int>& image) const{
-    int index = 0;
+  unsigned int getIndex(const vector<int>& image) const{
+    unsigned int index = 0;
+    unsigned int p = 1;
     for(unsigned int i=0; i<addresses.size(); i++){
       int bin = image[addresses[i]];
       checkPos(bin);
-      index += bin*(base>2?ipow(base,i):(i>0?2<<(i-1):1));
+      index += bin*p;
+      p *= base;
     }
     return index;
   }
@@ -53,7 +55,7 @@ protected:
 
 private:
   vector<int> addresses;
-  unordered_map<int,vector<float>> positions;
+  unordered_map<unsigned int,vector<float>> positions;
   bool ignoreZero;
   int base;
 
