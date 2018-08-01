@@ -13,6 +13,11 @@ pip install wisardpkg
 Works to python2 and pyhton3.  
 If you are on Linux and not in a virtual environment, you may need to run as superuser.
 
+#### obs:
+To install on windows platform you can use [anaconda](https://anaconda.org/) and do:
+```
+python -m pip install wisardpkg
+```
 
 ## to uninstall:
 ```
