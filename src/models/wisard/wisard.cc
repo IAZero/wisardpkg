@@ -22,6 +22,7 @@ public:
     completeAddressing=c["completeAddressing"];
     indexes=c["indexes"].get<vector<int>>();
     base=c["base"];
+    confidence=c["confidence"];
     searchBestConfidence=c["searchBestConfidence"];
     returnConfidence=c["returnConfidence"];
     returnActivationDegree=c["returnActivationDegree"];
@@ -49,6 +50,7 @@ public:
     returnConfidence=false;
     returnActivationDegree=false;
     returnClassesDegrees=false;
+    confidence=1;
 
     srand(randint(0,1000000));
     for(auto arg: kwargs){
@@ -81,6 +83,9 @@ public:
 
       if(string(py::str(arg.first)).compare("returnClassesDegrees") == 0)
         returnClassesDegrees = arg.second.cast<bool>();
+
+      if(string(py::str(arg.first)).compare("confidence") == 0)
+        confidence = arg.second.cast<int>();
     }
   }
 
@@ -92,6 +97,8 @@ public:
   }
 
   void train(const vector<vector<int>>& images, const vector<string>& labels){
+    int numberOfRAMS = calculateNumberOfRams(images[0].size(), addressSize, completeAddressing);
+    checkConfidence(numberOfRAMS);
     checkInputSizes(images.size(), labels.size());
     for(unsigned int i=0; i<images.size(); i++){
       if(verbose) cout << "\rtraining " << i+1 << " of " << images.size();
@@ -123,10 +130,10 @@ public:
       vector<int> votes = i->second.getVotes(image);
       allvotes[i->first] = votes;
     }
-    return Bleaching::make(allvotes, bleachingActivated, searchBestConfidence);
+    return Bleaching::make(allvotes, bleachingActivated, searchBestConfidence, confidence);
   }
 
-  void setClassifyOutput(py::list& labels, int i, string aClass, int numberOfRAMS, map<string,int>& candidates){
+  void setClassifyOutput(py::list& labels, int i, string aClass, float numberOfRAMS, map<string,int>& candidates){
     if(returnConfidence || returnActivationDegree || returnClassesDegrees){
       labels[i] = py::dict(py::arg("class")=aClass);
     }
@@ -197,6 +204,7 @@ public:
       {"ignoreZero", ignoreZero},
       {"completeAddressing", completeAddressing},
       {"base", base},
+      {"confidence", confidence},
       {"searchBestConfidence", searchBestConfidence},
       {"returnConfidence", returnConfidence},
       {"returnActivationDegree", returnActivationDegree},
@@ -233,6 +241,12 @@ protected:
     }
   }
 
+  void checkConfidence(int numberOfRAMS){
+    if(confidence > numberOfRAMS){
+      throw Exception("The confidence can not be bigger than number of RAMs!");
+    }
+  }
+
   py::list getClassesDegrees(map<string, int> candidates) const{
     float total = 0;
     int index = 0;
@@ -258,5 +272,6 @@ private:
   bool returnConfidence;
   bool returnActivationDegree;
   bool returnClassesDegrees;
+  int confidence;
   map<string, Discriminator> discriminators;
 };

@@ -21,6 +21,7 @@ public:
       ignoreZero=false;
       completeAddressing=true;
       base=2;
+      confidence=1;
 
       searchBestConfidence=false;
       returnConfidence=false;
@@ -56,6 +57,9 @@ public:
 
         if(string(py::str(arg.first)).compare("returnClassesDegrees") == 0)
           returnClassesDegrees = arg.second.cast<bool>();
+
+        if(string(py::str(arg.first)).compare("confidence") == 0)
+          confidence = arg.second.cast<int>();
       }
   }
 
@@ -74,7 +78,10 @@ public:
   }
 
   void train(const vector<vector<int>>& images, const vector<string>& labels){
+    int numberOfRAMS = calculateNumberOfRams(images[0].size(), addressSize, completeAddressing);
+    checkConfidence(numberOfRAMS);
     checkInputSizes(images.size(), labels.size());
+
     for(unsigned int i=0; i<images.size(); i++){
       if(verbose) cout << "\rtraining " << i+1 << " of " << images.size();
       train(images[i],labels[i]);
@@ -83,7 +90,10 @@ public:
   }
 
   void train(const vector<vector<int>>& images, map<int, string>& labels){
+    int numberOfRAMS = calculateNumberOfRams(images[0].size(), addressSize, completeAddressing);
+    checkConfidence(numberOfRAMS);
     checkInputLabels(images.size(), labels);
+
     unsigned int size = images.size()-labels.size();
     vector<int> labelless = vector<int>(size);
     unsigned int j=0;
@@ -132,7 +142,7 @@ public:
       }
     }
 
-    return Bleaching::make(allvotes, bleachingActivated, searchBestConfidence);
+    return Bleaching::make(allvotes, bleachingActivated, searchBestConfidence, confidence);
   }
 
   map<string, int>& classifyUnsupervised(const vector<int>& image){
@@ -244,6 +254,12 @@ protected:
     }
   }
 
+  void checkConfidence(int numberOfRAMS){
+    if(confidence > numberOfRAMS){
+      throw Exception("The confidence can not be bigger than number of RAMs!");
+    }
+  }
+
   void makeClusters(const string label,const int entrySize){
     clusters[label] = Cluster(entrySize, addressSize, minScore, threshold, discriminatorsLimit, completeAddressing, ignoreZero, base);
   }
@@ -277,6 +293,7 @@ private:
   bool returnConfidence;
   bool returnActivationDegree;
   bool returnClassesDegrees;
+  int confidence;
   map<string, Cluster> clusters;
   Cluster unsupervisedCluster;
 };

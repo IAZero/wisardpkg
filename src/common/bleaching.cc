@@ -1,21 +1,21 @@
 
 class Bleaching{
 public:
-  static std::map<std::string, int>& make(std::map<std::string,std::vector<int>>& allvotes, const bool bleachingActivated, bool searchBestConfidence=false) {
+  static std::map<std::string, int>& make(std::map<std::string,std::vector<int>>& allvotes, const bool bleachingActivated, bool searchBestConfidence=false, int confidence=1) {
     if(searchBestConfidence){
-      return Bleaching::makeWithConfidence(allvotes, bleachingActivated);
+      return Bleaching::makeWithConfidence(allvotes, bleachingActivated, confidence);
     }
     else{
-      return Bleaching::makeConfidenceless(allvotes, bleachingActivated);
+      return Bleaching::makeConfidenceless(allvotes, bleachingActivated, confidence);
     }
   }
 
-  static std::map<std::string, int>& makeWithConfidence(std::map<std::string,std::vector<int>>& allvotes, const bool bleachingActivated) {
-    return Bleaching::makeConfidenceless(allvotes, bleachingActivated);
+  static std::map<std::string, int>& makeWithConfidence(std::map<std::string,std::vector<int>>& allvotes, const bool bleachingActivated, const int confidence) {
+    return Bleaching::makeConfidenceless(allvotes, bleachingActivated, confidence);
   }
 
 
-  static std::map<std::string, int>& makeConfidenceless(std::map<std::string,std::vector<int>>& allvotes, const bool bleachingActivated) {
+  static std::map<std::string, int>& makeConfidenceless(std::map<std::string,std::vector<int>>& allvotes, const bool bleachingActivated, const int confidence) {
     std::map<std::string, int>* labels = new std::map<std::string, int>;
     int bleaching = 1;
     std::tuple<bool,int> ambiguity;
@@ -31,7 +31,7 @@ public:
       }
       if(!bleachingActivated) break;
       bleaching++;
-      ambiguity = isThereAmbiguity(*labels);
+      ambiguity = isThereAmbiguity(*labels, confidence);
     }while( std::get<0>(ambiguity) && std::get<1>(ambiguity) > 1 );
 
     return *labels;
@@ -60,7 +60,7 @@ public:
   }
 
 private:
-  static std::tuple<bool, int> isThereAmbiguity(std::map<std::string,int>& candidates) {
+  static std::tuple<bool, int> isThereAmbiguity(std::map<std::string,int>& candidates, int confidence) {
     int biggest = 0;
     bool ambiguity = false;
     for(std::map<std::string,int>::iterator i=candidates.begin(); i != candidates.end(); ++i){
@@ -68,7 +68,7 @@ private:
         biggest = i->second;
         ambiguity = false;
       }
-      else if(i->second == biggest){
+      else if( (biggest - i->second) < confidence ){
         ambiguity = true;
       }
     }
