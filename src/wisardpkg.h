@@ -12,7 +12,6 @@
 
 //binarization
 #include "binarization/kernelcanvas.cc"
-#include "binarization/averageentry.cc"
 
 //wisard model
 #include "models/wisard/ram.cc"

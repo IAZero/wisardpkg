@@ -16,12 +16,6 @@ PYBIND11_MODULE(wisardpkg, m){
       .def("__call__", (vector<vector<int>>& (KernelCanvas::*)(const vector<vector<int>>&)) &KernelCanvas::operator())
     ;
 
-    py::class_<AverageEntry>(m, "AverageEntry")
-      .def(py::init())
-      .def("__call__", (vector<int>& (AverageEntry::*)(const vector<int>&)) &AverageEntry::operator())
-      .def("__call__", (vector<double>& (AverageEntry::*)(const vector<double>&)) &AverageEntry::operator())
-    ;
-
     //sythesizer
     py::class_<Synthesizer>(m, "Synthesizer")
       .def(py::init<vector<int>>())
