@@ -15,6 +15,7 @@ public:
     ignoreZero = c["ignoreZero"];
     base=c["base"];
     addresses = c["addresses"].get<vector<int>>();
+    checkLimitAddressSize(addresses.size(), base);
     json pos = c["positions"];
     for(json::iterator it = pos.begin(); it != pos.end(); ++it){
       unsigned int p = stoi(it.key());
@@ -22,10 +23,13 @@ public:
     }
   }
   RAM(const int addressSize, const int entrySize, const bool ignoreZero=false, int base=2): ignoreZero(ignoreZero), base(base){
+    checkLimitAddressSize(addressSize, base);
     addresses = vector<int>(addressSize);
     generateRandomAddresses(entrySize);
   }
-  RAM(const vector<int>& indexes, const bool ignoreZero=false, int base=2): addresses(indexes), ignoreZero(ignoreZero), base(base){}
+  RAM(const vector<int>& indexes, const bool ignoreZero=false, int base=2): addresses(indexes), ignoreZero(ignoreZero), base(base){
+    checkLimitAddressSize(indexes.size(), base);
+  }
 
   int getVote(const vector<int>& image){
     unsigned int index = getIndex(image);
@@ -139,6 +143,13 @@ private:
       baseNumber /= base;
     }
     return numberConverted;
+  }
+
+  void checkLimitAddressSize(int addressSize, int basein){
+    long limit = 2l << 31;
+    if(addressSize > 31 || base > 1626 || ipow(basein,addressSize) > limit){
+      throw Exception("The base power to addressSize passed the limit of 2^31!");
+    }
   }
 
   void checkPos(const int code) const{
