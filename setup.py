@@ -13,7 +13,11 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
     f.close()
 
-__version__ = '1.1.1'
+with open("src/version.h") as f:
+    line = f.read()
+    __version__ = line.split('"')[1]
+    f.close()
+
 __package_name__ = 'wisardpkg'
 __src__ = 'src/wisard_bind.cc'
 
