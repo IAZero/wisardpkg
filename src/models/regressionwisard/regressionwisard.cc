@@ -39,7 +39,10 @@ public:
       sumCounters += w[0];
       sumY += w[1];
     }
-    return sumY/sumCounters;
+    if(sumCounters>0)
+      return sumY/sumCounters;
+    else
+      return 0;
   }
 
   vector<float>& predict(const vector<vector<int>>& images){
