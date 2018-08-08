@@ -13,11 +13,11 @@ public:
   RegressionRAM(){}
   RegressionRAM(const vector<int>& indexes, int base=2, const bool ignoreZero=false):
     addresses(indexes), ignoreZero(ignoreZero), base(base){
-      checkLimitAddressSize(indexes.size(),base);
+      //checkLimitAddressSize(indexes.size(),base);
     }
 
   vector<float> getVote(const vector<int>& image){
-    unsigned int index = getIndex(image);
+    unsigned long index = getIndex(image);
     if(ignoreZero && index == 0)
       return {0,0};
     auto it = positions.find(index);
@@ -30,10 +30,10 @@ public:
   }
 
   void train(const vector<int>& image, const float y){
-    unsigned int index = getIndex(image);
+    unsigned long index = getIndex(image);
     auto it = positions.find(index);
     if(it == positions.end()){
-      positions.insert(it,pair<unsigned int,vector<float>>(index, {1,y}));
+      positions.insert(it,pair<unsigned long,vector<float>>(index, {1,y}));
     }
     else{
       it->second[0]++;
@@ -42,9 +42,9 @@ public:
   }
 
 protected:
-  unsigned int getIndex(const vector<int>& image) const{
-    unsigned int index = 0;
-    unsigned int p = 1;
+  unsigned long getIndex(const vector<int>& image) const{
+    unsigned long index = 0;
+    unsigned long p = 1;
     for(unsigned int i=0; i<addresses.size(); i++){
       int bin = image[addresses[i]];
       checkPos(bin);
@@ -57,7 +57,7 @@ protected:
 
 private:
   vector<int> addresses;
-  unordered_map<unsigned int,vector<float>> positions;
+  unordered_map<unsigned long,vector<float>> positions;
   bool ignoreZero;
   int base;
 

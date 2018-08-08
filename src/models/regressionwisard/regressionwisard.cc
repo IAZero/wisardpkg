@@ -12,6 +12,7 @@ public:
     completeAddressing=true;
     orderedMapping=false;
     base = 2;
+    useQuadraticPrecision = false;
 
     srand(randint(0, 100000));
 
@@ -25,6 +26,9 @@ public:
       if(string(py::str(arg.first)).compare("completeAddressing") == 0)
         completeAddressing = arg.second.cast<bool>();
 
+      if(string(py::str(arg.first)).compare("useQuadraticPrecision") == 0)
+        completeAddressing = arg.second.cast<bool>();
+
       if(string(py::str(arg.first)).compare("base") == 0)
         base = arg.second.cast<int>();
     }
@@ -36,13 +40,24 @@ public:
     float sumY = 0;
     for(unsigned int i=0; i<rams.size(); i++){
       auto w = rams[i].getVote(image);
-      sumCounters += w[0];
-      sumY += w[1];
+      if(useQuadraticPrecision){
+        sumCounters += w[0]*w[0];
+        sumY += w[1]*w[1];
+      }
+      else{
+        sumCounters += w[0];
+        sumY += w[1];
+      }
+
     }
-    if(sumCounters>0)
-      return sumY/sumCounters;
-    else
-      return 0;
+    if(sumCounters>0){
+      float result = sumY/sumCounters;
+      if(useQuadraticPrecision){
+        return sqrt(result);
+      }
+      return result;
+    }
+    return 0;
   }
 
   vector<float>& predict(const vector<vector<int>>& images){
@@ -132,5 +147,6 @@ private:
     bool completeAddressing;
     bool ignoreZero;
     bool orderedMapping;
+    bool useQuadraticPrecision;
     vector<RegressionRAM> rams;
 };

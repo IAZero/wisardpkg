@@ -25,7 +25,7 @@ for i,d in enumerate(X):
 print("\n")
 
 addressSize = 2 # tamanho do endereçamento das rams
-wsd = RegressionWisard(addressSize)
+wsd = RegressionWisard(addressSize, useQuadraticPrecision=True)
 
 print("training...")
 wsd.train(X,y)
