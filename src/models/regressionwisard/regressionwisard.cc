@@ -8,11 +8,11 @@ using json = nlohmann::json;
 class RegressionWisard {
 public:
   RegressionWisard(int addressSize, py::kwargs kwargs): addressSize(addressSize){
-    ignoreZero=false;
     completeAddressing=true;
     orderedMapping=false;
-    base = 2;
-    useQuadraticPrecision = false;
+    useQuadraticPrecision=false;
+    minZero=0;
+    minOne=0;
 
     srand(randint(0, 100000));
 
@@ -20,18 +20,20 @@ public:
       if(string(py::str(arg.first)).compare("orderedMapping") == 0)
         orderedMapping = arg.second.cast<bool>();
 
-      if(string(py::str(arg.first)).compare("ignoreZero") == 0)
-        completeAddressing = arg.second.cast<bool>();
+      if(string(py::str(arg.first)).compare("minZero") == 0)
+        minZero = arg.second.cast<int>();
+
+      if(string(py::str(arg.first)).compare("minOne") == 0)
+        minOne = arg.second.cast<int>();
 
       if(string(py::str(arg.first)).compare("completeAddressing") == 0)
         completeAddressing = arg.second.cast<bool>();
 
       if(string(py::str(arg.first)).compare("useQuadraticPrecision") == 0)
-        completeAddressing = arg.second.cast<bool>();
-
-      if(string(py::str(arg.first)).compare("base") == 0)
-        base = arg.second.cast<int>();
+        useQuadraticPrecision = arg.second.cast<bool>();
     }
+
+    checkMinZeroOne(minZero, minOne);
   }
 
   float predict(const vector<int>& image) {
@@ -88,7 +90,6 @@ protected:
   void setRAMShuffle(int entrySize){
     this->entrySize = entrySize;
     checkAddressSize(entrySize, addressSize);
-    checkBase(base);
     int numberOfRAMS = entrySize / addressSize;
     int remain = entrySize % addressSize;
     int indexesSize = entrySize;
@@ -112,19 +113,13 @@ protected:
 
     for(unsigned int i=0; i<rams.size(); i++){
       vector<int>* subIndexes = new vector<int>(indexes.begin() + (i*addressSize), indexes.begin() + ((i+1)*addressSize));
-      rams[i] = RegressionRAM(*subIndexes, base, ignoreZero);
+      rams[i] = RegressionRAM(*subIndexes, minZero, minOne);
     }
   }
 
   void checkEntrySize(const int entry) const {
     if(entrySize != entry){
       throw Exception("The entry size defined on creation of RAM is different of entry size given as input!");
-    }
-  }
-
-  void checkBase(const int base){
-    if(base < 2){
-      throw Exception("The base can't be lesser than 2!");
     }
   }
 
@@ -140,12 +135,18 @@ protected:
     }
   }
 
+  void checkMinZeroOne(int min0, int min1){
+    if(min0+min1 > addressSize){
+      throw Exception("minZero + minOne is bigger than addressSize!");
+    }
+  }
+
 private:
     int entrySize;
     int addressSize;
-    int base;
+    int minZero;
+    int minOne;
     bool completeAddressing;
-    bool ignoreZero;
     bool orderedMapping;
     bool useQuadraticPrecision;
     vector<RegressionRAM> rams;
