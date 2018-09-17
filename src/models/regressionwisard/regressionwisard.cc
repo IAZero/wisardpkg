@@ -85,6 +85,10 @@ public:
     }
   }
 
+  ~RegressionWisard(){
+    rams.clear();
+  }
+
 
 protected:
   void setRAMShuffle(int entrySize){

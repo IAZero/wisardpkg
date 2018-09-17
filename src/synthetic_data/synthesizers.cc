@@ -23,6 +23,10 @@ public:
     return out;
   }
 
+  ~Synthesizer(){
+    cube.clear();
+  }
+
 private:
   vector<map<int,int>> cube;
   int maxData;

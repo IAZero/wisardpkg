@@ -45,6 +45,11 @@ public:
     }
   }
 
+  ~RegressionRAM(){
+    addresses.clear();
+    positions.clear();
+  }
+
 protected:
   long getIndex(const vector<int>& image) const{
     long index = 0;
@@ -72,7 +77,7 @@ private:
   unordered_map<long,vector<float>> positions;
   int minZero;
   int minOne;
-  
+
   const static long NO_ADDRESS=-1;
 
   void checkLimitAddressSize(int addressSize){

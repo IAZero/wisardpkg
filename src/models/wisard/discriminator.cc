@@ -208,6 +208,11 @@ public:
     config["rams"] = getRAMSJSON();
     return config;
   }
+
+  ~Discriminator(){
+    rams.clear();
+  }
+
 private:
 
   void checkEntrySize(const int entry) const {

@@ -115,6 +115,11 @@ public:
     return config;
   }
 
+  ~RAM(){
+    addresses.clear();
+    positions.clear();
+  }
+
 protected:
   unsigned int getIndex(const vector<int>& image) const{
     unsigned int index = 0;

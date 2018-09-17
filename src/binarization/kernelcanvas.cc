@@ -85,6 +85,10 @@ public:
     return output;
   }
 
+  ~KernelCanvas(){
+    kernels.clear();
+  }
+
 private:
   int bitsByKernel;
   int dim;

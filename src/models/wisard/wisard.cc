@@ -225,6 +225,11 @@ public:
     return config.dump(2);
   }
 
+  ~Wisard(){
+    indexes.clear();
+    discriminators.clear();
+  }
+
 protected:
   void makeDiscriminator(string label, int entrySize){
     if(indexes.size()==0){

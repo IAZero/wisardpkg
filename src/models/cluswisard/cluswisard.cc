@@ -223,6 +223,10 @@ public:
     return *mentalImages;
   }
 
+  ~ClusWisard(){
+    clusters.clear();
+  }
+
 protected:
   void checkInputLabels(const int numberOfInputs, map<int, string>& labels){
     if((int)labels.size() > numberOfInputs){
