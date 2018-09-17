@@ -27,7 +27,7 @@ public:
     addresses = vector<int>(addressSize);
     generateRandomAddresses(entrySize);
   }
-  RAM(const vector<int>& indexes, const bool ignoreZero=false, int base=2): addresses(indexes), ignoreZero(ignoreZero), base(base){
+  RAM(const vector<int> indexes, const bool ignoreZero=false, int base=2): addresses(indexes), ignoreZero(ignoreZero), base(base){
     checkLimitAddressSize(indexes.size(), base);
   }
 
