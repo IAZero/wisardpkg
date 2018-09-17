@@ -74,13 +74,14 @@ public:
     return discriminators.size();
   }
 
-  vector<vector<int>>& getMentalImages(){
-    vector<vector<int>>* images = new vector<vector<int>>(discriminators.size());
+  vector<vector<int>> getMentalImages(){
+    vector<vector<int>> images(discriminators.size());
     for(map<int, Discriminator*>::iterator d=discriminators.begin(); d!=discriminators.end(); ++d){
-      (*images)[d->first] = d->second->getMentalImage();
+      images[d->first] = d->second->getMentalImage();
     }
-    return *images;
+    return images;
   }
+  
   ~Cluster(){
     for(unsigned int i=0; i<discriminators.size(); ++i){
       delete discriminators[i];

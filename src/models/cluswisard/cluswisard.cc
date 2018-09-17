@@ -209,18 +209,16 @@ public:
     return labels;
   }
 
-  vector<vector<int>>& getMentalImage(string label){
-    vector<vector<int>>* mentalImage = NULL;
-    mentalImage = &(clusters[label].getMentalImages());
-    return *mentalImage;
+  vector<vector<int>> getMentalImage(string label){
+    return clusters[label].getMentalImages();
   }
 
-  map<string, vector<vector<int>>>& getMentalImages(){
-    map<string, vector<vector<int>>>* mentalImages = new map<string, vector<vector<int>>>();
+  map<string, vector<vector<int>>> getMentalImages(){
+    map<string, vector<vector<int>>> mentalImages;
     for(map<string, Cluster>::iterator c=clusters.begin(); c!=clusters.end(); ++c){
-      (*mentalImages)[c->first] = c->second.getMentalImages();
+      mentalImages[c->first] = c->second.getMentalImages();
     }
-    return *mentalImages;
+    return mentalImages;
   }
 
   ~ClusWisard(){
