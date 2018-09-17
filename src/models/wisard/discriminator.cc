@@ -90,7 +90,7 @@ public:
     random_shuffle(indexes.begin(), indexes.end());
 
     for(unsigned int i=0; i<rams.size(); i++){
-      vector<int> subIndexes = vector<int>(indexes.begin() + (i*addressSize), indexes.begin() + ((i+1)*addressSize));
+      vector<int> subIndexes(indexes.begin() + (i*addressSize), indexes.begin() + ((i+1)*addressSize));
       rams[i] = RAM(subIndexes, ignoreZero, base);
     }
   }
@@ -104,7 +104,7 @@ public:
     rams = vector<RAM>(numberOfRAMS);
 
     for(unsigned int i=0; i<rams.size(); i++){
-      vector<int> subIndexes = vector<int>(indexes.begin() + (i*addressSize), indexes.begin() + ((i+1)*addressSize));
+      vector<int> subIndexes(indexes.begin() + (i*addressSize), indexes.begin() + ((i+1)*addressSize));
       rams[i] = RAM(subIndexes, ignoreZero, base);
     }
   }

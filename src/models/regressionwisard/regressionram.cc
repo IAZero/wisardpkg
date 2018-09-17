@@ -11,7 +11,7 @@ using json = nlohmann::json;
 class RegressionRAM{
 public:
   RegressionRAM(){}
-  RegressionRAM(const vector<int>& indexes, const int minZero=0, const int minOne=0):
+  RegressionRAM(const vector<int> indexes, const int minZero=0, const int minOne=0):
     addresses(indexes),minZero(minZero),minOne(minOne){
       checkLimitAddressSize(indexes.size());
     }

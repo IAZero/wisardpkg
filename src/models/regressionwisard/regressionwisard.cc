@@ -62,12 +62,12 @@ public:
     return 0;
   }
 
-  vector<float>& predict(const vector<vector<int>>& images){
-    auto output = new vector<float>(images.size());
+  vector<float> predict(const vector<vector<int>>& images){
+    vector<float> output(images.size());
     for(unsigned int i=0; i<images.size(); i++){
-      (*output)[i] = predict(images[i]);
+      output[i] = predict(images[i]);
     }
-    return *output;
+    return output;
   }
 
   void train(const vector<int>& image, const float y){
@@ -116,8 +116,8 @@ protected:
       random_shuffle(indexes.begin(), indexes.end());
 
     for(unsigned int i=0; i<rams.size(); i++){
-      vector<int>* subIndexes = new vector<int>(indexes.begin() + (i*addressSize), indexes.begin() + ((i+1)*addressSize));
-      rams[i] = RegressionRAM(*subIndexes, minZero, minOne);
+      vector<int> subIndexes(indexes.begin() + (i*addressSize), indexes.begin() + ((i+1)*addressSize));
+      rams[i] = RegressionRAM(subIndexes, minZero, minOne);
     }
   }
 
