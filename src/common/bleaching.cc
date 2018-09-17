@@ -1,7 +1,7 @@
 
 class Bleaching{
 public:
-  static std::map<std::string, int>& make(std::map<std::string,std::vector<int>>& allvotes, const bool bleachingActivated, bool searchBestConfidence=false, int confidence=1) {
+  static std::map<std::string, int> make(std::map<std::string,std::vector<int>>& allvotes, const bool bleachingActivated, bool searchBestConfidence=false, int confidence=1) {
     if(searchBestConfidence){
       return Bleaching::makeWithConfidence(allvotes, bleachingActivated, confidence);
     }
@@ -10,31 +10,31 @@ public:
     }
   }
 
-  static std::map<std::string, int>& makeWithConfidence(std::map<std::string,std::vector<int>>& allvotes, const bool bleachingActivated, const int confidence) {
+  static std::map<std::string, int> makeWithConfidence(std::map<std::string,std::vector<int>>& allvotes, const bool bleachingActivated, const int confidence) {
     return Bleaching::makeConfidenceless(allvotes, bleachingActivated, confidence);
   }
 
 
-  static std::map<std::string, int>& makeConfidenceless(std::map<std::string,std::vector<int>>& allvotes, const bool bleachingActivated, const int confidence) {
-    std::map<std::string, int>* labels = new std::map<std::string, int>;
+  static std::map<std::string, int> makeConfidenceless(std::map<std::string,std::vector<int>>& allvotes, const bool bleachingActivated, const int confidence) {
+    std::map<std::string, int> labels;
     int bleaching = 1;
     std::tuple<bool,int> ambiguity;
 
     do{
       for(std::map<std::string,std::vector<int>>::iterator i=allvotes.begin(); i!=allvotes.end(); ++i){
-        (*labels)[i->first] = 0;
+        labels[i->first] = 0;
         for(unsigned int j=0; j<i->second.size(); j++){
           if(i->second[j] >= bleaching){
-            (*labels)[i->first]++;
+            labels[i->first]++;
           }
         }
       }
       if(!bleachingActivated) break;
       bleaching++;
-      ambiguity = isThereAmbiguity(*labels, confidence);
+      ambiguity = isThereAmbiguity(labels, confidence);
     }while( std::get<0>(ambiguity) && std::get<1>(ambiguity) > 1 );
 
-    return *labels;
+    return labels;
   }
 
   static std::string getBiggestCandidate(std::map<std::string,int>& candidates) {

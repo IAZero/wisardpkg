@@ -123,12 +123,11 @@ public:
     if(verbose) cout << "\r" << endl;
   }
 
-  map<string, int>& classify(const vector<int>& image, bool searchBestConfidence=false){
+  map<string, int> classify(const vector<int>& image, bool searchBestConfidence=false){
     map<string,vector<int>> allvotes;
 
     for(map<string,Discriminator>::iterator i=discriminators.begin(); i!=discriminators.end(); ++i){
-      vector<int> votes = i->second.getVotes(image);
-      allvotes[i->first] = votes;
+      allvotes[i->first] = i->second.getVotes(image);
     }
     return Bleaching::make(allvotes, bleachingActivated, searchBestConfidence, confidence);
   }

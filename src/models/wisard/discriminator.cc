@@ -109,13 +109,13 @@ public:
     }
   }
 
-  vector<int>& getVotes(const vector<int>& image) {
+  vector<int> getVotes(const vector<int>& image) {
     checkEntrySize(image.size());
-    vector<int>* votes = new vector<int>(rams.size());
+    vector<int> votes(rams.size());
     for(unsigned int i=0; i<rams.size(); i++){
-      (*votes)[i] = rams[i].getVote(image);
+      votes[i] = rams[i].getVote(image);
     }
-    return *votes;
+    return votes;
   }
 
   void train(const vector<int>& image){

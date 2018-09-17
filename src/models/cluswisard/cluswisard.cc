@@ -132,7 +132,7 @@ public:
     }
   }
 
-  map<string, int>& classify(const vector<int>& image, bool searchBestConfidence=false){
+  map<string, int> classify(const vector<int>& image, bool searchBestConfidence=false){
     map<string,vector<int>> allvotes;
 
     for(map<string,Cluster>::iterator i=clusters.begin(); i!=clusters.end(); ++i){
@@ -145,7 +145,7 @@ public:
     return Bleaching::make(allvotes, bleachingActivated, searchBestConfidence, confidence);
   }
 
-  map<string, int>& classifyUnsupervised(const vector<int>& image){
+  map<string, int> classifyUnsupervised(const vector<int>& image){
     map<string,vector<int>> allvotes;
     vector<vector<int>> votes = unsupervisedCluster.classify(image);
     for(unsigned int i=0; i<votes.size(); ++i){
@@ -155,19 +155,19 @@ public:
   }
 
 
-  vector<string>& classifyUnsupervised(const vector<vector<int>>& images){
-    vector<string>* labels = new vector<string>(images.size());
+  vector<string> classifyUnsupervised(const vector<vector<int>>& images){
+    vector<string> labels(images.size());
     for(unsigned int i=0; i<images.size(); i++){
       if(verbose) cout << "\rclassifying unsupervised " << i+1 << " of " << images.size();
       map<string,int> candidates = classifyUnsupervised(images[i]);
       string label = Bleaching::getBiggestCandidate(candidates);
-      (*labels)[i] = label.substr(0,label.find("::"));
+      labels[i] = label.substr(0,label.find("::"));
 
       candidates.clear();
       map<string,int>().swap(candidates);
     }
     if(verbose) cout << "\r" << endl;
-    return *labels;
+    return labels;
   }
 
   py::list classify(const vector<vector<int>>& images){

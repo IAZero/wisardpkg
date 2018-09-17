@@ -53,7 +53,7 @@ PYBIND11_MODULE(wisardpkg, m){
       .def("train", (void (ClusWisard::*)(const vector<vector<int>>&, map<int, string>&)) &ClusWisard::train)
       .def("trainUnsupervised", &ClusWisard::trainUnsupervised)
       .def("classify", (py::list (ClusWisard::*)(const vector<vector<int>>&)) &ClusWisard::classify)
-      .def("classifyUnsupervised", (vector<string>& (ClusWisard::*)(const vector<vector<int>>&)) &ClusWisard::classifyUnsupervised)
+      .def("classifyUnsupervised", (vector<string> (ClusWisard::*)(const vector<vector<int>>&)) &ClusWisard::classifyUnsupervised)
       .def("getMentalImage", &ClusWisard::getMentalImage)
       .def("getMentalImages", &ClusWisard::getMentalImages)
     ;
