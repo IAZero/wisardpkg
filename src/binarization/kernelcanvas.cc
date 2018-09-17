@@ -7,116 +7,100 @@
 
 using namespace std;
 
+
 class KernelCanvas{
 public:
-  KernelCanvas(int numberOfKernels, int entrySize, int entryColumn=0): numberOfKernels(numberOfKernels){
-    if(numberOfKernels>entrySize){
-      throw Exception("Error: number of kernels is too big!");
+  KernelCanvas(int numberOfKernels, int dim, int bitsByKernel=3): bitsByKernel(bitsByKernel), dim(dim){
+    checkInputs(numberOfKernels, dim, bitsByKernel);
+    std::srand(time(NULL));
+    kernels.resize(numberOfKernels);
+    for(int i=0; i<numberOfKernels; i++){
+      kernels[i].resize(dim);
+      for(int d=0; d<dim; d++){
+        kernels[i][d] = randdouble(-1.0,1.0);
+      }
     }
-    if(entryColumn <= 0){
-      entryColumn = searchColumnsNumber(entrySize);
+  }
+
+  vector<double> multDimMean(const vector<vector<double>>& sequenceData){
+    vector<double> output(dim);
+    for(unsigned int i=0; i<output.size(); i++) output[i]=0;
+    for(unsigned int i=0; i<sequenceData.size(); i++){
+      for(int j=0; j<dim; j++){
+        output[j] += sequenceData[i][j];
+      }
     }
-    int lines = entrySize/entryColumn;
-    if(lines*entryColumn != entrySize){
-      throw Exception("Error: wrong number of columns!");
+    for(unsigned int i=0; i<output.size(); i++) output[i] /=sequenceData.size();
+    return output;
+  }
+
+  vector<double> multDimStd(const vector<double>& means, const vector<vector<double>>& sequenceData){
+    vector<double> output(dim);
+    for(unsigned int i=0; i<output.size(); i++) output[i]=0;
+    for(unsigned int i=0; i<sequenceData.size(); i++){
+      for(int j=0; j<dim; j++){
+        double diff = (means[j] - sequenceData[i][j]);
+        output[j] +=  diff*diff;
+      }
     }
-    kernels = vector<vector<int>>(lines, vector<int>(entryColumn));
+    for(unsigned int i=0; i<output.size(); i++) output[i] = sqrt(output[i]/sequenceData.size());
+    return output;
+  }
+
+  int searchKernel(const vector<double>& point){
+    int index = -1;
+    double max = 0;
     for(unsigned int i=0; i<kernels.size(); i++){
-      for(unsigned int j=0; j<kernels[i].size(); j++){
-        kernels[i][j] = -1;
+      double distance = 0;
+      for(int j=0; j<dim; j++){
+        double diff = (point[j] - kernels[i][j]);
+        distance += diff*diff;
+      }
+      distance = sqrt(distance);
+      if(distance > max){
+        index = i;
+        max = distance;
       }
     }
-    makeKernels(numberOfKernels,entrySize);
+    return index;
   }
 
-  void show(){
-    for(unsigned int i=0; i<kernels.size(); i++){
-      cout << "[\t";
-      for(unsigned int j=0; j<kernels[i].size(); j++){
-        cout << kernels[i][j] << "\t";
+  vector<int> transform(const vector<vector<double>>& sequenceData){
+    vector<double> means = multDimMean(sequenceData);
+    vector<double> stds = multDimStd(means,sequenceData);
+
+    vector<int> output(kernels.size()*bitsByKernel);
+    for(unsigned int i=0; i<output.size(); i++) output[i]=0;
+    vector<double> point(dim);
+
+    for(unsigned int i=0; i<sequenceData.size(); i++){
+      checkDimension(sequenceData[i].size());
+      for(int j=0; j<dim; j++){
+        point[j] = tanh((means[j] - sequenceData[i][j])/stds[j]);
       }
-      cout << "]" << endl;
+      int kernelIndex = searchKernel(point);
+      if(output[kernelIndex*bitsByKernel] == 1) continue;
+      for(int k=0; k<bitsByKernel; k++) output[kernelIndex*bitsByKernel + k] = 1;
     }
+    return output;
   }
 
-  vector<int>& operator()(const vector<int>& entry){
-      unsigned int columns = kernels[0].size();
-      vector<int>* output = new vector<int>(numberOfKernels);
-      for(unsigned int l=0; l<output->size(); l++){
-        (*output)[l] = 0;
-      }
-      int i,j;
-      for(unsigned int k=0; k<entry.size(); k++){
-        if(entry[k]>0){
-          i = k / columns;
-          j = k % columns;
-          (*output)[kernels[i][j]] = 1;
-        }
-      }
-      return *output;
-  }
-
-
-  vector<vector<int>>& operator()(const vector<vector<int>>& entries){
-    vector<vector<int>>* outputs = new vector<vector<int>>(entries.size());
-    for(unsigned int i=0; i<entries.size(); i++){
-      (*outputs)[i] = operator()(entries[i]);
-    }
-    return *outputs;
-  }
 private:
-  int numberOfKernels;
-  vector<vector<int>> kernels;
+  int bitsByKernel;
+  int dim;
+  vector<vector<double>> kernels;
 
-  int searchColumnsNumber(int entrySize){
-    int columns = (int)sqrt(entrySize);
-    while(entrySize%columns>0){
-      columns--;
-    }
-    return columns;
+  void checkInputs(int numberOfKernels, int dim, int bitsByKernel){
+    if(numberOfKernels < 1)
+      throw Exception("Error: the number of kernels can not be lesser than 1!");
+    if(dim < 1)
+      throw Exception("Error: the dimension can not be lesser than 1!");
+    if(bitsByKernel<1)
+      throw Exception("Error: the number of bits by kernel can not be lesser than 1!");
   }
 
-  void makeKernels(int numberOfKernels, int entrySize){
-    unsigned int columns = kernels[0].size();
-    int countKernels = 0;
-    int index,i,j;
-
-    vector<vector<int>> kernelsOfKernels(numberOfKernels, vector<int>(2));
-    while(countKernels<numberOfKernels){
-      index = randint(0,entrySize-1);
-      i = index/columns;
-      j = index%columns;
-      if(kernels[i][j]==-1){
-        kernels[i][j] = countKernels;
-        kernelsOfKernels[countKernels][0] = i;
-        kernelsOfKernels[countKernels][1] = j;
-        countKernels++;
-      }
-    }
-    distributeKernels(kernelsOfKernels);
-  }
-
-  void distributeKernels(vector<vector<int>>& kernelsOfKernels){
-    for(unsigned int i=0; i<kernels.size(); i++){
-      for(unsigned int j=0; j<kernels[i].size(); j++){
-        kernels[i][j] = getCloserKernel(i,j, kernelsOfKernels);
-      }
-    }
-  }
-
-  int getCloserKernel(int i, int j, vector<vector<int>>& kernelsOfKernels){
-    if(kernels[i][j] != -1){
-      return kernels[i][j];
-    }
-    int closerKernel = -1;
-    int distance = -1;
-    for(unsigned int k=0; k<kernelsOfKernels.size(); k++){
-      int tempDistance = abs(i-kernelsOfKernels[k][0]) + abs(j-kernelsOfKernels[k][1]);
-      if(distance == -1 || tempDistance < distance){
-        distance = tempDistance;
-        closerKernel = k;
-      }
-    }
-    return closerKernel;
+  void checkDimension(int size){
+    if(size != dim)
+      throw Exception("Error: the dimension of input data is defferent of kernel's dimension!");
   }
 };

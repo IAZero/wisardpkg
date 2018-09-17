@@ -14,9 +14,7 @@ PYBIND11_MODULE(wisardpkg, m){
     py::class_<KernelCanvas>(m, "KernelCanvas")
       .def(py::init<int, int>())
       .def(py::init<int, int, int>())
-      .def("show", &KernelCanvas::show)
-      .def("__call__", (vector<int>& (KernelCanvas::*)(const vector<int>&)) &KernelCanvas::operator())
-      .def("__call__", (vector<vector<int>>& (KernelCanvas::*)(const vector<vector<int>>&)) &KernelCanvas::operator())
+      .def("transform", &KernelCanvas::transform)
     ;
 
     //sythesizer

@@ -9,3 +9,5 @@ import cluswisard_test_semi_supervised
 import cluswisard_test_unsupervised
 
 import regression_wisard_test
+
+import kernel_canvas_test

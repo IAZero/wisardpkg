@@ -6,22 +6,16 @@ inline int randint(int min, int max, bool isSeed=true){
   return min + (std::rand() % (int)(max - min + 1));
 }
 
+inline double randdouble(double min, double max){
+  return ((std::rand()/(double)RAND_MAX) * (max - min)) + min;
+}
+
 int calculateNumberOfRams(int entrySize, int addressSize, bool completeAddressing=true){
   int numberOfRAMS = entrySize / addressSize;
   int remain = entrySize % addressSize;
   if(completeAddressing && remain > 0)
     numberOfRAMS++;
   return numberOfRAMS;
-}
-
-
-template<typename T, typename Functor>
-void foreach(std::vector<T>& v, Functor& func, bool verbose=false){
-  for(unsigned int i=0; i<v.size(); i++){
-    if(verbose) std::cout << "\rforeach: " << i+1 << " of " << v.size();
-    v[i] = func(v[i]);
-  }
-  std::cout << "\r" << std::endl;
 }
 
 long ipow(int base, int exp){
