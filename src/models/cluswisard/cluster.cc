@@ -62,12 +62,12 @@ public:
     }
   }
 
-  vector<vector<int>>& classify(const vector<int>& image){
-    vector<vector<int>>* output = new vector<vector<int>>(discriminators.size());
+  vector<vector<int>> classify(const vector<int>& image){
+    vector<vector<int>> output(discriminators.size());
     for(unsigned int i=0; i<discriminators.size(); i++){
-      (*output)[i] = discriminators[i]->getVotes(image);
+      output[i] = discriminators[i]->getVotes(image);
     }
-    return *output;
+    return output;
   }
 
   unsigned int getNumberOfDiscriminators(){
