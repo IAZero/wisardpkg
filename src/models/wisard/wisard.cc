@@ -170,12 +170,12 @@ public:
     return labels;
   }
 
-  map<string,vector<int>>& getMentalImages(){
-    map<string,vector<int>>* images = new map<string,vector<int>>();
+  map<string,vector<int>> getMentalImages(){
+    map<string,vector<int>> images;
     for(map<string, Discriminator>::iterator d=discriminators.begin(); d!=discriminators.end(); ++d){
-      (*images)[d->first] = d->second.getMentalImage();
+      images[d->first] = d->second.getMentalImage();
     }
-    return *images;
+    return images;
   }
 
   json getClassesJSON(){

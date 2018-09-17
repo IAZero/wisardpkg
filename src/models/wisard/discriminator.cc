@@ -148,19 +148,19 @@ public:
     return rams.size();
   }
 
-  vector<int>& getMentalImage(){
-    vector<int>* mentalImage = new vector<int>(entrySize);
-    for(unsigned int i=0; i<mentalImage->size(); i++) {
-      (*mentalImage)[i]=0;
+  vector<int> getMentalImage(){
+    vector<int> mentalImage(entrySize);
+    for(unsigned int i=0; i<mentalImage.size(); i++) {
+      mentalImage[i]=0;
     }
 
     for(unsigned int r=0; r<rams.size(); r++){
       vector<vector<int>> piece = rams[r].getMentalImage();
       for(vector<int> p: piece){
-        (*mentalImage)[p[0]] += p[1];
+        mentalImage[p[0]] += p[1];
       }
     }
-    return *mentalImage;
+    return mentalImage;
   }
 
   json getRAMSJSON(bool all=true){

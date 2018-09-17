@@ -63,29 +63,29 @@ public:
       }
   }
 
-  vector<vector<int>>& getMentalImage() {
-    vector<vector<int>>* mentalPiece = new vector<vector<int>>(addresses.size());
-    for(unsigned int i=0; i<mentalPiece->size(); i++){
-      (*mentalPiece)[i].resize(2);
-      (*mentalPiece)[i][0] = addresses[i];
-      (*mentalPiece)[i][1] = 0;
+  vector<vector<int>> getMentalImage() {
+    vector<vector<int>> mentalPiece(addresses.size());
+    for(unsigned int i=0; i<mentalPiece.size(); i++){
+      mentalPiece[i].resize(2);
+      mentalPiece[i][0] = addresses[i];
+      mentalPiece[i][1] = 0;
     }
 
     for(auto j=positions.begin(); j!=positions.end(); ++j){
       if(j->first == 0) continue;
       const vector<int> address = convertToBase(j->first);
-      for(unsigned int i=0; i<mentalPiece->size(); i++){
-        if((*mentalPiece)[i].size() == 0){
-          (*mentalPiece)[i].resize(2);
-          (*mentalPiece)[i][0] = addresses[i];
-          (*mentalPiece)[i][1] = 0;
+      for(unsigned int i=0; i<mentalPiece.size(); i++){
+        if(mentalPiece[i].size() == 0){
+          mentalPiece[i].resize(2);
+          mentalPiece[i][0] = addresses[i];
+          mentalPiece[i][1] = 0;
         }
         if(address[i] > 0){
-          (*mentalPiece)[i][1] += j->second;
+          mentalPiece[i][1] += j->second;
         }
       }
     }
-    return *mentalPiece;
+    return mentalPiece;
   }
 
   json positionsToJSON(){
