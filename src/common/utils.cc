@@ -18,12 +18,12 @@ int calculateNumberOfRams(int entrySize, int addressSize, bool completeAddressin
   return numberOfRAMS;
 }
 
-long ipow(int base, int exp){
-  long result = 1;
+long long ipow(long long base, long long exp){
+  long long result = 1l;
   for (;;){
-    if (exp & 1)
+    if (exp & 1l)
       result *= base;
-    exp >>= 1;
+    exp >>= 1l;
     if (!exp)
       break;
     base *= base;

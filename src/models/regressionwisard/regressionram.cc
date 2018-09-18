@@ -10,16 +10,21 @@ using json = nlohmann::json;
 
 class RegressionRAM{
 public:
-  RegressionRAM(){}
+  RegressionRAM(){
+    NO_ADDRESS=false;
+  }
   RegressionRAM(const vector<int> indexes, const int minZero=0, const int minOne=0):
     addresses(indexes),minZero(minZero),minOne(minOne){
       checkLimitAddressSize(indexes.size());
+      NO_ADDRESS=false;
     }
 
   vector<float> getVote(const vector<int>& image){
-    long index = getIndex(image);
-    if(index == NO_ADDRESS)
+    unsigned long long index = getIndex(image);
+    if(NO_ADDRESS){
+      NO_ADDRESS=false;
       return {0,0};
+    }
 
     auto it = positions.find(index);
     if(it == positions.end()){
@@ -31,13 +36,15 @@ public:
   }
 
   void train(const vector<int>& image, const float y){
-    long index = getIndex(image);
-    if(index == NO_ADDRESS)
+    unsigned long long index = getIndex(image);
+    if(NO_ADDRESS){
+      NO_ADDRESS=false;
       return;
+    }
 
     auto it = positions.find(index);
     if(it == positions.end()){
-      positions.insert(it,pair<unsigned long,vector<float>>(index, {1,y}));
+      positions.insert(it,pair<unsigned long long,vector<float>>(index, {1,y}));
     }
     else{
       it->second[0]++;
@@ -51,9 +58,9 @@ public:
   }
 
 protected:
-  long getIndex(const vector<int>& image) const{
-    long index = 0;
-    long p = 1;
+  unsigned long long getIndex(const vector<int>& image) {
+    unsigned long long index = 0;
+    unsigned long long p = 1;
     int countOne=0;
     for(unsigned int i=0; i<addresses.size(); i++){
       int bin = image[addresses[i]];
@@ -63,10 +70,10 @@ protected:
     }
 
     if(countOne < minOne)
-      return NO_ADDRESS;
+      NO_ADDRESS=true;
 
     if(((int)addresses.size()-countOne) < minZero)
-      return NO_ADDRESS;
+      NO_ADDRESS=true;
 
     return index;
   }
@@ -74,15 +81,14 @@ protected:
 
 private:
   vector<int> addresses;
-  unordered_map<long,vector<float>> positions;
+  unordered_map<unsigned long long,vector<float>> positions;
   int minZero;
   int minOne;
-
-  const static long NO_ADDRESS=-1;
+  bool NO_ADDRESS;
 
   void checkLimitAddressSize(int addressSize){
-    if(addressSize > 63){
-      throw Exception("The limit of addressSize is 63!");
+    if(addressSize > 64){
+      throw Exception("The limit of addressSize is 64!");
     }
   }
 };
