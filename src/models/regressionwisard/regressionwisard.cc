@@ -38,8 +38,8 @@ public:
 
   float predict(const vector<int>& image) {
     checkEntrySize(image.size());
-    float sumCounters = 0;
-    float sumY = 0;
+    double sumCounters = 0;
+    double sumY = 0;
     for(unsigned int i=0; i<rams.size(); i++){
       auto w = rams[i].getVote(image);
       if(useQuadraticPrecision){
@@ -53,7 +53,7 @@ public:
 
     }
     if(sumCounters>0){
-      float result = sumY/sumCounters;
+      double result = sumY/sumCounters;
       if(useQuadraticPrecision){
         return sqrt(result);
       }
@@ -62,8 +62,8 @@ public:
     return 0;
   }
 
-  vector<float> predict(const vector<vector<int>>& images){
-    vector<float> output(images.size());
+  vector<double> predict(const vector<vector<int>>& images){
+    vector<double> output(images.size());
     for(unsigned int i=0; i<images.size(); i++){
       output[i] = predict(images[i]);
     }

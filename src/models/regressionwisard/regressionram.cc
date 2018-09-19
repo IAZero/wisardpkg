@@ -20,7 +20,7 @@ public:
       if(indexes.size()%8>0) blocks++;
     }
 
-  vector<float> getVote(const vector<int>& image){
+  vector<double> getVote(const vector<int>& image){
     string index = getIndex(image);
     if(NO_ADDRESS){
       NO_ADDRESS=false;
@@ -45,7 +45,7 @@ public:
 
     auto it = positions.find(index);
     if(it == positions.end()){
-      positions.insert(it,pair<string,vector<float>>(index, {1,y}));
+      positions.insert(it,pair<string,vector<double>>(index, {1,y}));
     }
     else{
       it->second[0]++;
@@ -93,7 +93,7 @@ protected:
 
 private:
   vector<int> addresses;
-  unordered_map<string,vector<float>> positions;
+  unordered_map<string,vector<double>> positions;
   int minZero;
   int minOne;
   int blocks;
