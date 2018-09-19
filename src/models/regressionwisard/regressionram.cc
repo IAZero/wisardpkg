@@ -15,12 +15,13 @@ public:
   }
   RegressionRAM(const vector<int> indexes, const int minZero=0, const int minOne=0):
     addresses(indexes),minZero(minZero),minOne(minOne){
-      checkLimitAddressSize(indexes.size());
       NO_ADDRESS=false;
+      blocks = indexes.size()/8;
+      if(indexes.size()%8>0) blocks++;
     }
 
   vector<float> getVote(const vector<int>& image){
-    unsigned long long index = getIndex(image);
+    string index = getIndex(image);
     if(NO_ADDRESS){
       NO_ADDRESS=false;
       return {0,0};
@@ -36,7 +37,7 @@ public:
   }
 
   void train(const vector<int>& image, const float y){
-    unsigned long long index = getIndex(image);
+    string index = getIndex(image);
     if(NO_ADDRESS){
       NO_ADDRESS=false;
       return;
@@ -44,7 +45,7 @@ public:
 
     auto it = positions.find(index);
     if(it == positions.end()){
-      positions.insert(it,pair<unsigned long long,vector<float>>(index, {1,y}));
+      positions.insert(it,pair<string,vector<float>>(index, {1,y}));
     }
     else{
       it->second[0]++;
@@ -58,15 +59,26 @@ public:
   }
 
 protected:
-  unsigned long long getIndex(const vector<int>& image) {
-    unsigned long long index = 0;
-    unsigned long long p = 1;
+  string getIndex(const vector<int>& image) {
+    string index(blocks,-1);
+    unsigned char pieceIndex = -1;
+    int b = 0;
     int countOne=0;
+    int countChar=0;
     for(unsigned int i=0; i<addresses.size(); i++){
       int bin = image[addresses[i]];
-      if(bin==1) countOne++;
-      index += bin*p;
-      p *= 2;
+      if(bin==1) {
+        countOne++;
+      }
+      else{
+        pieceIndex &= ~(1<<(i%8));
+      }
+      countChar++;
+      if(countChar==8||i==addresses.size()-1){
+        index[b++]=pieceIndex;
+        pieceIndex=-1;
+        countChar=0;
+      }
     }
 
     if(countOne < minOne)
@@ -81,14 +93,9 @@ protected:
 
 private:
   vector<int> addresses;
-  unordered_map<unsigned long long,vector<float>> positions;
+  unordered_map<string,vector<float>> positions;
   int minZero;
   int minOne;
+  int blocks;
   bool NO_ADDRESS;
-
-  void checkLimitAddressSize(int addressSize){
-    if(addressSize > 64){
-      throw Exception("The limit of addressSize is 64!");
-    }
-  }
 };
