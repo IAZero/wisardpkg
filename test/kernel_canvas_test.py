@@ -3,16 +3,17 @@ from random import random
 
 print("\n\n")
 print("### Kernel Canvas  ###")
-numberOfKernels = 10
 dimension = 2
+numberOfKernels = 10
 bitsByKernel = 4
-kc = KernelCanvas(numberOfKernels, dimension, bitsByKernel)
+kc = KernelCanvas(dimension, numberOfKernels, bitsByKernel)
 
 sequenceData = []
+p = [10*random(),10*random()]
 for i in range(100):
-    point = [0.0,0.0]
-    point[0] = 10*random()
-    point[1] = 10*random()
+    point = list(p)
+    point[0] += i
+    point[1] += i
     sequenceData.append(point)
 
 out = kc.transform(sequenceData)

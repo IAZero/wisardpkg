@@ -10,7 +10,7 @@ using namespace std;
 
 class KernelCanvas{
 public:
-  KernelCanvas(int numberOfKernels, int dim, int bitsByKernel=3): bitsByKernel(bitsByKernel), dim(dim){
+  KernelCanvas(int dim, int numberOfKernels, int bitsByKernel=3): bitsByKernel(bitsByKernel), dim(dim){
     checkInputs(numberOfKernels, dim, bitsByKernel);
     std::srand(time(NULL));
     kernels.resize(numberOfKernels);
@@ -49,7 +49,8 @@ public:
 
   int searchKernel(const vector<double>& point){
     int index = -1;
-    double max = 0;
+    double minDistance = 3.0;
+
     for(unsigned int i=0; i<kernels.size(); i++){
       double distance = 0;
       for(int j=0; j<dim; j++){
@@ -57,9 +58,9 @@ public:
         distance += diff*diff;
       }
       distance = sqrt(distance);
-      if(distance > max){
+      if(distance < minDistance){
         index = i;
-        max = distance;
+        minDistance = distance;
       }
     }
     return index;
