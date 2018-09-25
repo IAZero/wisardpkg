@@ -44,7 +44,10 @@ public:
           bestDiscriminator = discriminators[i];
       }
 
-      if(score >= minScore || score >= (count/threshold)){
+      float limit = minScore + count/threshold;
+      limit = limit > 1.0 ? 1.0 : limit;
+
+      if(score >= limit){
         discriminators[i]->train(image);
         trained = true;
       }
@@ -81,7 +84,7 @@ public:
     }
     return images;
   }
-  
+
   ~Cluster(){
     for(unsigned int i=0; i<discriminators.size(); ++i){
       delete discriminators[i];

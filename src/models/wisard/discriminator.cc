@@ -12,7 +12,7 @@ using json = nlohmann::json;
 
 class Discriminator{
 public:
-  Discriminator(): entrySize(0){}
+  Discriminator(): entrySize(0),count(0){}
   Discriminator(string config):Discriminator(json::parse(config)){}
   Discriminator(json config){
     entrySize = config["entrySize"];
@@ -69,6 +69,7 @@ public:
   void setRAMShuffle(int addressSize, bool ignoreZero, bool completeAddressing, int base){
     checkAddressSize(entrySize, addressSize);
     checkBase(base);
+    count=0;
 
     int numberOfRAMS = entrySize / addressSize;
     int remain = entrySize % addressSize;
@@ -99,6 +100,7 @@ public:
     checkAddressSize(entrySize, addressSize);
     checkBase(base);
     checkListOfIndexes(indexes, entrySize);
+    count=0;
 
     int numberOfRAMS = entrySize / addressSize;
     rams = vector<RAM>(numberOfRAMS);
