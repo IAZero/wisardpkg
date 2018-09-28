@@ -1,12 +1,9 @@
 using namespace std;
 
-namespace py = pybind11;
-using json = nlohmann::json;
-
 class Wisard{
 public:
   Wisard(string config){
-    json c = json::parse(config);
+    nl::json c = nl::json::parse(config);
 
     addressSize=c["addressSize"];
     bleachingActivated=c["bleachingActivated"];
@@ -21,13 +18,13 @@ public:
     returnActivationDegree=c["returnActivationDegree"];
     returnClassesDegrees=c["returnClassesDegrees"];
 
-    json classes = c["classes"];
-    json dConfig = {
+    nl::json classes = c["classes"];
+    nl::json dConfig = {
       {"ignoreZero", ignoreZero},
       {"base", base}
     };
-    for(json::iterator it = classes.begin(); it != classes.end(); ++it){
-      json d = it.value();
+    for(nl::json::iterator it = classes.begin(); it != classes.end(); ++it){
+      nl::json d = it.value();
       d.merge_patch(dConfig);
       discriminators[it.key()] = Discriminator(d);
     }
@@ -171,24 +168,24 @@ public:
     return images;
   }
 
-  json getClassesJSON(){
-    json c;
+  nl::json getClassesJSON(){
+    nl::json c;
     for(map<string, Discriminator>::iterator d=discriminators.begin(); d!=discriminators.end(); ++d){
       c[d->first] = d->second.getJSON();
     }
     return c;
   }
 
-  json getConfigClassesJSON(){
-    json c;
+  nl::json getConfigClassesJSON(){
+    nl::json c;
     for(map<string, Discriminator>::iterator d=discriminators.begin(); d!=discriminators.end(); ++d){
       c[d->first] = d->second.getConfigJSON();
     }
     return c;
   }
 
-  json getConfig(){
-    json config = {
+  nl::json getConfig(){
+    nl::json config = {
       {"addressSize", addressSize},
       {"bleachingActivated", bleachingActivated},
       {"verbose", verbose},
@@ -206,13 +203,13 @@ public:
   }
 
   string getConfigJSON(){
-    json config = getConfig();
+    nl::json config = getConfig();
     config["classes"] = getConfigClassesJSON();
     return config.dump(2);
   }
 
   string getJSON() {
-    json config = getConfig();
+    nl::json config = getConfig();
     config["classes"] = getClassesJSON();
     return config.dump(2);
   }

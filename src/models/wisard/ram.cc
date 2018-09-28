@@ -1,16 +1,15 @@
 using namespace std;
-using json = nlohmann::json;
 
 class RAM{
 public:
   RAM(){}
-  RAM(json c){
+  RAM(nl::json c){
     ignoreZero = c["ignoreZero"];
     base=c["base"];
     addresses = c["addresses"].get<vector<int>>();
     checkLimitAddressSize(addresses.size(), base);
-    json pos = c["positions"];
-    for(json::iterator it = pos.begin(); it != pos.end(); ++it){
+    nl::json pos = c["positions"];
+    for(nl::json::iterator it = pos.begin(); it != pos.end(); ++it){
       unsigned long long p = stoull(it.key());
       positions[p] = it.value();
     }
@@ -81,24 +80,24 @@ public:
     return mentalPiece;
   }
 
-  json positionsToJSON(){
-    json pos;
+  nl::json positionsToJSON(){
+    nl::json pos;
     for(auto j=positions.begin(); j!=positions.end(); ++j){
       pos[to_string(j->first)] = j->second;
     }
     return pos;
   }
 
-  json getConfig(){
-    json config = {
+  nl::json getConfig(){
+    nl::json config = {
       {"ignoreZero", ignoreZero},
       {"base", base}
     };
     return config;
   }
 
-  json getJSON(bool all=true){
-    json config = {
+  nl::json getJSON(bool all=true){
+    nl::json config = {
       {"addresses", addresses},
       {"positions", nullptr}
     };

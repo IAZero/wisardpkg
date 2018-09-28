@@ -1,23 +1,20 @@
 
 using namespace std;
 
-namespace py = pybind11;
-using json = nlohmann::json;
-
 class Discriminator{
 public:
   Discriminator(): entrySize(0),count(0){}
-  Discriminator(string config):Discriminator(json::parse(config)){}
-  Discriminator(json config){
+  Discriminator(string config):Discriminator(nl::json::parse(config)){}
+  Discriminator(nl::json config){
     entrySize = config["entrySize"];
     count = config["count"];
-    json jrams = config["rams"];
-    json rbase = {
+    nl::json jrams = config["rams"];
+    nl::json rbase = {
       {"ignoreZero", config["ignoreZero"]},
       {"base", config["base"]}
     };
-    for(json::iterator it = jrams.begin(); it != jrams.end(); ++it){
-      json base = *it;
+    for(nl::json::iterator it = jrams.begin(); it != jrams.end(); ++it){
+      nl::json base = *it;
       base.merge_patch(rbase);
       rams.push_back(RAM(base));
     }
@@ -159,16 +156,16 @@ public:
     return mentalImage;
   }
 
-  json getRAMSJSON(bool all=true){
-    json rj = json::array();
+  nl::json getRAMSJSON(bool all=true){
+    nl::json rj = nl::json::array();
     for(unsigned int i=0; i<rams.size(); i++){
       rj[i] = rams[i].getJSON(all);
     }
     return rj;
   }
 
-  json getConfig(){
-    json config = {
+  nl::json getConfig(){
+    nl::json config = {
       {"entrySize", entrySize},
       {"count", count}
     };
@@ -176,7 +173,7 @@ public:
   }
 
   string getConfigString(){
-    json config = getConfig();
+    nl::json config = getConfig();
     if(!rams.empty()){
       config.merge_patch(rams[0].getConfig());
     }
@@ -185,7 +182,7 @@ public:
   }
 
   string getJSONString(){
-    json config = getConfig();
+    nl::json config = getConfig();
     if(!rams.empty()){
       config.merge_patch(rams[0].getConfig());
     }
@@ -193,14 +190,14 @@ public:
     return config.dump(2);
   }
 
-  json getConfigJSON(){
-    json config = getConfig();
+  nl::json getConfigJSON(){
+    nl::json config = getConfig();
     config["rams"] = getRAMSJSON(false);
     return config;
   }
 
-  json getJSON(){
-    json config = getConfig();
+  nl::json getJSON(){
+    nl::json config = getConfig();
     config["rams"] = getRAMSJSON();
     return config;
   }

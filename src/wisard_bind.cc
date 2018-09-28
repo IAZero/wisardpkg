@@ -1,11 +1,7 @@
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
-
 #include "wisardpkg.h"
 //__version__
 #include "version.h"
 
-namespace py = pybind11;
 
 PYBIND11_MODULE(wisardpkg, m){
     m.attr("__version__") = __version__;

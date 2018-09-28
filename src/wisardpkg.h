@@ -1,8 +1,13 @@
 //base
 #include "base.h"
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 
 //libs - must be the first of all
 #include "libs/json.hpp"
+
+namespace nl = nlohmann;
+namespace py = pybind11;
 
 //common
 #include "common/utils.cc"
