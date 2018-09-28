@@ -1,8 +1,7 @@
-using namespace std;
 
 class Wisard{
 public:
-  Wisard(string config){
+  Wisard(std::string config){
     nl::json c = nl::json::parse(config);
 
     addressSize=c["addressSize"];
@@ -10,7 +9,7 @@ public:
     verbose=c["verbose"];
     ignoreZero=c["ignoreZero"];
     completeAddressing=c["completeAddressing"];
-    indexes=c["indexes"].get<vector<int>>();
+    indexes=c["indexes"].get<std::vector<int>>();
     base=c["base"];
     confidence=c["confidence"];
     searchBestConfidence=c["searchBestConfidence"];
@@ -34,7 +33,7 @@ public:
     verbose=false;
     ignoreZero=false;
     completeAddressing=true;
-    indexes=vector<int>(0);
+    indexes=std::vector<int>(0);
     base=2;
     searchBestConfidence=false;
     returnConfidence=false;
@@ -44,85 +43,85 @@ public:
 
     srand(randint(0,1000000));
     for(auto arg: kwargs){
-      if(string(py::str(arg.first)).compare("bleachingActivated") == 0)
+      if(std::string(py::str(arg.first)).compare("bleachingActivated") == 0)
         bleachingActivated = arg.second.cast<bool>();
 
-      if(string(py::str(arg.first)).compare("verbose") == 0)
+      if(std::string(py::str(arg.first)).compare("verbose") == 0)
         verbose = arg.second.cast<bool>();
 
-      if(string(py::str(arg.first)).compare("ignoreZero") == 0)
+      if(std::string(py::str(arg.first)).compare("ignoreZero") == 0)
         ignoreZero = arg.second.cast<bool>();
 
-      if(string(py::str(arg.first)).compare("completeAddressing") == 0)
+      if(std::string(py::str(arg.first)).compare("completeAddressing") == 0)
         completeAddressing = arg.second.cast<bool>();
 
-      if(string(py::str(arg.first)).compare("indexes") == 0)
-        indexes = arg.second.cast<vector<int>>();
+      if(std::string(py::str(arg.first)).compare("indexes") == 0)
+        indexes = arg.second.cast<std::vector<int>>();
 
-      if(string(py::str(arg.first)).compare("base") == 0)
+      if(std::string(py::str(arg.first)).compare("base") == 0)
         base = arg.second.cast<int>();
 
-      if(string(py::str(arg.first)).compare("searchBestConfidence") == 0)
+      if(std::string(py::str(arg.first)).compare("searchBestConfidence") == 0)
         searchBestConfidence = arg.second.cast<bool>();
 
-      if(string(py::str(arg.first)).compare("returnConfidence") == 0)
+      if(std::string(py::str(arg.first)).compare("returnConfidence") == 0)
         returnConfidence = arg.second.cast<bool>();
 
-      if(string(py::str(arg.first)).compare("returnActivationDegree") == 0)
+      if(std::string(py::str(arg.first)).compare("returnActivationDegree") == 0)
         returnActivationDegree = arg.second.cast<bool>();
 
-      if(string(py::str(arg.first)).compare("returnClassesDegrees") == 0)
+      if(std::string(py::str(arg.first)).compare("returnClassesDegrees") == 0)
         returnClassesDegrees = arg.second.cast<bool>();
 
-      if(string(py::str(arg.first)).compare("confidence") == 0)
+      if(std::string(py::str(arg.first)).compare("confidence") == 0)
         confidence = arg.second.cast<int>();
     }
   }
 
-  void train(const vector<int>& image, const string& label){
+  void train(const std::vector<int>& image, const std::string& label){
     if(discriminators.find(label) == discriminators.end()){
       makeDiscriminator(label, image.size());
     }
     discriminators[label].train(image);
   }
 
-  void train(const vector<vector<int>>& images, const vector<string>& labels){
+  void train(const std::vector<std::vector<int>>& images, const std::vector<std::string>& labels){
     int numberOfRAMS = calculateNumberOfRams(images[0].size(), addressSize, completeAddressing);
     checkConfidence(numberOfRAMS);
     checkInputSizes(images.size(), labels.size());
     for(unsigned int i=0; i<images.size(); i++){
-      if(verbose) cout << "\rtraining " << i+1 << " of " << images.size();
+      if(verbose) std::cout << "\rtraining " << i+1 << " of " << images.size();
       train(images[i], labels[i]);
     }
-    if(verbose) cout << "\r" << endl;
+    if(verbose) std::cout << "\r" << std::endl;
   }
 
-  void untrain(const vector<int>& image, const string& label){
+  void untrain(const std::vector<int>& image, const std::string& label){
     auto d = discriminators.find(label);
     if(d != discriminators.end()){
       d->second.untrain(image);
     }
   }
 
-  void untrain(const vector<vector<int>>& images, const vector<string>& labels){
+  void untrain(const std::vector<std::vector<int>>& images, const std::vector<std::string>& labels){
     checkInputSizes(images.size(), labels.size());
     for(unsigned int i=0; i<images.size(); i++){
-      if(verbose) cout << "\runtraining " << i+1 << " of " << images.size();
+      if(verbose) std::cout << "\runtraining " << i+1 << " of " << images.size();
       untrain(images[i], labels[i]);
     }
-    if(verbose) cout << "\r" << endl;
+    if(verbose) std::cout << "\r" << std::endl;
   }
 
-  map<string, int> classify(const vector<int>& image, bool searchBestConfidence=false){
-    map<string,vector<int>> allvotes;
+  std::map<std::string, int> classify(const std::vector<int>& image, bool searchBestConfidence=false){
+    std::map<std::string,std::vector<int>> allvotes;
 
-    for(map<string,Discriminator>::iterator i=discriminators.begin(); i!=discriminators.end(); ++i){
+    for(std::map<std::string,Discriminator>::iterator i=discriminators.begin(); i!=discriminators.end(); ++i){
       allvotes[i->first] = i->second.getVotes(image);
     }
     return Bleaching::make(allvotes, bleachingActivated, searchBestConfidence, confidence);
   }
 
-  void setClassifyOutput(py::list& labels, int i, string aClass, float numberOfRAMS, map<string,int>& candidates){
+  void setClassifyOutput(py::list& labels, int i, std::string aClass, float numberOfRAMS, std::map<std::string,int>& candidates){
     if(returnConfidence || returnActivationDegree || returnClassesDegrees){
       labels[i] = py::dict(py::arg("class")=aClass);
     }
@@ -146,23 +145,23 @@ public:
     }
   }
 
-  py::list classify(const vector<vector<int>>& images){
+  py::list classify(const std::vector<std::vector<int>>& images){
     float numberOfRAMS = calculateNumberOfRams(images[0].size(), addressSize, completeAddressing);
 
     py::list labels(images.size());
     for(unsigned int i=0; i<images.size(); i++){
-      if(verbose) cout << "\rclassifying " << i+1 << " of " << images.size();
-      map<string,int> candidates = classify(images[i],searchBestConfidence);
-      string aClass = Bleaching::getBiggestCandidate(candidates);
+      if(verbose) std::cout << "\rclassifying " << i+1 << " of " << images.size();
+      std::map<std::string,int> candidates = classify(images[i],searchBestConfidence);
+      std::string aClass = Bleaching::getBiggestCandidate(candidates);
       setClassifyOutput(labels, i, aClass, numberOfRAMS, candidates);
     }
-    if(verbose) cout << "\r" << endl;
+    if(verbose) std::cout << "\r" << std::endl;
     return labels;
   }
 
-  map<string,vector<int>> getMentalImages(){
-    map<string,vector<int>> images;
-    for(map<string, Discriminator>::iterator d=discriminators.begin(); d!=discriminators.end(); ++d){
+  std::map<std::string,std::vector<int>> getMentalImages(){
+    std::map<std::string,std::vector<int>> images;
+    for(std::map<std::string, Discriminator>::iterator d=discriminators.begin(); d!=discriminators.end(); ++d){
       images[d->first] = d->second.getMentalImage();
     }
     return images;
@@ -170,7 +169,7 @@ public:
 
   nl::json getClassesJSON(){
     nl::json c;
-    for(map<string, Discriminator>::iterator d=discriminators.begin(); d!=discriminators.end(); ++d){
+    for(std::map<std::string, Discriminator>::iterator d=discriminators.begin(); d!=discriminators.end(); ++d){
       c[d->first] = d->second.getJSON();
     }
     return c;
@@ -178,7 +177,7 @@ public:
 
   nl::json getConfigClassesJSON(){
     nl::json c;
-    for(map<string, Discriminator>::iterator d=discriminators.begin(); d!=discriminators.end(); ++d){
+    for(std::map<std::string, Discriminator>::iterator d=discriminators.begin(); d!=discriminators.end(); ++d){
       c[d->first] = d->second.getConfigJSON();
     }
     return c;
@@ -202,13 +201,13 @@ public:
     return config;
   }
 
-  string getConfigJSON(){
+  std::string getConfigJSON(){
     nl::json config = getConfig();
     config["classes"] = getConfigClassesJSON();
     return config.dump(2);
   }
 
-  string getJSON() {
+  std::string getJSON() {
     nl::json config = getConfig();
     config["classes"] = getClassesJSON();
     return config.dump(2);
@@ -220,7 +219,7 @@ public:
   }
 
 protected:
-  void makeDiscriminator(string label, int entrySize){
+  void makeDiscriminator(std::string label, int entrySize){
     if(indexes.size()==0){
       discriminators[label] = Discriminator(addressSize, entrySize, ignoreZero, completeAddressing, base);
     }
@@ -241,13 +240,13 @@ protected:
     }
   }
 
-  py::list getClassesDegrees(map<string, int> candidates) const{
+  py::list getClassesDegrees(std::map<std::string, int> candidates) const{
     float total = 0;
     int index = 0;
     py::list output(candidates.size());
-    for(map<string, int>::iterator i=candidates.begin(); i!=candidates.end(); ++i) total += i->second;
+    for(std::map<std::string, int>::iterator i=candidates.begin(); i!=candidates.end(); ++i) total += i->second;
     if(total == 0) total=1;
-    for(map<string, int>::iterator i=candidates.begin(); i!=candidates.end(); ++i){
+    for(std::map<std::string, int>::iterator i=candidates.begin(); i!=candidates.end(); ++i){
       output[index] = py::dict(py::arg("class")=i->first, py::arg("degree")=(i->second/total));
       index++;
     }
@@ -258,7 +257,7 @@ private:
   int addressSize;
   bool bleachingActivated;
   bool verbose;
-  vector<int> indexes;
+  std::vector<int> indexes;
   bool ignoreZero;
   bool completeAddressing;
   int base;
@@ -267,5 +266,5 @@ private:
   bool returnActivationDegree;
   bool returnClassesDegrees;
   int confidence;
-  map<string, Discriminator> discriminators;
+  std::map<std::string, Discriminator> discriminators;
 };

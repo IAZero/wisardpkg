@@ -1,4 +1,4 @@
-
+using namespace std;
 
 class Cluster {
 public:
