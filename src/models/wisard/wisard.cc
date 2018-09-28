@@ -73,7 +73,7 @@ public:
   }
 
   std::vector<std::string> classify(const std::vector<std::vector<int>>& images){
-    float numberOfRAMS = calculateNumberOfRams(images[0].size(), addressSize, completeAddressing);
+    //float numberOfRAMS = calculateNumberOfRams(images[0].size(), addressSize, completeAddressing);
     std::vector<std::string> labels(images.size());
 
     for(unsigned int i=0; i<images.size(); i++){

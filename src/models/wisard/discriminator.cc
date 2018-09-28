@@ -26,51 +26,6 @@ public:
     setRAMByIndex(indexes, addressSize, ignoreZero, base);
   }
 
-  void setRAMShuffle(int addressSize, bool ignoreZero, bool completeAddressing, int base){
-    checkAddressSize(entrySize, addressSize);
-    checkBase(base);
-    count=0;
-
-    int numberOfRAMS = entrySize / addressSize;
-    int remain = entrySize % addressSize;
-    int indexesSize = entrySize;
-    if(completeAddressing && remain > 0) {
-      numberOfRAMS++;
-      indexesSize += addressSize-remain;
-    }
-
-    rams.resize(numberOfRAMS);
-    std::vector<int> indexes(indexesSize);
-
-    for(int i=0; i<entrySize; i++) {
-      indexes[i]=i;
-    }
-    for(unsigned int i=entrySize; i<indexes.size(); i++){
-      indexes[i] = randint(0, entrySize-1, false);
-    }
-    random_shuffle(indexes.begin(), indexes.end());
-
-    for(unsigned int i=0; i<rams.size(); i++){
-      std::vector<int> subIndexes(indexes.begin() + (i*addressSize), indexes.begin() + ((i+1)*addressSize));
-      rams[i] = RAM(subIndexes, ignoreZero, base);
-    }
-  }
-
-  void setRAMByIndex(std::vector<int> indexes, int addressSize, bool ignoreZero=false, int base=2){
-    checkAddressSize(entrySize, addressSize);
-    checkBase(base);
-    checkListOfIndexes(indexes, entrySize);
-    count=0;
-
-    int numberOfRAMS = entrySize / addressSize;
-    rams = std::vector<RAM>(numberOfRAMS);
-
-    for(unsigned int i=0; i<rams.size(); i++){
-      std::vector<int> subIndexes(indexes.begin() + (i*addressSize), indexes.begin() + ((i+1)*addressSize));
-      rams[i] = RAM(subIndexes, ignoreZero, base);
-    }
-  }
-
   std::vector<int> getVotes(const std::vector<int>& image) {
     checkEntrySize(image.size());
     std::vector<int> votes(rams.size());
@@ -125,23 +80,7 @@ public:
     return mentalImage;
   }
 
-  nl::json getRAMSJSON(bool all=true){
-    nl::json rj = nl::json::array();
-    for(unsigned int i=0; i<rams.size(); i++){
-      rj[i] = rams[i].getJSON(all);
-    }
-    return rj;
-  }
-
-  nl::json getConfig(){
-    nl::json config = {
-      {"entrySize", entrySize},
-      {"count", count}
-    };
-    return config;
-  }
-
-  std::string getConfigString(){
+  std::string jsonConfig(){
     nl::json config = getConfig();
     if(!rams.empty()){
       config.merge_patch(rams[0].getConfig());
@@ -150,7 +89,7 @@ public:
     return config.dump(2);
   }
 
-  std::string getJSONString(){
+  std::string json(){
     nl::json config = getConfig();
     if(!rams.empty()){
       config.merge_patch(rams[0].getConfig());
@@ -173,6 +112,68 @@ public:
 
   ~Discriminator(){
     rams.clear();
+  }
+
+protected:
+  void setRAMShuffle(int addressSize, bool ignoreZero, bool completeAddressing, int base){
+    checkAddressSize(entrySize, addressSize);
+    checkBase(base);
+    count=0;
+
+    int numberOfRAMS = entrySize / addressSize;
+    int remain = entrySize % addressSize;
+    int indexesSize = entrySize;
+    if(completeAddressing && remain > 0) {
+      numberOfRAMS++;
+      indexesSize += addressSize-remain;
+    }
+
+    rams.resize(numberOfRAMS);
+    std::vector<int> indexes(indexesSize);
+
+    for(int i=0; i<entrySize; i++) {
+      indexes[i]=i;
+    }
+    for(unsigned int i=entrySize; i<indexes.size(); i++){
+      indexes[i] = randint(0, entrySize-1, false);
+    }
+    random_shuffle(indexes.begin(), indexes.end());
+
+    for(unsigned int i=0; i<rams.size(); i++){
+      std::vector<int> subIndexes(indexes.begin() + (i*addressSize), indexes.begin() + ((i+1)*addressSize));
+      rams[i] = RAM(subIndexes, ignoreZero, base);
+    }
+  }
+
+  void setRAMByIndex(std::vector<int> indexes, int addressSize, bool ignoreZero=false, int base=2){
+    checkAddressSize(entrySize, addressSize);
+    checkBase(base);
+    checkListOfIndexes(indexes, entrySize);
+    count=0;
+
+    int numberOfRAMS = entrySize / addressSize;
+    rams = std::vector<RAM>(numberOfRAMS);
+
+    for(unsigned int i=0; i<rams.size(); i++){
+      std::vector<int> subIndexes(indexes.begin() + (i*addressSize), indexes.begin() + ((i+1)*addressSize));
+      rams[i] = RAM(subIndexes, ignoreZero, base);
+    }
+  }
+
+  nl::json getRAMSJSON(bool all=true){
+    nl::json rj = nl::json::array();
+    for(unsigned int i=0; i<rams.size(); i++){
+      rj[i] = rams[i].getJSON(all);
+    }
+    return rj;
+  }
+
+  nl::json getConfig(){
+    nl::json config = {
+      {"entrySize", entrySize},
+      {"count", count}
+    };
+    return config;
   }
 
 private:
