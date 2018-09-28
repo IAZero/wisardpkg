@@ -39,7 +39,9 @@ public:
     value = c["returnClassesDegrees"];
     returnClassesDegrees = value.is_null() ? false : value.get<bool>();
   }
-  Wisard(nl::json c):Wisard(0,c){
+
+  Wisard(std::string config):Wisard(0,nl::json::parse(config)){
+    nl::json c = nl::json::parse(config);
     addressSize=c["addressSize"];
 
     nl::json classes = c["classes"];
@@ -53,7 +55,6 @@ public:
       discriminators[it.key()] = Discriminator(d);
     }
   }
-  Wisard(std::string config):Wisard(nl::json::parse(config)){}
 
   void train(const std::vector<int>& image, const std::string& label){
     if(discriminators.find(label) == discriminators.end()){
