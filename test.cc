@@ -26,4 +26,12 @@ int main(int argc, const char * argv[]){
   d.train(X);
   auto dout = d.classify(X[0]);
   cout << "rams = " << dout[0] << " : " << dout[1] << endl;
+
+  wp::ClusWisard clus(3, 0.1, 100, 3, {
+    {"bleachingActivated", true}
+  });
+
+  clus.train(X, y);
+  auto clusout = clus.classify(X);
+  cout << "clus class: " << clusout[0] << endl;
 }
