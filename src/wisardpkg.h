@@ -32,3 +32,4 @@ namespace py = pybind11;
 //wrappers
 #include "wrappers/discriminatorwrapper.cc"
 #include "wrappers/wisardwrapper.cc"
+#include "wrappers/cluswisardwrapper.cc"
