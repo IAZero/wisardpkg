@@ -17,5 +17,5 @@ int main(int argc, const char * argv[]){
   cout << wp::__version__ << "\n\n" << w.json() << endl;
 
   auto out = w.classify(X);
-  cout << "class" << out[0] << endl;
+  cout << "class: " << out[0] << endl;
 }

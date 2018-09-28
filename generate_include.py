@@ -26,6 +26,14 @@ includes = [
 ]
 
 with open(output+name+'.hpp', 'w+') as out:
+    versionData = open(src+version).read()
+    __version__ = versionData.split('"')[1]
+
+    out.write("/*\n" +\
+        "\n"+name+" for c++11" +\
+        "\nversion "+ __version__ +\
+        "\nhttps://github.com/IAZero/wisardpkg" +\
+        "\n*/\n\n")
     out.write("\n#ifndef "+name.upper()+"_HPP\n#define "+name.upper()+"_HPP\n\n")
 
     data = open(src+stdIncludes).read()
@@ -38,8 +46,7 @@ with open(output+name+'.hpp', 'w+') as out:
 
     out.write("\n\nnamespace "+name+" {\n\n")
 
-    data = open(src+version).read()
-    out.write(data+"\n\n")
+    out.write(versionData+"\n\n")
 
     for lib in libs:
         out.write('\n\nnamespace '+lib[1]+';\n\n')
