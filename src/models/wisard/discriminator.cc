@@ -1,10 +1,8 @@
 
-using namespace std;
-
 class Discriminator{
 public:
   Discriminator(): entrySize(0),count(0){}
-  Discriminator(string config):Discriminator(nl::json::parse(config)){}
+  Discriminator(std::string config):Discriminator(nl::json::parse(config)){}
   Discriminator(nl::json config){
     entrySize = config["entrySize"];
     count = config["count"];
@@ -23,30 +21,30 @@ public:
     setRAMShuffle(addressSize, ignoreZero, completeAddressing, base);
   }
 
-  Discriminator(vector<int> indexes, int addressSize, int entrySize, bool ignoreZero=false, int base=2): entrySize(entrySize){
+  Discriminator(std::vector<int> indexes, int addressSize, int entrySize, bool ignoreZero=false, int base=2): entrySize(entrySize){
     setRAMByIndex(indexes, addressSize, ignoreZero, base);
   }
 
   Discriminator(int addressSize, int entrySize, py::kwargs kwargs): entrySize(entrySize){
     bool ignoreZero=false;
     bool completeAddressing=true;
-    vector<int> indexes(0);
+    std::vector<int> indexes(0);
     int base = 2;
 
     srand(randint(0, 100000));
 
     for(auto arg: kwargs){
-      if(string(py::str(arg.first)).compare("ignoreZero") == 0)
+      if(std::string(py::str(arg.first)).compare("ignoreZero") == 0)
         ignoreZero = arg.second.cast<bool>();
 
-      if(string(py::str(arg.first)).compare("completeAddressing") == 0)
+      if(std::string(py::str(arg.first)).compare("completeAddressing") == 0)
         completeAddressing = arg.second.cast<bool>();
 
-      if(string(py::str(arg.first)).compare("base") == 0)
+      if(std::string(py::str(arg.first)).compare("base") == 0)
         base = arg.second.cast<int>();
 
-      if(string(py::str(arg.first)).compare("indexes") == 0)
-        indexes = arg.second.cast<vector<int>>();
+      if(std::string(py::str(arg.first)).compare("indexes") == 0)
+        indexes = arg.second.cast<std::vector<int>>();
     }
 
     if(indexes.size() == 0){
@@ -71,7 +69,7 @@ public:
     }
 
     rams.resize(numberOfRAMS);
-    vector<int> indexes(indexesSize);
+    std::vector<int> indexes(indexesSize);
 
     for(int i=0; i<entrySize; i++) {
       indexes[i]=i;
@@ -82,36 +80,36 @@ public:
     random_shuffle(indexes.begin(), indexes.end());
 
     for(unsigned int i=0; i<rams.size(); i++){
-      vector<int> subIndexes(indexes.begin() + (i*addressSize), indexes.begin() + ((i+1)*addressSize));
+      std::vector<int> subIndexes(indexes.begin() + (i*addressSize), indexes.begin() + ((i+1)*addressSize));
       rams[i] = RAM(subIndexes, ignoreZero, base);
     }
   }
 
-  void setRAMByIndex(vector<int> indexes, int addressSize, bool ignoreZero=false, int base=2){
+  void setRAMByIndex(std::vector<int> indexes, int addressSize, bool ignoreZero=false, int base=2){
     checkAddressSize(entrySize, addressSize);
     checkBase(base);
     checkListOfIndexes(indexes, entrySize);
     count=0;
 
     int numberOfRAMS = entrySize / addressSize;
-    rams = vector<RAM>(numberOfRAMS);
+    rams = std::vector<RAM>(numberOfRAMS);
 
     for(unsigned int i=0; i<rams.size(); i++){
-      vector<int> subIndexes(indexes.begin() + (i*addressSize), indexes.begin() + ((i+1)*addressSize));
+      std::vector<int> subIndexes(indexes.begin() + (i*addressSize), indexes.begin() + ((i+1)*addressSize));
       rams[i] = RAM(subIndexes, ignoreZero, base);
     }
   }
 
-  vector<int> getVotes(const vector<int>& image) {
+  std::vector<int> getVotes(const std::vector<int>& image) {
     checkEntrySize(image.size());
-    vector<int> votes(rams.size());
+    std::vector<int> votes(rams.size());
     for(unsigned int i=0; i<rams.size(); i++){
       votes[i] = rams[i].getVote(image);
     }
     return votes;
   }
 
-  void train(const vector<int>& image){
+  void train(const std::vector<int>& image){
     checkEntrySize(image.size());
     count++;
     for(unsigned int i=0; i<rams.size(); i++){
@@ -119,13 +117,13 @@ public:
     }
   }
 
-  void train(const vector<vector<int>>& image){
+  void train(const std::vector<std::vector<int>>& image){
     for(unsigned int i=0; i<image.size(); i++){
       train(image[i]);
     }
   }
 
-  void untrain(const vector<int>& image){
+  void untrain(const std::vector<int>& image){
       checkEntrySize(image.size());
       count--;
       for(unsigned int i=0; i<rams.size(); i++){
@@ -141,15 +139,15 @@ public:
     return rams.size();
   }
 
-  vector<int> getMentalImage(){
-    vector<int> mentalImage(entrySize);
+  std::vector<int> getMentalImage(){
+    std::vector<int> mentalImage(entrySize);
     for(unsigned int i=0; i<mentalImage.size(); i++) {
       mentalImage[i]=0;
     }
 
     for(unsigned int r=0; r<rams.size(); r++){
-      vector<vector<int>> piece = rams[r].getMentalImage();
-      for(vector<int> p: piece){
+      std::vector<std::vector<int>> piece = rams[r].getMentalImage();
+      for(std::vector<int> p: piece){
         mentalImage[p[0]] += p[1];
       }
     }
@@ -172,7 +170,7 @@ public:
     return config;
   }
 
-  string getConfigString(){
+  std::string getConfigString(){
     nl::json config = getConfig();
     if(!rams.empty()){
       config.merge_patch(rams[0].getConfig());
@@ -181,7 +179,7 @@ public:
     return config.dump(2);
   }
 
-  string getJSONString(){
+  std::string getJSONString(){
     nl::json config = getConfig();
     if(!rams.empty()){
       config.merge_patch(rams[0].getConfig());
@@ -232,12 +230,12 @@ private:
     }
   }
 
-  void checkListOfIndexes(const vector<int>& indexes, const int entrySize) const{
+  void checkListOfIndexes(const std::vector<int>& indexes, const int entrySize) const{
     if((int)indexes.size() != entrySize){
       throw Exception("The list of indexes is not compatible with entry size!");
     }
 
-    map<int, int> values;
+    std::map<int, int> values;
     for(unsigned int i=0; i<indexes.size(); i++){
       if(indexes[i] >= entrySize){
         throw Exception("The list of indexes has a index out of range of entry!");
@@ -253,5 +251,5 @@ private:
 
   int entrySize;
   int count;
-  vector<RAM> rams;
+  std::vector<RAM> rams;
 };
