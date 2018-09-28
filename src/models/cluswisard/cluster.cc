@@ -34,7 +34,7 @@ public:
     Discriminator* bestDiscriminator = NULL;
 
     for(unsigned int i=0; i<discriminators.size(); i++){
-      auto votes = discriminators[i]->getVotes(image);
+      auto votes = discriminators[i]->classify(image);
       float score = getScore(votes);
       float count = discriminators[i]->getNumberOfTrainings();
 
@@ -67,7 +67,7 @@ public:
   std::vector<std::vector<int>> classify(const std::vector<int>& image){
     std::vector<std::vector<int>> output(discriminators.size());
     for(unsigned int i=0; i<discriminators.size(); i++){
-      output[i] = discriminators[i]->getVotes(image);
+      output[i] = discriminators[i]->classify(image);
     }
     return output;
   }

@@ -134,7 +134,7 @@ protected:
     std::map<std::string,std::vector<int>> allvotes;
 
     for(std::map<std::string,Discriminator>::iterator i=discriminators.begin(); i!=discriminators.end(); ++i){
-      allvotes[i->first] = i->second.getVotes(image);
+      allvotes[i->first] = i->second.classify(image);
     }
     return Bleaching::make(allvotes, bleachingActivated, searchBestConfidence, confidence);
   }

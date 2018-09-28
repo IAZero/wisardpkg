@@ -26,7 +26,7 @@ public:
     setRAMByIndex(indexes, addressSize, ignoreZero, base);
   }
 
-  std::vector<int> getVotes(const std::vector<int>& image) {
+  std::vector<int> classify(const std::vector<int>& image) {
     checkEntrySize(image.size());
     std::vector<int> votes(rams.size());
     for(unsigned int i=0; i<rams.size(); i++){
