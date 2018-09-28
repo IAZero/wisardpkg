@@ -1,4 +1,3 @@
-using namespace std;
 
 class Cluster {
 public:
@@ -10,7 +9,7 @@ public:
     completeAddressing(completeAddressing), ignoreZero(ignoreZero), base(base){
     }
 
-  float getScore(const vector<int>& votes) const{
+  float getScore(const std::vector<int>& votes) const{
     int max = 0;
     float sum = 0;
     for(auto v: votes){
@@ -23,7 +22,7 @@ public:
     return sum/(max*votes.size());
   }
 
-  void train(const vector<int>& image){
+  void train(const std::vector<int>& image){
     if(discriminators.size()==0){
       makeDiscriminator(0);
       discriminators[0]->train(image);
@@ -65,8 +64,8 @@ public:
     }
   }
 
-  vector<vector<int>> classify(const vector<int>& image){
-    vector<vector<int>> output(discriminators.size());
+  std::vector<std::vector<int>> classify(const std::vector<int>& image){
+    std::vector<std::vector<int>> output(discriminators.size());
     for(unsigned int i=0; i<discriminators.size(); i++){
       output[i] = discriminators[i]->getVotes(image);
     }
@@ -77,9 +76,9 @@ public:
     return discriminators.size();
   }
 
-  vector<vector<int>> getMentalImages(){
-    vector<vector<int>> images(discriminators.size());
-    for(map<int, Discriminator*>::iterator d=discriminators.begin(); d!=discriminators.end(); ++d){
+  std::vector<std::vector<int>> getMentalImages(){
+    std::vector<std::vector<int>> images(discriminators.size());
+    for(std::map<int, Discriminator*>::iterator d=discriminators.begin(); d!=discriminators.end(); ++d){
       images[d->first] = d->second->getMentalImage();
     }
     return images;
@@ -92,7 +91,7 @@ public:
   }
 
 private:
-  map<int,Discriminator*> discriminators;
+  std::map<int,Discriminator*> discriminators;
   unsigned int addressSize;
   unsigned int entrySize;
   float minScore;
