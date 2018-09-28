@@ -30,16 +30,16 @@ PYBIND11_MODULE(wisardpkg, m){
     ;
 
     // models
-    py::class_<Wisard>(m, "Wisard")
+    py::class_<WisardWrapper>(m, "Wisard")
       .def(py::init<std::string>())
       .def(py::init<int,py::kwargs>())
-      .def("train", (void (Wisard::*)(const std::vector<std::vector<int>>&, const std::vector<std::string>&)) &Wisard::train)
-      .def("classify", (py::list (Wisard::*)(const std::vector<std::vector<int>>&)) &Wisard::classify)
-      .def("getMentalImages", &Wisard::getMentalImages)
-      .def("leaveOneOut", (void (Wisard::*)(const std::vector<int>&, const std::string&)) &Wisard::untrain)
-      .def("leaveMoreOut", (void (Wisard::*)(const std::vector<std::vector<int>>&, const std::vector<std::string>&)) &Wisard::untrain)
-      .def("jsonConfig", &Wisard::getConfigJSON)
-      .def("json", &Wisard::getJSON)
+      .def("train", (void (WisardWrapper::*)(const std::vector<std::vector<int>>&, const std::vector<std::string>&)) &WisardWrapper::train)
+      .def("classify", (py::list (WisardWrapper::*)(const std::vector<std::vector<int>>&)) &WisardWrapper::pyClassify)
+      .def("getMentalImages", &WisardWrapper::getMentalImages)
+      .def("leaveOneOut", (void (WisardWrapper::*)(const std::vector<int>&, const std::string&)) &WisardWrapper::untrain)
+      .def("leaveMoreOut", (void (WisardWrapper::*)(const std::vector<std::vector<int>>&, const std::vector<std::string>&)) &WisardWrapper::untrain)
+      .def("jsonConfig", &WisardWrapper::getConfigJSON)
+      .def("json", &WisardWrapper::getJSON)
     ;
 
     py::class_<ClusWisard>(m, "ClusWisard")

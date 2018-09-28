@@ -31,3 +31,4 @@ namespace py = pybind11;
 
 //wrappers
 #include "models/wisard/discriminatorwrapper.cc"
+#include "models/wisard/wisardwrapper.cc"
