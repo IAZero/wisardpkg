@@ -3,17 +3,41 @@ class Wisard{
 public:
   Wisard(int addressSize): Wisard(addressSize, {}){}
   Wisard(int addressSize, nl::json c): addressSize(addressSize){
-    bleachingActivated=c["bleachingActivated"];
-    verbose=c["verbose"];
-    ignoreZero=c["ignoreZero"];
-    completeAddressing=c["completeAddressing"];
-    indexes=c["indexes"].get<std::vector<int>>();
-    base=c["base"];
-    confidence=c["confidence"];
-    searchBestConfidence=c["searchBestConfidence"];
-    returnConfidence=c["returnConfidence"];
-    returnActivationDegree=c["returnActivationDegree"];
-    returnClassesDegrees=c["returnClassesDegrees"];
+    srand(randint(0,1000000));
+    nl::json value;
+
+    value = c["bleachingActivated"];
+    bleachingActivated = value.is_null() ? true : value.get<bool>();
+
+    value = c["verbose"];
+    verbose = value.is_null() ? false : value.get<bool>();
+
+    value = c["ignoreZero"];
+    ignoreZero = value.is_null() ? false : value.get<bool>();
+
+    value = c["completeAddressing"];
+    completeAddressing = value.is_null() ? true : value.get<bool>();
+
+    value = c["indexes"];
+    indexes = value.is_null() ? std::vector<int>(0) : value.get<std::vector<int>>();
+
+    value = c["base"];
+    base = value.is_null() ? 2 : value.get<int>();
+
+    value = c["confidence"];
+    confidence = value.is_null() ? 1 : value.get<int>();
+
+    value = c["searchBestConfidence"];
+    searchBestConfidence = value.is_null() ? false : value.get<bool>();
+
+    value = c["returnConfidence"];
+    returnConfidence = value.is_null() ? false : value.get<bool>();
+
+    value = c["returnActivationDegree"];
+    returnActivationDegree = value.is_null() ? false : value.get<bool>();
+
+    value = c["returnClassesDegrees"];
+    returnClassesDegrees = value.is_null() ? false : value.get<bool>();
   }
   Wisard(nl::json c):Wisard(0,c){
     addressSize=c["addressSize"];

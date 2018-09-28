@@ -3,19 +3,7 @@ class WisardWrapper: public Wisard{
 public:
   WisardWrapper(std::string config):Wisard(config){}
   WisardWrapper(int addressSize, py::kwargs kwargs): Wisard(addressSize){
-    bleachingActivated=true;
-    verbose=false;
-    ignoreZero=false;
-    completeAddressing=true;
-    indexes=std::vector<int>(0);
-    base=2;
-    searchBestConfidence=false;
-    returnConfidence=false;
-    returnActivationDegree=false;
-    returnClassesDegrees=false;
-    confidence=1;
 
-    srand(randint(0,1000000));
     for(auto arg: kwargs){
       if(std::string(py::str(arg.first)).compare("bleachingActivated") == 0)
         bleachingActivated = arg.second.cast<bool>();
