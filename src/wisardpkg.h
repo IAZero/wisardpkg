@@ -1,13 +1,9 @@
 //base
 #include "base.h"
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
 
 //libs - must be the first of all
 #include "libs/json.hpp"
-
 namespace nl = nlohmann;
-namespace py = pybind11;
 
 //common
 #include "common/utils.cc"
@@ -30,6 +26,10 @@ namespace py = pybind11;
 #include "models/cluswisard/cluswisard.cc"
 
 //wrappers
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+namespace py = pybind11;
+
 #include "wrappers/discriminatorwrapper.cc"
 #include "wrappers/wisardwrapper.cc"
 #include "wrappers/cluswisardwrapper.cc"
