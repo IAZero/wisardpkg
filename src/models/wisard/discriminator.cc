@@ -3,6 +3,7 @@ class Discriminator{
 public:
   Discriminator(): entrySize(0),count(0){}
   Discriminator(int entrySize):entrySize(entrySize){}
+  Discriminator(std::string config): Discriminator(nl::json::parse(config)){}
   Discriminator(nl::json config){
     entrySize = config["entrySize"];
     count = config["count"];

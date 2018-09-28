@@ -1,7 +1,7 @@
 
 class DiscriminatorWrapper: public Discriminator{
 public:
-  DiscriminatorWrapper(std::string config): Discriminator(nl::json::parse(config)){}
+  DiscriminatorWrapper(std::string config): Discriminator(config){}
   DiscriminatorWrapper(int addressSize, int entrySize, py::kwargs kwargs): Discriminator(entrySize){
     bool ignoreZero=false;
     bool completeAddressing=true;
