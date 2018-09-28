@@ -7,6 +7,7 @@ These provided models are machine learning models,
 with supervised, unsupervised and semi-supervised learning.
 
 ## to install:
+python:
 ```
 pip install wisardpkg
 ```
@@ -18,6 +19,11 @@ To install on windows platform you can use [anaconda](https://anaconda.org/) and
 ```
 python -m pip install wisardpkg
 ```
+c++:
+copy the file wisardpkg.hpp inside your project 
+```
+include/wisardpkg.hpp
+```
 
 ## to uninstall:
 ```
@@ -25,14 +31,23 @@ pip uninstall wisardpkg
 ```
 
 ## to import:
-```
+python:
+```python
 import wisardpkg as wp
+```
+c++:
+```c++
+# include "wisardpkg.hpp"
+
+namespace wp = wisardpkg;
 ```
 
 ## to use:
 ### WiSARD
 
 WiSARD with bleaching by default:
+
+python:
 ```python
 # load input data, just zeros and ones  
 X = [
@@ -72,7 +87,37 @@ out = wsd.classify(X)
 for i,d in enumerate(X):
     print(out[i],d)
 ```
+c++:
+```c++
 
+vector<vector<int>> X(4);
+X[0] = {1,1,1,0,0,0,0,0};
+X[1] = {1,1,1,1,0,0,0,0};
+X[2] = {0,0,0,0,1,1,1,1};
+X[3] = {0,0,0,0,0,1,1,1};
+
+vector<string> y = {
+      "cold",
+      "cold",
+      "hot",
+      "hot"
+};
+
+
+wp::Wisard w(3, {
+      {"ignoreZero", false},
+      {"verbose", true}
+});
+
+w.train(X,y);
+
+vector<string> out = w.classify(X);
+
+for(int i=0; i<4; i++){
+      cout << "i: " << i << "; class: " << out[i] << endl;
+}
+
+```
 ### ClusWiSARD
 
 ClusWiSARD with bleaching by default:
