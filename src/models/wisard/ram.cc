@@ -1,4 +1,3 @@
-using namespace std;
 
 class RAM{
 public:
@@ -6,7 +5,7 @@ public:
   RAM(nl::json c){
     ignoreZero = c["ignoreZero"];
     base=c["base"];
-    addresses = c["addresses"].get<vector<int>>();
+    addresses = c["addresses"].get<std::vector<int>>();
     checkLimitAddressSize(addresses.size(), base);
     nl::json pos = c["positions"];
     for(nl::json::iterator it = pos.begin(); it != pos.end(); ++it){
@@ -16,14 +15,14 @@ public:
   }
   RAM(const int addressSize, const int entrySize, const bool ignoreZero=false, int base=2): ignoreZero(ignoreZero), base(base){
     checkLimitAddressSize(addressSize, base);
-    addresses = vector<int>(addressSize);
+    addresses = std::vector<int>(addressSize);
     generateRandomAddresses(entrySize);
   }
-  RAM(const vector<int> indexes, const bool ignoreZero=false, int base=2): addresses(indexes), ignoreZero(ignoreZero), base(base){
+  RAM(const std::vector<int> indexes, const bool ignoreZero=false, int base=2): addresses(indexes), ignoreZero(ignoreZero), base(base){
     checkLimitAddressSize(indexes.size(), base);
   }
 
-  int getVote(const vector<int>& image){
+  int getVote(const std::vector<int>& image){
     unsigned long long index = getIndex(image);
     if(ignoreZero && index == 0)
       return 0;
@@ -36,18 +35,18 @@ public:
     }
   }
 
-  void train(const vector<int>& image){
+  void train(const std::vector<int>& image){
     unsigned long long index = getIndex(image);
     auto it = positions.find(index);
     if(it == positions.end()){
-      positions.insert(it,pair<unsigned long long,int>(index, 1));
+      positions.insert(it,std::pair<unsigned long long,int>(index, 1));
     }
     else{
       it->second++;
     }
   }
 
-  void untrain(const vector<int>& image){
+  void untrain(const std::vector<int>& image){
       unsigned long long index = getIndex(image);
       auto it = positions.find(index);
       if(it != positions.end()){
@@ -55,8 +54,8 @@ public:
       }
   }
 
-  vector<vector<int>> getMentalImage() {
-    vector<vector<int>> mentalPiece(addresses.size());
+  std::vector<std::vector<int>> getMentalImage() {
+    std::vector<std::vector<int>> mentalPiece(addresses.size());
     for(unsigned int i=0; i<mentalPiece.size(); i++){
       mentalPiece[i].resize(2);
       mentalPiece[i][0] = addresses[i];
@@ -65,7 +64,7 @@ public:
 
     for(auto j=positions.begin(); j!=positions.end(); ++j){
       if(j->first == 0) continue;
-      const vector<int> address = convertToBase(j->first);
+      const std::vector<int> address = convertToBase(j->first);
       for(unsigned int i=0; i<mentalPiece.size(); i++){
         if(mentalPiece[i].size() == 0){
           mentalPiece[i].resize(2);
@@ -83,7 +82,7 @@ public:
   nl::json positionsToJSON(){
     nl::json pos;
     for(auto j=positions.begin(); j!=positions.end(); ++j){
-      pos[to_string(j->first)] = j->second;
+      pos[std::to_string(j->first)] = j->second;
     }
     return pos;
   }
@@ -113,7 +112,7 @@ public:
   }
 
 protected:
-  unsigned long long getIndex(const vector<int>& image) const{
+  unsigned long long getIndex(const std::vector<int>& image) const{
     unsigned long long index = 0;
     unsigned long long p = 1;
     for(unsigned int i=0; i<addresses.size(); i++){
@@ -127,13 +126,13 @@ protected:
 
 
 private:
-  vector<int> addresses;
-  unordered_map<unsigned long long,int> positions;
+  std::vector<int> addresses;
+  std::unordered_map<unsigned long long,int> positions;
   bool ignoreZero;
   int base;
 
-  const vector<int> convertToBase(const int number) const{
-    vector<int> numberConverted(addresses.size());
+  const std::vector<int> convertToBase(const int number) const{
+    std::vector<int> numberConverted(addresses.size());
     int baseNumber = number;
     for(unsigned int i=0; i<numberConverted.size(); i++){
       numberConverted[i] = baseNumber % base;
