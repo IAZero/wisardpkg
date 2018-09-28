@@ -1,11 +1,3 @@
-#include <iostream>
-#include <string>
-#include <vector>
-#include <algorithm>    // std::random_shuffle
-#include <map>
-#include <tuple>
-#include <cstdlib>
-
 using namespace std;
 
 namespace py = pybind11;

@@ -1,5 +1,3 @@
-#include <exception>
-
 class Exception: public std::exception{
     public:
         Exception(const char* msg): msg(msg){}

@@ -1,5 +1,3 @@
-#include <time.h>
-
 inline int randint(int min, int max, bool isSeed=true){
   if(isSeed)
     std::srand(time(NULL));
