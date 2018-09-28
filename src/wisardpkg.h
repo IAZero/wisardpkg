@@ -28,3 +28,6 @@ namespace py = pybind11;
 //cluswisard wisard_model
 #include "models/cluswisard/cluster.cc"
 #include "models/cluswisard/cluswisard.cc"
+
+//wrappers
+#include "models/wisard/discriminatorwrapper.cc"

@@ -2,7 +2,7 @@
 class Discriminator{
 public:
   Discriminator(): entrySize(0),count(0){}
-  Discriminator(std::string config):Discriminator(nl::json::parse(config)){}
+  Discriminator(int entrySize):entrySize(entrySize){}
   Discriminator(nl::json config){
     entrySize = config["entrySize"];
     count = config["count"];
@@ -23,36 +23,6 @@ public:
 
   Discriminator(std::vector<int> indexes, int addressSize, int entrySize, bool ignoreZero=false, int base=2): entrySize(entrySize){
     setRAMByIndex(indexes, addressSize, ignoreZero, base);
-  }
-
-  Discriminator(int addressSize, int entrySize, py::kwargs kwargs): entrySize(entrySize){
-    bool ignoreZero=false;
-    bool completeAddressing=true;
-    std::vector<int> indexes(0);
-    int base = 2;
-
-    srand(randint(0, 100000));
-
-    for(auto arg: kwargs){
-      if(std::string(py::str(arg.first)).compare("ignoreZero") == 0)
-        ignoreZero = arg.second.cast<bool>();
-
-      if(std::string(py::str(arg.first)).compare("completeAddressing") == 0)
-        completeAddressing = arg.second.cast<bool>();
-
-      if(std::string(py::str(arg.first)).compare("base") == 0)
-        base = arg.second.cast<int>();
-
-      if(std::string(py::str(arg.first)).compare("indexes") == 0)
-        indexes = arg.second.cast<std::vector<int>>();
-    }
-
-    if(indexes.size() == 0){
-      setRAMShuffle(addressSize, ignoreZero, completeAddressing, base);
-    }
-    else{
-      setRAMByIndex(indexes, addressSize, ignoreZero, base);
-    }
   }
 
   void setRAMShuffle(int addressSize, bool ignoreZero, bool completeAddressing, int base){

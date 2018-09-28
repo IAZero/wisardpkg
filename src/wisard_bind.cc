@@ -19,14 +19,14 @@ PYBIND11_MODULE(wisardpkg, m){
     ;
 
     //base to models
-    py::class_<Discriminator>(m, "Discriminator")
+    py::class_<DiscriminatorWrapper>(m, "Discriminator")
       .def(py::init<std::string>())
       .def(py::init<int,int,py::kwargs>())
-      .def("train", (void (Discriminator::*)(const std::vector<int>&)) &Discriminator::train)
-      .def("train", (void (Discriminator::*)(const std::vector<std::vector<int>>&)) &Discriminator::train)
-      .def("classify", &Discriminator::getVotes)
-      .def("jsonConfig",  &Discriminator::getConfigString)
-      .def("json",  &Discriminator::getJSONString)
+      .def("train", (void (DiscriminatorWrapper::*)(const std::vector<int>&)) &DiscriminatorWrapper::train)
+      .def("train", (void (DiscriminatorWrapper::*)(const std::vector<std::vector<int>>&)) &DiscriminatorWrapper::train)
+      .def("classify", &DiscriminatorWrapper::getVotes)
+      .def("jsonConfig",  &DiscriminatorWrapper::getConfigString)
+      .def("json",  &DiscriminatorWrapper::getJSONString)
     ;
 
     // models
