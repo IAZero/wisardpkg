@@ -34,7 +34,7 @@ public:
         output[j] +=  diff*diff;
       }
     }
-    for(unsigned int i=0; i<output.size(); i++) output[i] = sqrt(output[i]/sequenceData.size());
+    for(unsigned int i=0; i<output.size(); i++) output[i] = std::sqrt(output[i]/sequenceData.size());
     return output;
   }
 
@@ -48,7 +48,7 @@ public:
         double diff = (point[j] - kernels[i][j]);
         distance += diff*diff;
       }
-      distance = sqrt(distance);
+      distance = std::sqrt(distance);
       if(distance < minDistance){
         index = i;
         minDistance = distance;
@@ -68,7 +68,7 @@ public:
     for(unsigned int i=0; i<sequenceData.size(); i++){
       checkDimension(sequenceData[i].size());
       for(int j=0; j<dim; j++){
-        point[j] = tanh((means[j] - sequenceData[i][j])/stds[j]);
+        point[j] = std::tanh((means[j] - sequenceData[i][j])/stds[j]);
       }
       int kernelIndex = searchKernel(point);
       if(output[kernelIndex*bitsByKernel] == 1) continue;

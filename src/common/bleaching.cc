@@ -85,7 +85,7 @@ public:
     std::tuple<bool,int,int> ambiguity;
     int biggest = getBiggestValue(allvotes);
     int steps = 1;
-    int piece = biggest/(int)pow(2,steps);
+    int piece = biggest/(int)std::pow(2,steps);
     int bleaching = piece;
 
     do{

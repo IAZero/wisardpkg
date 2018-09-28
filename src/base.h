@@ -8,3 +8,4 @@
 #include <algorithm>    // std::random_shuffle
 #include <time.h>
 #include <exception>
+#include <cmath>

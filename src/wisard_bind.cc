@@ -36,10 +36,10 @@ PYBIND11_MODULE(wisardpkg, m){
       .def("train", (void (WisardWrapper::*)(const std::vector<std::vector<int>>&, const std::vector<std::string>&)) &WisardWrapper::train)
       .def("classify", (py::list (WisardWrapper::*)(const std::vector<std::vector<int>>&)) &WisardWrapper::pyClassify)
       .def("getMentalImages", &WisardWrapper::getMentalImages)
-      .def("leaveOneOut", (void (WisardWrapper::*)(const std::vector<int>&, const std::string&)) &WisardWrapper::untrain)
-      .def("leaveMoreOut", (void (WisardWrapper::*)(const std::vector<std::vector<int>>&, const std::vector<std::string>&)) &WisardWrapper::untrain)
-      .def("jsonConfig", &WisardWrapper::getConfigJSON)
-      .def("json", &WisardWrapper::getJSON)
+      .def("leaveOneOut", (void (WisardWrapper::*)(const std::vector<int>&, const std::string&)) &WisardWrapper::leaveOneOut)
+      .def("leaveMoreOut", (void (WisardWrapper::*)(const std::vector<std::vector<int>>&, const std::vector<std::string>&)) &WisardWrapper::leaveMoreOut)
+      .def("jsonConfig", &WisardWrapper::jsonConfig)
+      .def("json", &WisardWrapper::json)
     ;
 
     py::class_<ClusWisardWrapper>(m, "ClusWisard")
