@@ -2,6 +2,7 @@
 //__version__
 #include "version.h"
 
+using namespace std;
 
 PYBIND11_MODULE(wisardpkg, m){
     m.attr("__version__") = __version__;
