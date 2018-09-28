@@ -14,8 +14,16 @@ int main(int argc, const char * argv[]){
   X[0] = {1,1,1,0,0,0};
   y[0] = 'a';
   w.train(X,y);
-  cout << wp::__version__ << "\n\n" << w.json() << endl;
+  cout << wp::__version__ << endl;
 
   auto out = w.classify(X);
   cout << "class: " << out[0] << endl;
+
+  wp::Discriminator d(3, 6, {
+    {"base", 2}
+  });
+
+  d.train(X);
+  auto dout = d.classify(X[0]);
+  cout << "rams = " << dout[0] << " : " << dout[1] << endl;
 }

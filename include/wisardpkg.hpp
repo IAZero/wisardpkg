@@ -17835,6 +17835,31 @@ public:
       rams.push_back(RAM(base));
     }
   }
+  Discriminator(int addressSize, int entrySize):Discriminator(addressSize, entrySize, {}){}
+  Discriminator(int addressSize, int entrySize, nl::json options): entrySize(entrySize){
+    srand(randint(0, 100000));
+    nl::json value;
+
+    value = options["ignoreZero"];
+    bool ignoreZero = value.is_null() ? false : value.get<bool>();
+
+    value = options["completeAddressing"];
+    bool completeAddressing = value.is_null() ? true : value.get<bool>();
+
+    value = options["indexes"];
+    std::vector<int> indexes = value.is_null() ? std::vector<int>(0) : value.get<std::vector<int>>();
+
+    value = options["base"];
+    int base = value.is_null() ? 2 : value.get<int>();
+
+    if(indexes.size() == 0){
+      setRAMShuffle(addressSize, ignoreZero, completeAddressing, base);
+    }
+    else{
+      setRAMByIndex(indexes, addressSize, ignoreZero, base);
+    }
+  }
+
   Discriminator(int addressSize, int entrySize, bool ignoreZero, bool completeAddressing, int base=2): entrySize(entrySize){
     setRAMShuffle(addressSize, ignoreZero, completeAddressing, base);
   }
@@ -17843,52 +17868,7 @@ public:
     setRAMByIndex(indexes, addressSize, ignoreZero, base);
   }
 
-  void setRAMShuffle(int addressSize, bool ignoreZero, bool completeAddressing, int base){
-    checkAddressSize(entrySize, addressSize);
-    checkBase(base);
-    count=0;
-
-    int numberOfRAMS = entrySize / addressSize;
-    int remain = entrySize % addressSize;
-    int indexesSize = entrySize;
-    if(completeAddressing && remain > 0) {
-      numberOfRAMS++;
-      indexesSize += addressSize-remain;
-    }
-
-    rams.resize(numberOfRAMS);
-    std::vector<int> indexes(indexesSize);
-
-    for(int i=0; i<entrySize; i++) {
-      indexes[i]=i;
-    }
-    for(unsigned int i=entrySize; i<indexes.size(); i++){
-      indexes[i] = randint(0, entrySize-1, false);
-    }
-    random_shuffle(indexes.begin(), indexes.end());
-
-    for(unsigned int i=0; i<rams.size(); i++){
-      std::vector<int> subIndexes(indexes.begin() + (i*addressSize), indexes.begin() + ((i+1)*addressSize));
-      rams[i] = RAM(subIndexes, ignoreZero, base);
-    }
-  }
-
-  void setRAMByIndex(std::vector<int> indexes, int addressSize, bool ignoreZero=false, int base=2){
-    checkAddressSize(entrySize, addressSize);
-    checkBase(base);
-    checkListOfIndexes(indexes, entrySize);
-    count=0;
-
-    int numberOfRAMS = entrySize / addressSize;
-    rams = std::vector<RAM>(numberOfRAMS);
-
-    for(unsigned int i=0; i<rams.size(); i++){
-      std::vector<int> subIndexes(indexes.begin() + (i*addressSize), indexes.begin() + ((i+1)*addressSize));
-      rams[i] = RAM(subIndexes, ignoreZero, base);
-    }
-  }
-
-  std::vector<int> getVotes(const std::vector<int>& image) {
+  std::vector<int> classify(const std::vector<int>& image) {
     checkEntrySize(image.size());
     std::vector<int> votes(rams.size());
     for(unsigned int i=0; i<rams.size(); i++){
@@ -17942,23 +17922,7 @@ public:
     return mentalImage;
   }
 
-  nl::json getRAMSJSON(bool all=true){
-    nl::json rj = nl::json::array();
-    for(unsigned int i=0; i<rams.size(); i++){
-      rj[i] = rams[i].getJSON(all);
-    }
-    return rj;
-  }
-
-  nl::json getConfig(){
-    nl::json config = {
-      {"entrySize", entrySize},
-      {"count", count}
-    };
-    return config;
-  }
-
-  std::string getConfigString(){
+  std::string jsonConfig(){
     nl::json config = getConfig();
     if(!rams.empty()){
       config.merge_patch(rams[0].getConfig());
@@ -17967,7 +17931,7 @@ public:
     return config.dump(2);
   }
 
-  std::string getJSONString(){
+  std::string json(){
     nl::json config = getConfig();
     if(!rams.empty()){
       config.merge_patch(rams[0].getConfig());
@@ -17990,6 +17954,68 @@ public:
 
   ~Discriminator(){
     rams.clear();
+  }
+
+protected:
+  void setRAMShuffle(int addressSize, bool ignoreZero, bool completeAddressing, int base){
+    checkAddressSize(entrySize, addressSize);
+    checkBase(base);
+    count=0;
+
+    int numberOfRAMS = entrySize / addressSize;
+    int remain = entrySize % addressSize;
+    int indexesSize = entrySize;
+    if(completeAddressing && remain > 0) {
+      numberOfRAMS++;
+      indexesSize += addressSize-remain;
+    }
+
+    rams.resize(numberOfRAMS);
+    std::vector<int> indexes(indexesSize);
+
+    for(int i=0; i<entrySize; i++) {
+      indexes[i]=i;
+    }
+    for(unsigned int i=entrySize; i<indexes.size(); i++){
+      indexes[i] = randint(0, entrySize-1, false);
+    }
+    random_shuffle(indexes.begin(), indexes.end());
+
+    for(unsigned int i=0; i<rams.size(); i++){
+      std::vector<int> subIndexes(indexes.begin() + (i*addressSize), indexes.begin() + ((i+1)*addressSize));
+      rams[i] = RAM(subIndexes, ignoreZero, base);
+    }
+  }
+
+  void setRAMByIndex(std::vector<int> indexes, int addressSize, bool ignoreZero=false, int base=2){
+    checkAddressSize(entrySize, addressSize);
+    checkBase(base);
+    checkListOfIndexes(indexes, entrySize);
+    count=0;
+
+    int numberOfRAMS = entrySize / addressSize;
+    rams = std::vector<RAM>(numberOfRAMS);
+
+    for(unsigned int i=0; i<rams.size(); i++){
+      std::vector<int> subIndexes(indexes.begin() + (i*addressSize), indexes.begin() + ((i+1)*addressSize));
+      rams[i] = RAM(subIndexes, ignoreZero, base);
+    }
+  }
+
+  nl::json getRAMSJSON(bool all=true){
+    nl::json rj = nl::json::array();
+    for(unsigned int i=0; i<rams.size(); i++){
+      rj[i] = rams[i].getJSON(all);
+    }
+    return rj;
+  }
+
+  nl::json getConfig(){
+    nl::json config = {
+      {"entrySize", entrySize},
+      {"count", count}
+    };
+    return config;
   }
 
 private:
@@ -18116,7 +18142,7 @@ public:
   }
 
   std::vector<std::string> classify(const std::vector<std::vector<int>>& images){
-    float numberOfRAMS = calculateNumberOfRams(images[0].size(), addressSize, completeAddressing);
+    //float numberOfRAMS = calculateNumberOfRams(images[0].size(), addressSize, completeAddressing);
     std::vector<std::string> labels(images.size());
 
     for(unsigned int i=0; i<images.size(); i++){
@@ -18177,7 +18203,7 @@ protected:
     std::map<std::string,std::vector<int>> allvotes;
 
     for(std::map<std::string,Discriminator>::iterator i=discriminators.begin(); i!=discriminators.end(); ++i){
-      allvotes[i->first] = i->second.getVotes(image);
+      allvotes[i->first] = i->second.classify(image);
     }
     return Bleaching::make(allvotes, bleachingActivated, searchBestConfidence, confidence);
   }
@@ -18287,7 +18313,7 @@ public:
     Discriminator* bestDiscriminator = NULL;
 
     for(unsigned int i=0; i<discriminators.size(); i++){
-      auto votes = discriminators[i]->getVotes(image);
+      auto votes = discriminators[i]->classify(image);
       float score = getScore(votes);
       float count = discriminators[i]->getNumberOfTrainings();
 
@@ -18320,7 +18346,7 @@ public:
   std::vector<std::vector<int>> classify(const std::vector<int>& image){
     std::vector<std::vector<int>> output(discriminators.size());
     for(unsigned int i=0; i<discriminators.size(); i++){
-      output[i] = discriminators[i]->getVotes(image);
+      output[i] = discriminators[i]->classify(image);
     }
     return output;
   }

@@ -18,6 +18,31 @@ public:
       rams.push_back(RAM(base));
     }
   }
+  Discriminator(int addressSize, int entrySize):Discriminator(addressSize, entrySize, {}){}
+  Discriminator(int addressSize, int entrySize, nl::json options): entrySize(entrySize){
+    srand(randint(0, 100000));
+    nl::json value;
+
+    value = options["ignoreZero"];
+    bool ignoreZero = value.is_null() ? false : value.get<bool>();
+
+    value = options["completeAddressing"];
+    bool completeAddressing = value.is_null() ? true : value.get<bool>();
+
+    value = options["indexes"];
+    std::vector<int> indexes = value.is_null() ? std::vector<int>(0) : value.get<std::vector<int>>();
+
+    value = options["base"];
+    int base = value.is_null() ? 2 : value.get<int>();
+
+    if(indexes.size() == 0){
+      setRAMShuffle(addressSize, ignoreZero, completeAddressing, base);
+    }
+    else{
+      setRAMByIndex(indexes, addressSize, ignoreZero, base);
+    }
+  }
+
   Discriminator(int addressSize, int entrySize, bool ignoreZero, bool completeAddressing, int base=2): entrySize(entrySize){
     setRAMShuffle(addressSize, ignoreZero, completeAddressing, base);
   }
