@@ -1,5 +1,3 @@
-using namespace std;
-
 
 class KernelCanvas{
 public:
@@ -15,8 +13,8 @@ public:
     }
   }
 
-  vector<double> multDimMean(const vector<vector<double>>& sequenceData){
-    vector<double> output(dim);
+  std::vector<double> multDimMean(const std::vector<std::vector<double>>& sequenceData){
+    std::vector<double> output(dim);
     for(unsigned int i=0; i<output.size(); i++) output[i]=0;
     for(unsigned int i=0; i<sequenceData.size(); i++){
       for(int j=0; j<dim; j++){
@@ -27,8 +25,8 @@ public:
     return output;
   }
 
-  vector<double> multDimStd(const vector<double>& means, const vector<vector<double>>& sequenceData){
-    vector<double> output(dim);
+  std::vector<double> multDimStd(const std::vector<double>& means, const std::vector<std::vector<double>>& sequenceData){
+    std::vector<double> output(dim);
     for(unsigned int i=0; i<output.size(); i++) output[i]=0;
     for(unsigned int i=0; i<sequenceData.size(); i++){
       for(int j=0; j<dim; j++){
@@ -40,7 +38,7 @@ public:
     return output;
   }
 
-  int searchKernel(const vector<double>& point){
+  int searchKernel(const std::vector<double>& point){
     int index = -1;
     double minDistance = 3.0;
 
@@ -59,13 +57,13 @@ public:
     return index;
   }
 
-  vector<int> transform(const vector<vector<double>>& sequenceData){
-    vector<double> means = multDimMean(sequenceData);
-    vector<double> stds = multDimStd(means,sequenceData);
+  std::vector<int> transform(const std::vector<std::vector<double>>& sequenceData){
+    std::vector<double> means = multDimMean(sequenceData);
+    std::vector<double> stds = multDimStd(means,sequenceData);
 
-    vector<int> output(kernels.size()*bitsByKernel);
+    std::vector<int> output(kernels.size()*bitsByKernel);
     for(unsigned int i=0; i<output.size(); i++) output[i]=0;
-    vector<double> point(dim);
+    std::vector<double> point(dim);
 
     for(unsigned int i=0; i<sequenceData.size(); i++){
       checkDimension(sequenceData[i].size());
@@ -86,7 +84,7 @@ public:
 private:
   int bitsByKernel;
   int dim;
-  vector<vector<double>> kernels;
+  std::vector<std::vector<double>> kernels;
 
   void checkInputs(int numberOfKernels, int dim, int bitsByKernel){
     if(numberOfKernels < 1)
