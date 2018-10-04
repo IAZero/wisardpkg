@@ -32,7 +32,7 @@ public:
 
     for(unsigned int i=0; i<sequenceData.size(); i++){
       checkDimension(sequenceData[i].size());
-      calculatePoint(point,sequenceData[i],means,stds,pi,first);
+      calculatePoint(point,sequenceData,i,means,stds,pi,first);
       calculateDistances(distances, point, pi);
       activateKernels(output, distances);
     }
@@ -50,7 +50,7 @@ protected:
   int numberOfKernelsToActivate;
   int amplifyDim;
   std::vector<std::vector<double>> kernels;
-  
+
   KernelCanvas(int dim): dim(dim){}
 
   void setupKernelCanvas(int numberOfKernels, float activationDegree){
@@ -103,10 +103,12 @@ protected:
     return (i[1] < j[1]);
   }
 
-  static void switchIndexes(std::vector<int>& ix){
-    int temp = ix[0];
-    ix[0] = ix[2];
-    ix[2] = temp;
+  static int switchIndexes(std::vector<int>& ix){
+    int temp = ix[2];
+    ix[1] = ix[0];
+    ix[2] = ix[1];
+    ix[0] = temp;
+    return temp;
   }
 
   void calculateDistances(
@@ -146,28 +148,44 @@ protected:
 
   void calculatePoint(
     std::vector<double>& point,
-    const std::vector<double>& sequenceData,
+    const std::vector<std::vector<double>>& sequenceData,
+    const int index,
     const std::vector<double>& means,
     const std::vector<double>& stds,
     std::vector<int>& indexes,
     bool first){
 
     if(useDirection){
-      int ix = indexes[0];
+      int ix = switchIndexes(indexes);
 
       int ipp = ix*amplifyDim;
-      point[ipp] = std::tanh((means[0] - sequenceData[0])/stds[0]);
+      point[ipp] = std::tanh((means[0] - sequenceData[index][0])/stds[0]);
+      double aback = 0.0;
+      double afront = 0.0;
+      if(index+1 < (int)sequenceData.size())
+        aback = std::tanh((means[0] - sequenceData[index+1][0])/stds[0]);
 
       for(int j=1; j<dim; j++){
         int ip = ipp +1;
-
-        point[ip] = std::tanh((means[j] - sequenceData[j])/stds[j]);
-        double hypotenuse = std::sqrt( point[ip]*point[ip] + point[ipp]*point[ipp] );
-
         int sinix = ipp*2 + dim;
-        point[sinix] = point[ipp]/hypotenuse;
-        point[sinix+1] = point[ip]/hypotenuse;
 
+        point[ip] = std::tanh((means[j] - sequenceData[index][j])/stds[j]);
+        if(index+1 < (int)sequenceData.size()){
+          afront = std::tanh((means[j] - sequenceData[index+1][j])/stds[j]);
+
+          double dx = aback - point[ipp];
+          double dy = afront - point[ip];
+          double hypotenuse = std::sqrt( dy*dy + dx*dx );
+          point[sinix] = dx/hypotenuse;
+          point[sinix+1] = dy/hypotenuse;
+        }
+        else{
+          int sinixA = indexes[1]*amplifyDim*2 + dim +j-1;
+          point[sinix] = point[sinixA];
+          point[sinix+1] = point[sinixA+1];
+        }
+
+        aback = afront;
         ipp++;
       }
       if(first){
@@ -176,11 +194,10 @@ protected:
           point[indexes[2]*amplifyDim +j] = point[ipp +j];
         }
       }
-      switchIndexes(indexes);
     }
     else{
       for(int j=0; j<dim; j++){
-        point[j] = std::tanh((means[j] - sequenceData[j])/stds[j]);
+        point[j] = std::tanh((means[j] - sequenceData[index][j])/stds[j]);
       }
     }
   }
