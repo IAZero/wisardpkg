@@ -6,7 +6,7 @@ print("### Kernel Canvas  ###")
 dimension = 2
 numberOfKernels = 10
 bitsByKernel = 4
-kc = KernelCanvas(dimension, numberOfKernels, bitsByKernel)
+kc = KernelCanvas(dimension, numberOfKernels, bitsByKernel=bitsByKernel, useDirection=True)
 
 sequenceData = []
 p = [10*random(),10*random()]
@@ -17,5 +17,5 @@ for i in range(100):
     sequenceData.append(point)
 
 out = kc.transform(sequenceData)
-print("binary output:",out)
+print("binary output:",len(out), out)
 print("### DONE Kernel Canvas  ###")

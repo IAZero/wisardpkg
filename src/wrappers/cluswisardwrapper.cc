@@ -4,21 +4,6 @@ public:
   ClusWisardWrapper(int addressSize, float minScore, int threshold, int discriminatorsLimit, py::kwargs kwargs):
       ClusWisard(addressSize,minScore,threshold,discriminatorsLimit)
   {
-      srand(randint(0,1000000));
-      bleachingActivated=true;
-      verbose=false;
-      ignoreZero=false;
-      completeAddressing=true;
-      base=2;
-      confidence=1;
-
-      searchBestConfidence=false;
-      returnConfidence=false;
-      returnActivationDegree=false;
-      returnClassesDegrees=false;
-
-      checkConfigInputs(minScore, threshold, discriminatorsLimit);
-
       for(auto arg: kwargs){
         if(std::string(py::str(arg.first)).compare("bleachingActivated") == 0)
           bleachingActivated = arg.second.cast<bool>();

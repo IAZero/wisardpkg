@@ -1,13 +1,74 @@
 
 class KernelCanvas{
 public:
-  KernelCanvas(int dim, int numberOfKernels, int bitsByKernel=3): bitsByKernel(bitsByKernel), dim(dim){
-    checkInputs(numberOfKernels, dim, bitsByKernel);
+  KernelCanvas(int dim, int numberOfKernels, nl::json c){
+    nl::json value;
+
+    value = c["bitsByKernel"];
+    bitsByKernel = value.is_null() ? 3 : value.get<int>();
+
+    value = c["activationDegree"];
+    float activationDegree = value.is_null() ? 0.07 : value.get<float>();
+
+    value = c["useDirection"];
+    useDirection = value.is_null() ? false : value.get<bool>();
+    setupKernelCanvas(numberOfKernels, activationDegree);
+  }
+  KernelCanvas(int dim, int numberOfKernels): KernelCanvas(dim, numberOfKernels, {}) {}
+
+  std::vector<int> transform(const std::vector<std::vector<double>>& sequenceData){
+    std::vector<double> means = multDimMean(sequenceData);
+    std::vector<double> stds = multDimStd(means,sequenceData);
+
+    std::vector<int> output(kernels.size()*bitsByKernel);
+    for(unsigned int i=0; i<output.size(); i++) output[i]=0;
+
+    std::vector<double> point(kernels[0].size());
+    std::vector<std::vector<double>> distances(kernels.size());
+    for(unsigned int i=0; i<distances.size(); i++) distances[i] = {0,0};
+
+    std::vector<int> pi = {2,1,0};
+    bool first = true;
+
+    for(unsigned int i=0; i<sequenceData.size(); i++){
+      checkDimension(sequenceData[i].size());
+      calculatePoint(point,sequenceData[i],means,stds,pi,first);
+      calculateDistances(distances, point, pi);
+      activateKernels(output, distances);
+    }
+    return output;
+  }
+
+  ~KernelCanvas(){
+    kernels.clear();
+  }
+
+protected:
+  int bitsByKernel;
+  int dim;
+  bool useDirection;
+  int numberOfKernelsToActivate;
+  int amplifyDim;
+  std::vector<std::vector<double>> kernels;
+  
+  KernelCanvas(int dim): dim(dim){}
+
+  void setupKernelCanvas(int numberOfKernels, float activationDegree){
+    checkInputs(numberOfKernels, dim, bitsByKernel, activationDegree);
     std::srand(time(NULL));
+
+    numberOfKernelsToActivate = (int)round(activationDegree*numberOfKernels);
     kernels.resize(numberOfKernels);
+    int currentDim = dim;
+    amplifyDim = 0;
+    if(useDirection) {
+      amplifyDim = dim + 2*(dim-1);
+      currentDim = amplifyDim * 3;
+    }
+
     for(int i=0; i<numberOfKernels; i++){
-      kernels[i].resize(dim);
-      for(int d=0; d<dim; d++){
+      kernels[i].resize(currentDim);
+      for(int d=0; d<currentDim; d++){
         kernels[i][d] = randdouble(-1.0,1.0);
       }
     }
@@ -38,61 +99,101 @@ public:
     return output;
   }
 
-  int searchKernel(const std::vector<double>& point){
-    int index = -1;
-    double minDistance = 3.0;
+  static bool compareDistances(const std::vector<double>& i, const std::vector<double>& j){
+    return (i[1] < j[1]);
+  }
+
+  static void switchIndexes(std::vector<int>& ix){
+    int temp = ix[0];
+    ix[0] = ix[2];
+    ix[2] = temp;
+  }
+
+  void calculateDistances(
+    std::vector<std::vector<double>>& distances,
+    const std::vector<double>& point,
+    const std::vector<int>& indexes){
 
     for(unsigned int i=0; i<kernels.size(); i++){
       double distance = 0;
-      for(int j=0; j<dim; j++){
-        double diff = (point[j] - kernels[i][j]);
-        distance += diff*diff;
+      if(useDirection){
+        int pi = 0;
+        for(int j=0; j<amplifyDim*3; j++){
+          int ix = indexes[pi]*amplifyDim + j%amplifyDim;
+          double diff = (point[ix] - kernels[i][j]);
+          distance += diff*diff;
+          if(j == (amplifyDim-1)) pi++;
+        }
       }
-      distance = std::sqrt(distance);
-      if(distance < minDistance){
-        index = i;
-        minDistance = distance;
+      else{
+        for(int j=0; j<dim; j++){
+          double diff = (point[j] - kernels[i][j]);
+          distance += diff*diff;
+        }
       }
+      distances[i] = {(double)i,std::sqrt(distance)};
     }
-    return index;
   }
 
-  std::vector<int> transform(const std::vector<std::vector<double>>& sequenceData){
-    std::vector<double> means = multDimMean(sequenceData);
-    std::vector<double> stds = multDimStd(means,sequenceData);
-
-    std::vector<int> output(kernels.size()*bitsByKernel);
-    for(unsigned int i=0; i<output.size(); i++) output[i]=0;
-    std::vector<double> point(dim);
-
-    for(unsigned int i=0; i<sequenceData.size(); i++){
-      checkDimension(sequenceData[i].size());
-      for(int j=0; j<dim; j++){
-        point[j] = std::tanh((means[j] - sequenceData[i][j])/stds[j]);
-      }
-      int kernelIndex = searchKernel(point);
+  void activateKernels(std::vector<int>& output, std::vector<std::vector<double>>& distances){
+    std::sort(distances.begin(),distances.end(),compareDistances);
+    for(int i=0; i<numberOfKernelsToActivate; i++){
+      int kernelIndex = (int)distances[i][0];
       if(output[kernelIndex*bitsByKernel] == 1) continue;
       for(int k=0; k<bitsByKernel; k++) output[kernelIndex*bitsByKernel + k] = 1;
     }
-    return output;
   }
 
-  ~KernelCanvas(){
-    kernels.clear();
+  void calculatePoint(
+    std::vector<double>& point,
+    const std::vector<double>& sequenceData,
+    const std::vector<double>& means,
+    const std::vector<double>& stds,
+    std::vector<int>& indexes,
+    bool first){
+
+    if(useDirection){
+      int ix = indexes[0];
+
+      int ipp = ix*amplifyDim;
+      point[ipp] = std::tanh((means[0] - sequenceData[0])/stds[0]);
+
+      for(int j=1; j<dim; j++){
+        int ip = ipp +1;
+
+        point[ip] = std::tanh((means[j] - sequenceData[j])/stds[j]);
+        double hypotenuse = std::sqrt( point[ip]*point[ip] + point[ipp]*point[ipp] );
+
+        int sinix = ipp*2 + dim;
+        point[sinix] = point[ipp]/hypotenuse;
+        point[sinix+1] = point[ip]/hypotenuse;
+
+        ipp++;
+      }
+      if(first){
+        for(int j=0; j<amplifyDim; j++){
+          point[indexes[1]*amplifyDim +j] = point[ipp +j];
+          point[indexes[2]*amplifyDim +j] = point[ipp +j];
+        }
+      }
+      switchIndexes(indexes);
+    }
+    else{
+      for(int j=0; j<dim; j++){
+        point[j] = std::tanh((means[j] - sequenceData[j])/stds[j]);
+      }
+    }
   }
 
-private:
-  int bitsByKernel;
-  int dim;
-  std::vector<std::vector<double>> kernels;
-
-  void checkInputs(int numberOfKernels, int dim, int bitsByKernel){
+  void checkInputs(int numberOfKernels, int dim, int bitsByKernel, float activationDegree){
     if(numberOfKernels < 1)
       throw Exception("Error: the number of kernels can not be lesser than 1!");
     if(dim < 1)
       throw Exception("Error: the dimension can not be lesser than 1!");
     if(bitsByKernel<1)
       throw Exception("Error: the number of bits by kernel can not be lesser than 1!");
+    if(activationDegree > 1 || activationDegree < 0)
+      throw Exception("Error: the activation degree must be between 0 and 1!");
   }
 
   void checkDimension(int size){

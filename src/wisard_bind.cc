@@ -6,10 +6,9 @@ PYBIND11_MODULE(wisardpkg, m){
     m.attr("__version__") = __version__;
 
     // binarizations
-    py::class_<KernelCanvas>(m, "KernelCanvas")
-      .def(py::init<int, int>())
-      .def(py::init<int, int, int>())
-      .def("transform", &KernelCanvas::transform)
+    py::class_<KernelCanvasWrapper>(m, "KernelCanvas")
+      .def(py::init<int, int, py::kwargs>())
+      .def("transform", &KernelCanvasWrapper::transform)
     ;
 
     //sythesizer
