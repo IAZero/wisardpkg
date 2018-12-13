@@ -95,6 +95,22 @@ public:
     return config;
   }
 
+  std::string getData(){
+    int blockSize = (sizeof(unsigned long long)+sizeof(int));
+    std::string data(positions.size()*blockSize,0);
+    int k=0;
+    for(auto j=positions.begin(); j!=positions.end(); ++j){
+      for(unsigned int i=0; i<sizeof(unsigned long long); i++){
+        data[k++]=(j->first >> (8*i)) & 0xff;
+      }
+      for(unsigned int i=0; i<sizeof(int); i++){
+        data[k++]=(j->second >> (8*i)) & 0xff;
+      }
+
+    }
+    return data;
+  }
+
   nl::json getJSON(bool all=true){
     nl::json config = {
       {"addresses", addresses},
