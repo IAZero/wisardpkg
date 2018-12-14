@@ -106,7 +106,6 @@ public:
       for(unsigned int i=0; i<sizeof(int); i++){
         data[k++]=(j->second >> (8*i)) & 0xff;
       }
-
     }
     return data;
   }
