@@ -7,13 +7,20 @@ public:
   Discriminator(nl::json config){
     entrySize = config["entrySize"];
     count = config["count"];
-    nl::json jrams = config["rams"];
+    std::string data = config["data"];
+    nl::json mapping = config["mapping"];
     nl::json rbase = {
       {"ignoreZero", config["ignoreZero"]},
       {"base", config["base"]}
     };
-    for(nl::json::iterator it = jrams.begin(); it != jrams.end(); ++it){
-      nl::json base = *it;
+    int pos=0;
+    for(nl::json::iterator it = mapping.begin(); it != mapping.end(); ++it){
+      int found = data.find('.',pos);
+      nl::json base = {
+        {"addresses", *it},
+        {"data", data.substr(pos,found-pos)}
+      };
+      pos = found+1;
       base.merge_patch(rbase);
       rams.push_back(RAM(base));
     }
@@ -119,19 +126,21 @@ public:
     if(!rams.empty()){
       config.merge_patch(rams[0].getConfig());
     }
-    config["rams"] = getRAMSJSON();
+    // config["rams"] = getRAMSJSON();
+    config["data"] = getRAMsData();
     return config.dump(2);
   }
 
   nl::json getConfigJSON(){
     nl::json config = getConfig();
-    config["rams"] = getRAMSJSON(false);
+    // config["rams"] = getRAMSJSON(false);
     return config;
   }
 
   nl::json getJSON(){
     nl::json config = getConfig();
-    config["rams"] = getRAMSJSON();
+    // config["rams"] = getRAMSJSON();
+    config["data"] = getRAMsData();
     return config;
   }
 
@@ -193,9 +202,28 @@ protected:
     return rj;
   }
 
+  std::string getRAMsData(){
+    std::string data;
+    for(unsigned int i=0; i<rams.size(); i++){
+      if(data.size()>0) data += ".";
+      data += rams[i].getData();
+    }
+    return data;
+  }
+
+  void setMapping(std::vector<std::vector<int>>& mapping){
+    int size = rams.size();
+    for(int i=0; i<size; i++){
+      rams[i].setMapping(mapping, i);
+    }
+  }
+
   nl::json getConfig(){
+    std::vector<std::vector<int>> mapping(rams.size());
+    setMapping(mapping);
     nl::json config = {
       {"entrySize", entrySize},
+      {"mapping", mapping},
       {"count", count}
     };
     return config;

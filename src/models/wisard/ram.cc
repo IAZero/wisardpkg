@@ -7,11 +7,13 @@ public:
     base=c["base"];
     addresses = c["addresses"].get<std::vector<int>>();
     checkLimitAddressSize(addresses.size(), base);
-    nl::json pos = c["positions"];
-    for(nl::json::iterator it = pos.begin(); it != pos.end(); ++it){
-      unsigned long long p = stoull(it.key());
-      positions[p] = it.value();
-    }
+    setData(c["data"]);
+    std::cout << c["data"] << std::endl;
+    // nl::json pos = c["positions"];
+    // for(nl::json::iterator it = pos.begin(); it != pos.end(); ++it){
+    //   unsigned long long p = stoull(it.key());
+    //   positions[p] = it.value();
+    // }
   }
   RAM(const int addressSize, const int entrySize, const bool ignoreZero=false, int base=2): ignoreZero(ignoreZero), base(base){
     checkLimitAddressSize(addressSize, base);
@@ -95,6 +97,22 @@ public:
     return config;
   }
 
+  void setData(std::string data){
+    std::string decodedData = Base64::decode(data);
+    int blockSize = (sizeof(unsigned long long)+sizeof(int));
+    for(unsigned long i=0; i<decodedData.size(); i+=blockSize){
+      unsigned long long address = 0;
+      int value = 0;
+      for(unsigned int j=0; j<sizeof(unsigned long long); j++){
+        address += (unsigned long long)decodedData[i+j] << (8*j);
+      }
+      for(int k=sizeof(unsigned long long); k<blockSize; k++){
+        value += (unsigned long long)decodedData[i+k] << (8*k);
+      }
+      positions[address]=value;
+    }
+  }
+
   std::string getData(){
     int blockSize = (sizeof(unsigned long long)+sizeof(int));
     std::string data(positions.size()*blockSize,0);
@@ -107,7 +125,15 @@ public:
         data[k++]=(j->second >> (8*i)) & 0xff;
       }
     }
-    return data;
+    return Base64::encode(data);
+  }
+
+  void setMapping(std::vector<std::vector<int>>& mapping, int i){
+    int size = addresses.size();
+    mapping[i].resize(size);
+    for(int j=0; j<size; j++) {
+      mapping[i][j] = addresses[j];
+    }
   }
 
   nl::json getJSON(bool all=true){
@@ -119,6 +145,10 @@ public:
       config["positions"] = positionsToJSON();
     }
     return config;
+  }
+
+  int getAddressSize(){
+    return addresses.size();
   }
 
   ~RAM(){
