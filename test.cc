@@ -5,6 +5,11 @@ namespace wp = wisardpkg;
 using namespace std;
 
 int main(int argc, const char * argv[]){
+
+  string baseOut = wp::Base64::encode("Hello base64");
+  cout << baseOut << endl;
+  cout << wp::Base64::decode(baseOut) << endl;
+
   wp::Wisard w(3, {
     {"bleachingActivated", true}
   });
