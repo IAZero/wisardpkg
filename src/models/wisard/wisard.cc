@@ -118,7 +118,7 @@ public:
   std::string json() {
     nl::json config = getConfig();
     config["classes"] = getClassesJSON();
-    return config.dump(2);
+    return config.dump();
   }
 
 protected:
