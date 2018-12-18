@@ -80,14 +80,6 @@ public:
     return mentalPiece;
   }
 
-  nl::json positionsToJSON(){
-    nl::json pos;
-    for(auto j=positions.begin(); j!=positions.end(); ++j){
-      pos[std::to_string(j->first)] = j->second;
-    }
-    return pos;
-  }
-
   nl::json getConfig(){
     nl::json config = {
       {"ignoreZero", ignoreZero},
@@ -141,16 +133,20 @@ public:
     }
   }
 
-  nl::json getJSON(bool all=true){
-    nl::json config = {
-      {"addresses", addresses},
-      {"positions", nullptr}
-    };
-    if(all){
-      config["positions"] = positionsToJSON();
-    }
-    return config;
-  }
+  // nl::json getJSON(bool all=true){
+  //   nl::json config = {
+  //     {"addresses", addresses},
+  //     {"positions", nullptr}
+  //   };
+  //   if(all){
+  //     nl::json pos;
+  //     for(auto j=positions.begin(); j!=positions.end(); ++j){
+  //       pos[std::to_string(j->first)] = j->second;
+  //     }
+  //     config["positions"] = pos;
+  //   }
+  //   return config;
+  // }
 
   int getAddressSize(){
     return addresses.size();

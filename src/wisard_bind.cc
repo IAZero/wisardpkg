@@ -24,8 +24,8 @@ PYBIND11_MODULE(wisardpkg, m){
       .def("train", (void (DiscriminatorWrapper::*)(const std::vector<int>&)) &DiscriminatorWrapper::train)
       .def("train", (void (DiscriminatorWrapper::*)(const std::vector<std::vector<int>>&)) &DiscriminatorWrapper::train)
       .def("classify", &DiscriminatorWrapper::classify)
-      .def("jsonConfig",  &DiscriminatorWrapper::jsonConfig)
-      .def("json",  &DiscriminatorWrapper::json)
+      .def("jsonConfig",(std::string (DiscriminatorWrapper::*)())  &DiscriminatorWrapper::jsonConfig)
+      .def("json", (std::string (DiscriminatorWrapper::*)()) &DiscriminatorWrapper::json)
     ;
 
     // models

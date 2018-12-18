@@ -113,11 +113,11 @@ public:
   }
 
   std::string jsonConfig(){
-    nl::json config = getConfig();
+    nl::json config = getConfig(false);
     if(!rams.empty()){
       config.merge_patch(rams[0].getConfig());
     }
-    config["rams"] = getRAMSJSON(false);
+    // config["rams"] = getRAMSJSON(false);
     return config.dump(2);
   }
 
@@ -128,11 +128,11 @@ public:
     }
     // config["rams"] = getRAMSJSON();
     config["data"] = getRAMsData();
-    return config.dump(2);
+    return config.dump();
   }
 
   nl::json getConfigJSON(){
-    nl::json config = getConfig();
+    nl::json config = getConfig(false);
     // config["rams"] = getRAMSJSON(false);
     return config;
   }
@@ -194,13 +194,13 @@ protected:
     }
   }
 
-  nl::json getRAMSJSON(bool all=true){
-    nl::json rj = nl::json::array();
-    for(unsigned int i=0; i<rams.size(); i++){
-      rj[i] = rams[i].getJSON(all);
-    }
-    return rj;
-  }
+  // nl::json getRAMSJSON(bool all=true){
+  //   nl::json rj = nl::json::array();
+  //   for(unsigned int i=0; i<rams.size(); i++){
+  //     rj[i] = rams[i].getJSON(all);
+  //   }
+  //   return rj;
+  // }
 
   std::string getRAMsData(){
     std::string data;
@@ -218,14 +218,16 @@ protected:
     }
   }
 
-  nl::json getConfig(){
+  nl::json getConfig(bool all=true){
     std::vector<std::vector<int>> mapping(rams.size());
     setMapping(mapping);
     nl::json config = {
       {"entrySize", entrySize},
-      {"mapping", mapping},
-      {"count", count}
+      {"mapping", mapping}
     };
+    if(all){
+      config["count"] = count;
+    }
     return config;
   }
 
