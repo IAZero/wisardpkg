@@ -29,6 +29,17 @@ long long ipow(long long base, long long exp){
   return result;
 }
 
+template<typename T>
+void print(T value){
+  std::cout << value << std::endl;
+}
+
+template<typename T, typename... Args>
+void print(T value, Args... args){
+  std::cout << value << " ";
+  print(args...);
+}
+
 class Base64 {
 public:
   // each character must be a char, just one byte.

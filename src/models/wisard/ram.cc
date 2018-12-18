@@ -8,7 +8,6 @@ public:
     addresses = c["addresses"].get<std::vector<int>>();
     checkLimitAddressSize(addresses.size(), base);
     setData(c["data"]);
-    std::cout << c["data"] << std::endl;
     // nl::json pos = c["positions"];
     // for(nl::json::iterator it = pos.begin(); it != pos.end(); ++it){
     //   unsigned long long p = stoull(it.key());
@@ -99,15 +98,21 @@ public:
 
   void setData(std::string data){
     std::string decodedData = Base64::decode(data);
-    int blockSize = (sizeof(unsigned long long)+sizeof(int));
+    const int base1 = sizeof(unsigned long long);
+    const int base2 = sizeof(int);
+    const int blockSize = (sizeof(unsigned long long)+sizeof(int));
+
     for(unsigned long i=0; i<decodedData.size(); i+=blockSize){
       unsigned long long address = 0;
       int value = 0;
-      for(unsigned int j=0; j<sizeof(unsigned long long); j++){
-        address += (unsigned long long)decodedData[i+j] << (8*j);
+
+      for(int j=0; j<base1; j++){
+        unsigned long long temp = decodedData[i+j];
+        address |= (temp << (8*j));
       }
-      for(int k=sizeof(unsigned long long); k<blockSize; k++){
-        value += (unsigned long long)decodedData[i+k] << (8*k);
+      for(int k=0; k<base2; k++){
+        int temp = decodedData[i+k+base1];
+        value |= (temp << (8*k));
       }
       positions[address]=value;
     }
@@ -119,10 +124,10 @@ public:
     int k=0;
     for(auto j=positions.begin(); j!=positions.end(); ++j){
       for(unsigned int i=0; i<sizeof(unsigned long long); i++){
-        data[k++]=(j->first >> (8*i)) & 0xff;
+        data[k++] = (j->first >> (8*i)) & 0xff;
       }
       for(unsigned int i=0; i<sizeof(int); i++){
-        data[k++]=(j->second >> (8*i)) & 0xff;
+        data[k++] = (j->second >> (8*i)) & 0xff;
       }
     }
     return Base64::encode(data);
