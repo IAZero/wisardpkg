@@ -26,4 +26,6 @@ print("classifing...")
 out=d.classify(X[0])
 print(out)
 
+print(d.json())
+
 print("### DONE Discriminator ###")

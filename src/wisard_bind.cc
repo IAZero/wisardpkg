@@ -1,6 +1,4 @@
 #include "wisardpkg.h"
-//__version__
-#include "version.h"
 
 PYBIND11_MODULE(wisardpkg, m){
     m.attr("__version__") = __version__;
@@ -26,6 +24,7 @@ PYBIND11_MODULE(wisardpkg, m){
       .def("classify", &DiscriminatorWrapper::classify)
       .def("jsonConfig",(std::string (DiscriminatorWrapper::*)())  &DiscriminatorWrapper::jsonConfig)
       .def("json", (std::string (DiscriminatorWrapper::*)()) &DiscriminatorWrapper::json)
+      .def("json", (std::string (DiscriminatorWrapper::*)(bool)) &DiscriminatorWrapper::json)
     ;
 
     // models

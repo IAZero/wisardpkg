@@ -157,6 +157,7 @@ protected:
 
   nl::json getConfig(){
     nl::json config = {
+      {"version", __version__},
       {"addressSize", addressSize},
       {"bleachingActivated", bleachingActivated},
       {"verbose", verbose},

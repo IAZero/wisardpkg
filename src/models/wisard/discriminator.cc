@@ -108,6 +108,7 @@ public:
       config.merge_patch(rams[0].getConfig());
     }
     // config["rams"] = getRAMSJSON(false);
+    config["version"] = __version__;
     return config.dump(2);
   }
 
@@ -118,6 +119,7 @@ public:
     }
     // config["rams"] = getRAMSJSON();
     config["data"] = getRAMsData(huge);
+    config["version"] = __version__;
     return config.dump();
   }
 
