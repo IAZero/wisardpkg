@@ -1,7 +1,7 @@
 /*
 
 wisardpkg for c++11
-version 1.5.1
+version 1.5.2
 https://github.com/IAZero/wisardpkg
 */
 
@@ -17304,7 +17304,7 @@ inline nlohmann::json::json_pointer operator "" _json_pointer(const char* s, std
 
 namespace wisardpkg {
 
-const std::string  __version__ = "1.5.1"; 
+const std::string  __version__ = "1.5.2"; 
 
 
 
@@ -18282,7 +18282,7 @@ public:
     return config.dump(2);
   }
 
-  std::string json(bool huge=false, std::string path=""){
+  std::string json(bool huge, std::string path){
     nl::json config = getConfig();
     if(!rams.empty()){
       config.merge_patch(rams[0].getConfig());
@@ -18292,6 +18292,13 @@ public:
     config["version"] = __version__;
     return config.dump();
   }
+  std::string json(bool huge){
+    return json(huge,"");
+  }
+  std::string json(){
+    return json(false,"");
+  }
+
 
   nl::json getConfigJSON(){
     nl::json config = getConfig(false);
