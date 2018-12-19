@@ -18282,13 +18282,13 @@ public:
     return config.dump(2);
   }
 
-  std::string json(bool huge=false){
+  std::string json(bool huge=false, std::string path=""){
     nl::json config = getConfig();
     if(!rams.empty()){
       config.merge_patch(rams[0].getConfig());
     }
     // config["rams"] = getRAMSJSON();
-    config["data"] = getRAMsData(huge);
+    config["data"] = getRAMsData(huge,path);
     config["version"] = __version__;
     return config.dump();
   }
@@ -18612,11 +18612,18 @@ public:
     return config.dump(2);
   }
 
-  std::string json(bool huge) {
+  std::string json(bool huge, std::string path) {
     nl::json config = getConfig();
-    config["classes"] = getClassesJSON(huge);
+    config["classes"] = getClassesJSON(huge,path);
     return config.dump();
   }
+  std::string json(bool huge) {
+    return json(huge,"");
+  }
+  std::string json() {
+    return json(false,"");
+  }
+
 
 protected:
 
@@ -18636,10 +18643,10 @@ protected:
     return Bleaching::make(allvotes, bleachingActivated, searchBestConfidence, confidence);
   }
 
-  nl::json getClassesJSON(bool huge){
+  nl::json getClassesJSON(bool huge, std::string path){
     nl::json c;
     for(std::map<std::string, Discriminator>::iterator d=discriminators.begin(); d!=discriminators.end(); ++d){
-      c[d->first] = d->second.getJSON(huge,d->first+"__");
+      c[d->first] = d->second.getJSON(huge,path+(d->first)+"__");
     }
     return c;
   }

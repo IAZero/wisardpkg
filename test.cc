@@ -24,6 +24,8 @@ int main(int argc, const char * argv[]){
   auto out = w.classify(X);
   cout << "class: " << out[0] << endl;
 
+  cout << "json: " << w.json() << endl;
+
   wp::Discriminator d(3, 6, {
     {"base", 2}
   });

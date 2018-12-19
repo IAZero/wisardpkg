@@ -25,6 +25,7 @@ PYBIND11_MODULE(wisardpkg, m){
       .def("jsonConfig",(std::string (DiscriminatorWrapper::*)())  &DiscriminatorWrapper::jsonConfig)
       .def("json", (std::string (DiscriminatorWrapper::*)()) &DiscriminatorWrapper::json)
       .def("json", (std::string (DiscriminatorWrapper::*)(bool)) &DiscriminatorWrapper::json)
+      .def("json", (std::string (DiscriminatorWrapper::*)(bool,std::string)) &DiscriminatorWrapper::json)
     ;
 
     // models
@@ -39,6 +40,7 @@ PYBIND11_MODULE(wisardpkg, m){
       .def("jsonConfig", &WisardWrapper::jsonConfig)
       .def("json", (std::string (WisardWrapper::*)()) &WisardWrapper::json)
       .def("json", (std::string (WisardWrapper::*)(bool)) &WisardWrapper::json)
+      .def("json", (std::string (WisardWrapper::*)(bool,std::string)) &WisardWrapper::json)
     ;
 
     py::class_<ClusWisardWrapper>(m, "ClusWisard")
