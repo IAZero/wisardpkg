@@ -38,7 +38,8 @@ PYBIND11_MODULE(wisardpkg, m){
       .def("leaveOneOut", (void (WisardWrapper::*)(const std::vector<int>&, const std::string&)) &WisardWrapper::leaveOneOut)
       .def("leaveMoreOut", (void (WisardWrapper::*)(const std::vector<std::vector<int>>&, const std::vector<std::string>&)) &WisardWrapper::leaveMoreOut)
       .def("jsonConfig", &WisardWrapper::jsonConfig)
-      .def("json", &WisardWrapper::json)
+      .def("json", (std::string (WisardWrapper::*)()) &WisardWrapper::json)
+      .def("json", (std::string (WisardWrapper::*)(bool)) &WisardWrapper::json)
     ;
 
     py::class_<ClusWisardWrapper>(m, "ClusWisard")

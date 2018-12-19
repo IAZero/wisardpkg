@@ -111,13 +111,13 @@ public:
     return config.dump(2);
   }
 
-  std::string json(){
+  std::string json(bool huge=false){
     nl::json config = getConfig();
     if(!rams.empty()){
       config.merge_patch(rams[0].getConfig());
     }
     // config["rams"] = getRAMSJSON();
-    config["data"] = getRAMsData();
+    config["data"] = getRAMsData(huge);
     return config.dump();
   }
 
@@ -127,10 +127,10 @@ public:
     return config;
   }
 
-  nl::json getJSON(){
+  nl::json getJSON(bool huge, std::string prefix){
     nl::json config = getConfig();
     // config["rams"] = getRAMSJSON();
-    config["data"] = getRAMsData();
+    config["data"] = getRAMsData(huge, prefix);
     return config;
   }
 

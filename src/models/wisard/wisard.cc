@@ -115,9 +115,9 @@ public:
     return config.dump(2);
   }
 
-  std::string json() {
+  std::string json(bool huge) {
     nl::json config = getConfig();
-    config["classes"] = getClassesJSON();
+    config["classes"] = getClassesJSON(huge);
     return config.dump();
   }
 
@@ -139,10 +139,10 @@ protected:
     return Bleaching::make(allvotes, bleachingActivated, searchBestConfidence, confidence);
   }
 
-  nl::json getClassesJSON(){
+  nl::json getClassesJSON(bool huge){
     nl::json c;
     for(std::map<std::string, Discriminator>::iterator d=discriminators.begin(); d!=discriminators.end(); ++d){
-      c[d->first] = d->second.getJSON();
+      c[d->first] = d->second.getJSON(huge,d->first+"__");
     }
     return c;
   }
