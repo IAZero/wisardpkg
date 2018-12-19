@@ -30,6 +30,24 @@ long long ipow(long long base, long long exp){
 }
 
 template<typename T>
+std::string convertToBytes(T value){
+  std::string out(sizeof(T),0);
+  for(unsigned int i=0; i<sizeof(T); i++){
+    out[i] = (value >> (8*i)) & 0xff;
+  }
+  return out;
+}
+
+template<typename T>
+T convertToValue(std::string data){
+  T value = 0;
+  for(unsigned int i=0; i<data.size(); i++){
+    value |= data[i] << (8*i);
+  }
+  return value;
+}
+
+template<typename T>
 void print(T value){
   std::cout << value << std::endl;
 }
