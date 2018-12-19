@@ -8,6 +8,18 @@ inline double randdouble(double min, double max){
   return ((std::rand()/(double)RAND_MAX) * (max - min)) + min;
 }
 
+std::string getRandomString(int len){
+  static const std::string alphanum =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    "abcdefghijklmnopqrstuvwxyz"
+    "0123456789";
+  std::string s(len,'W');
+  for (int i = 0; i < len; ++i) {
+      s[i] = alphanum[rand() % (alphanum.size() - 1)];
+  }
+  return s;
+}
+
 int calculateNumberOfRams(int entrySize, int addressSize, bool completeAddressing=true){
   int numberOfRAMS = entrySize / addressSize;
   int remain = entrySize % addressSize;

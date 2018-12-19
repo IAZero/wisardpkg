@@ -39,6 +39,7 @@ for i,d in enumerate(X):
     print(out[i],d)
 
 outj = wsd.json()
+print(outj)
 wsd2 = Wisard(outj)
 
 out = wsd2.classify(X)

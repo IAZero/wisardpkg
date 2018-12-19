@@ -13,17 +13,7 @@ public:
       {"ignoreZero", config["ignoreZero"]},
       {"base", config["base"]}
     };
-    int pos=0;
-    for(nl::json::iterator it = mapping.begin(); it != mapping.end(); ++it){
-      int found = data.find('.',pos);
-      nl::json base = {
-        {"addresses", *it},
-        {"data", data.substr(pos,found-pos)}
-      };
-      pos = found+1;
-      base.merge_patch(rbase);
-      rams.push_back(RAM(base));
-    }
+    setRAMsData(mapping, rbase, data);
   }
   Discriminator(int addressSize, int entrySize):Discriminator(addressSize, entrySize, {}){}
   Discriminator(int addressSize, int entrySize, nl::json options): entrySize(entrySize){
@@ -202,11 +192,61 @@ protected:
   //   return rj;
   // }
 
-  std::string getRAMsData(){
+  void setRAMsData(nl::json mapping, nl::json rbase, std::string data){
+    int s = Discriminator::sufix.size();
+    if(data.substr(data.size()-s,s).compare(Discriminator::sufix) == 0){
+      std::ifstream dataFile;
+      dataFile.open(data);
+      if(dataFile.is_open()){
+        for(nl::json::iterator it = mapping.begin(); it != mapping.end(); ++it){
+          if(dataFile.eof()) break;
+
+          std::string rdata="";
+          std::getline(dataFile,rdata,'.');
+          nl::json base = {
+            {"addresses", *it},
+            {"data", rdata}
+          };
+          base.merge_patch(rbase);
+          rams.push_back(RAM(base));
+        }
+        dataFile.close();
+      }
+    }
+    else{
+      int pos=0;
+      for(nl::json::iterator it = mapping.begin(); it != mapping.end(); ++it){
+        int found = data.find('.',pos);
+        nl::json base = {
+          {"addresses", *it},
+          {"data", data.substr(pos,found-pos)}
+        };
+        pos = found+1;
+        base.merge_patch(rbase);
+        rams.push_back(RAM(base));
+      }
+    }
+  }
+
+  std::string getRAMsData(bool huge=false, std::string prefix=""){
     std::string data;
-    for(unsigned int i=0; i<rams.size(); i++){
-      if(data.size()>0) data += ".";
-      data += rams[i].getData();
+    if(huge){
+      std::string filename = prefix + getRandomString(10) + Discriminator::sufix;
+      std::ofstream dataFile;
+      dataFile.open(filename, std::ios::app);
+
+      for(unsigned int i=0; i<rams.size(); i++){
+        dataFile << (i != 0 ? "." : "") + rams[i].getData();
+      }
+
+      dataFile.close();
+      data = filename;
+    }
+    else{
+      for(unsigned int i=0; i<rams.size(); i++){
+        if(data.size()>0) data += ".";
+        data += rams[i].getData();
+      }
     }
     return data;
   }
@@ -279,4 +319,7 @@ private:
   int entrySize;
   int count;
   std::vector<RAM> rams;
+  static const std::string sufix;
 };
+
+const std::string Discriminator::sufix = ".wdpkg";
