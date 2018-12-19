@@ -1,1 +1,1 @@
-const std::string  __version__ = "1.5.0"; 
+const std::string  __version__ = "1.5.1"; 

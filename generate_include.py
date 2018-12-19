@@ -25,36 +25,37 @@ includes = [
     'models/cluswisard/cluswisard.cc',
 ]
 
-with open(output+name+'.hpp', 'w+') as out:
-    versionData = open(src+version).read()
-    __version__ = versionData.split('"')[1]
+if __name__ == "__main__":
+    with open(output+name+'.hpp', 'w+') as out:
+        versionData = open(src+version).read()
+        __version__ = versionData.split('"')[1]
 
-    out.write("/*\n" +\
-        "\n"+name+" for c++11" +\
-        "\nversion "+ __version__ +\
-        "\nhttps://github.com/IAZero/wisardpkg" +\
-        "\n*/\n\n")
-    out.write("\n#ifndef "+name.upper()+"_HPP\n#define "+name.upper()+"_HPP\n\n")
+        out.write("/*\n" +\
+            "\n"+name+" for c++11" +\
+            "\nversion "+ __version__ +\
+            "\nhttps://github.com/IAZero/wisardpkg" +\
+            "\n*/\n\n")
+        out.write("\n#ifndef "+name.upper()+"_HPP\n#define "+name.upper()+"_HPP\n\n")
 
-    data = open(src+stdIncludes).read()
-    out.write(data)
-
-    # add libs here
-    for lib in libs:
-        data = open(src+lib[0]).read()
+        data = open(src+stdIncludes).read()
         out.write(data)
 
-    out.write("\n\nnamespace "+name+" {\n\n")
+        # add libs here
+        for lib in libs:
+            data = open(src+lib[0]).read()
+            out.write(data)
 
-    out.write(versionData+"\n\n")
+        out.write("\n\nnamespace "+name+" {\n\n")
 
-    for lib in libs:
-        out.write('\n\nnamespace '+lib[1]+';\n\n')
+        out.write(versionData+"\n\n")
 
-    # add all the library here
-    for include in includes:
-        data = open(src+include).read()
-        out.write(data)
+        for lib in libs:
+            out.write('\n\nnamespace '+lib[1]+';\n\n')
 
-    out.write("\n}\n#endif")
-    out.close()
+        # add all the library here
+        for include in includes:
+            data = open(src+include).read()
+            out.write(data)
+
+        out.write("\n}\n#endif")
+        out.close()

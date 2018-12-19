@@ -1,7 +1,7 @@
 /*
 
 wisardpkg for c++11
-version 1.4.0
+version 1.5.1
 https://github.com/IAZero/wisardpkg
 */
 
@@ -10,6 +10,7 @@ https://github.com/IAZero/wisardpkg
 #define WISARDPKG_HPP
 
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <vector>
 #include <map>
@@ -17303,7 +17304,7 @@ inline nlohmann::json::json_pointer operator "" _json_pointer(const char* s, std
 
 namespace wisardpkg {
 
-const std::string  __version__ = "1.4.0"; 
+const std::string  __version__ = "1.5.1"; 
 
 
 
@@ -17318,6 +17319,18 @@ inline int randint(int min, int max, bool isSeed=true){
 
 inline double randdouble(double min, double max){
   return ((std::rand()/(double)RAND_MAX) * (max - min)) + min;
+}
+
+std::string getRandomString(int len){
+  static const std::string alphanum =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    "abcdefghijklmnopqrstuvwxyz"
+    "0123456789";
+  std::string s(len,'W');
+  for (int i = 0; i < len; ++i) {
+      s[i] = alphanum[rand() % (alphanum.size() - 1)];
+  }
+  return s;
 }
 
 int calculateNumberOfRams(int entrySize, int addressSize, bool completeAddressing=true){
@@ -17340,6 +17353,110 @@ long long ipow(long long base, long long exp){
   }
   return result;
 }
+
+template<typename T>
+std::string convertToBytes(T value){
+  std::string out(sizeof(T),0);
+  for(unsigned int i=0; i<sizeof(T); i++){
+    out[i] = (value >> (8*i)) & 0xff;
+  }
+  return out;
+}
+
+template<typename T>
+T convertToValue(std::string data){
+  T value = 0;
+  for(unsigned int i=0; i<data.size(); i++){
+    value |= data[i] << (8*i);
+  }
+  return value;
+}
+
+template<typename T>
+void print(T value){
+  std::cout << value << std::endl;
+}
+
+template<typename T, typename... Args>
+void print(T value, Args... args){
+  std::cout << value << " ";
+  print(args...);
+}
+
+class Base64 {
+public:
+  // each character must be a char, just one byte.
+  static std::string encode(std::string dataIn){
+    long sizeIn = dataIn.size();
+    long size = 4*(sizeIn/3);
+    if(dataIn.size()%3 != 0){
+      size += 4;
+    }
+    std::string dataOut(size,'=');
+    long k=0;
+    for(long i=0; i<sizeIn; i+=3){
+
+      char index = (dataIn[i] >> 2) & 0x3f; // first 6
+      dataOut[k++] = Base64::charsMap[index];
+
+      index = dataIn[i] << 4 & 0x30; // last 2
+      if(dataIn.size()%3 == 1 && i+3 > sizeIn){
+        dataOut[k++] = Base64::charsMap[index];
+        break;
+      }
+
+      index = index | ((dataIn[i+1] >> 4) & 0x0f); // last 2 and first 4
+      dataOut[k++] = Base64::charsMap[index];
+
+      index = dataIn[i+1] << 2 & 0x3c; // last 4
+      if(sizeIn%3 == 2 && i+3 > sizeIn){
+        dataOut[k++] = Base64::charsMap[index];
+        break;
+      }
+
+      index = index | ((dataIn[i+2] >> 6) & 0x03); // last 4 and first 2
+      dataOut[k++] = Base64::charsMap[index];
+
+      index = dataIn[i+2] & 0x3f; // last 6
+      dataOut[k++] = Base64::charsMap[index];
+    }
+    return dataOut;
+  }
+
+  static std::string decode(std::string dataIn){
+    long sizeIn = dataIn.size();
+    long size = 3*(sizeIn/4) - (dataIn[sizeIn-2] == '=' ? 2 : (dataIn[sizeIn-1] == '=' ? 1 : 0));
+    std::string dataOut(size, 0);
+    long k=0;
+    for(long i=0; i<sizeIn; i+=4){
+      dataOut[k++] = (Base64::indexMap[dataIn[i]] << 2 & 0xfc) | (Base64::indexMap[dataIn[i+1]] >> 4 & 0x03); // first 6 and first 2
+      if(dataIn[i+2]=='=')break;
+      dataOut[k++] = (Base64::indexMap[dataIn[i+1]] << 4 & 0xf0) | (Base64::indexMap[dataIn[i+2]] >> 2 & 0x0f); // last 4 and first 4
+      if(dataIn[i+3]=='=')break;
+      dataOut[k++] = (Base64::indexMap[dataIn[i+2]] << 6 & 0xc0) | (Base64::indexMap[dataIn[i+3]] & 0x3f); // last 2 and first 6
+    }
+    return dataOut;
+  }
+
+private:
+  static const std::string charsMap;
+  static std::unordered_map<char,char> indexMap;
+
+  static std::unordered_map<char,char> createMap(){
+    std::unordered_map<char,char> out;
+    for(unsigned int i=0; i<Base64::charsMap.size(); i++){
+      out[Base64::charsMap[i]]=i;
+    }
+    return out;
+  }
+};
+
+const std::string Base64::charsMap =
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+  "abcdefghijklmnopqrstuvwxyz"
+  "0123456789+/";
+
+std::unordered_map<char,char> Base64::indexMap = Base64::createMap();
 class Exception: public std::exception{
     public:
         Exception(const char* msg): msg(msg){}
@@ -17779,11 +17896,12 @@ public:
     base=c["base"];
     addresses = c["addresses"].get<std::vector<int>>();
     checkLimitAddressSize(addresses.size(), base);
-    nl::json pos = c["positions"];
-    for(nl::json::iterator it = pos.begin(); it != pos.end(); ++it){
-      unsigned long long p = stoull(it.key());
-      positions[p] = it.value();
-    }
+    setData(c["data"]);
+    // nl::json pos = c["positions"];
+    // for(nl::json::iterator it = pos.begin(); it != pos.end(); ++it){
+    //   unsigned long long p = stoull(it.key());
+    //   positions[p] = it.value();
+    // }
   }
   RAM(const int addressSize, const int entrySize, const bool ignoreZero=false, int base=2): ignoreZero(ignoreZero), base(base){
     checkLimitAddressSize(addressSize, base);
@@ -17851,14 +17969,6 @@ public:
     return mentalPiece;
   }
 
-  nl::json positionsToJSON(){
-    nl::json pos;
-    for(auto j=positions.begin(); j!=positions.end(); ++j){
-      pos[std::to_string(j->first)] = j->second;
-    }
-    return pos;
-  }
-
   nl::json getConfig(){
     nl::json config = {
       {"ignoreZero", ignoreZero},
@@ -17867,15 +17977,100 @@ public:
     return config;
   }
 
-  nl::json getJSON(bool all=true){
-    nl::json config = {
-      {"addresses", addresses},
-      {"positions", nullptr}
-    };
-    if(all){
-      config["positions"] = positionsToJSON();
+  void setData(std::string data){
+    std::string decodedData = Base64::decode(data);
+    const int base1 = sizeof(unsigned long long);
+    const int base2 = sizeof(int);
+    const int blockSize = (sizeof(unsigned long long)+sizeof(int));
+    if(decodedData.size()%blockSize != 0) return;
+
+    for(unsigned long i=0; i<decodedData.size(); i+=blockSize){
+      unsigned long long address = 0;
+      int value = 0;
+
+      for(int j=0; j<base1; j++){
+        unsigned long long temp = decodedData[i+j];
+        address |= (temp << (8*j));
+      }
+      for(int k=0; k<base2; k++){
+        int temp = decodedData[i+k+base1];
+        value |= (temp << (8*k));
+      }
+      positions[address]=value;
     }
-    return config;
+  }
+
+  // TODO finish the compact represantation
+  std::string getDataCompact(){
+    auto headerInfo = getHeader();
+    std::string smask1 = convertToBytes(std::get<1>(headerInfo)),
+                smask0 = convertToBytes(std::get<0>(headerInfo)),
+                smean = convertToBytes(std::get<2>(headerInfo));
+
+    std::string header =
+      (char)smask1.size() + smask1 + smask0 +
+      (char)smean.size() + smean;
+
+    unsigned long long mask = std::get<0>(headerInfo) | std::get<1>(headerInfo);
+    unsigned int  sizeOfMask = getSizeOfMask(mask),
+                  sizeOfMean = getSizeOfMean(std::get<2>(headerInfo));
+
+    unsigned long size = (sizeOfMask + sizeOfMean)*positions.size();
+    if(size%8==0){
+      size /= 8;
+    }
+    else{
+      size /= 8;
+      size++;
+    }
+    std::string data(size,0);
+
+    for(auto j=positions.begin(); j!=positions.end(); ++j){
+
+    }
+    return Base64::encode(header+data);
+  }
+
+  std::string getData(){
+    int blockSize = (sizeof(unsigned long long)+sizeof(int));
+    std::string data(positions.size()*blockSize,0);
+    int k=0;
+    for(auto j=positions.begin(); j!=positions.end(); ++j){
+      for(unsigned int i=0; i<sizeof(unsigned long long); i++){
+        data[k++] = (j->first >> (8*i)) & 0xff;
+      }
+      for(unsigned int i=0; i<sizeof(int); i++){
+        data[k++] = (j->second >> (8*i)) & 0xff;
+      }
+    }
+    return Base64::encode(data);
+  }
+
+  void setMapping(std::vector<std::vector<int>>& mapping, int i){
+    int size = addresses.size();
+    mapping[i].resize(size);
+    for(int j=0; j<size; j++) {
+      mapping[i][j] = addresses[j];
+    }
+  }
+
+  // nl::json getJSON(bool all=true){
+  //   nl::json config = {
+  //     {"addresses", addresses},
+  //     {"positions", nullptr}
+  //   };
+  //   if(all){
+  //     nl::json pos;
+  //     for(auto j=positions.begin(); j!=positions.end(); ++j){
+  //       pos[std::to_string(j->first)] = j->second;
+  //     }
+  //     config["positions"] = pos;
+  //   }
+  //   return config;
+  // }
+
+  int getAddressSize(){
+    return addresses.size();
   }
 
   ~RAM(){
@@ -17913,6 +18108,46 @@ private:
     return numberConverted;
   }
 
+  std::tuple<unsigned long long, unsigned long long, int> getHeader(){
+    unsigned long long mask1 = -1;
+    unsigned long long mask0 = -1;
+    int mean = 0;
+    for(auto j=positions.begin(); j!=positions.end(); ++j){
+      mask1 &= j->first;
+      mask0 &= ~j->first;
+      mean += j->second;
+    }
+    mean /= positions.size();
+    return std::make_tuple(mask0,mask1,mean);
+  }
+
+  unsigned int getSizeOfMask(unsigned long long mAddress){
+    int size = 0;
+    for(unsigned int i=0; i<sizeof(unsigned long long)*8; i++){
+      size += ((mAddress >> i) & 0x01);
+    }
+    return size;
+  }
+
+  unsigned int getSizeOfMean(int mean){
+    int max = 0;
+    for(auto j=positions.begin(); j!=positions.end(); ++j){
+      int temp = std::abs(mean-j->second);
+      if(temp>max){
+        max = temp;
+      }
+    }
+    int size=0;
+    for(int i=sizeof(int)*8-1; i>-1; i--){
+      char temp = (max >> i) & 0x01;
+      if(temp == 1){
+        size = i;
+        break;
+      }
+    }
+    return size;
+  }
+
   void checkLimitAddressSize(int addressSize, int basein){
     const unsigned long long limit = -1;
     if((basein == 2 && addressSize > 64) ||
@@ -17942,16 +18177,13 @@ public:
   Discriminator(nl::json config){
     entrySize = config["entrySize"];
     count = config["count"];
-    nl::json jrams = config["rams"];
+    std::string data = config["data"];
+    nl::json mapping = config["mapping"];
     nl::json rbase = {
       {"ignoreZero", config["ignoreZero"]},
       {"base", config["base"]}
     };
-    for(nl::json::iterator it = jrams.begin(); it != jrams.end(); ++it){
-      nl::json base = *it;
-      base.merge_patch(rbase);
-      rams.push_back(RAM(base));
-    }
+    setRAMsData(mapping, rbase, data);
   }
   Discriminator(int addressSize, int entrySize):Discriminator(addressSize, entrySize, {}){}
   Discriminator(int addressSize, int entrySize, nl::json options): entrySize(entrySize){
@@ -18041,32 +18273,36 @@ public:
   }
 
   std::string jsonConfig(){
-    nl::json config = getConfig();
+    nl::json config = getConfig(false);
     if(!rams.empty()){
       config.merge_patch(rams[0].getConfig());
     }
-    config["rams"] = getRAMSJSON(false);
+    // config["rams"] = getRAMSJSON(false);
+    config["version"] = __version__;
     return config.dump(2);
   }
 
-  std::string json(){
+  std::string json(bool huge=false){
     nl::json config = getConfig();
     if(!rams.empty()){
       config.merge_patch(rams[0].getConfig());
     }
-    config["rams"] = getRAMSJSON();
-    return config.dump(2);
+    // config["rams"] = getRAMSJSON();
+    config["data"] = getRAMsData(huge);
+    config["version"] = __version__;
+    return config.dump();
   }
 
   nl::json getConfigJSON(){
-    nl::json config = getConfig();
-    config["rams"] = getRAMSJSON(false);
+    nl::json config = getConfig(false);
+    // config["rams"] = getRAMSJSON(false);
     return config;
   }
 
-  nl::json getJSON(){
+  nl::json getJSON(bool huge, std::string prefix){
     nl::json config = getConfig();
-    config["rams"] = getRAMSJSON();
+    // config["rams"] = getRAMSJSON();
+    config["data"] = getRAMsData(huge, prefix);
     return config;
   }
 
@@ -18120,19 +18356,90 @@ protected:
     }
   }
 
-  nl::json getRAMSJSON(bool all=true){
-    nl::json rj = nl::json::array();
-    for(unsigned int i=0; i<rams.size(); i++){
-      rj[i] = rams[i].getJSON(all);
+  // nl::json getRAMSJSON(bool all=true){
+  //   nl::json rj = nl::json::array();
+  //   for(unsigned int i=0; i<rams.size(); i++){
+  //     rj[i] = rams[i].getJSON(all);
+  //   }
+  //   return rj;
+  // }
+
+  void setRAMsData(nl::json mapping, nl::json rbase, std::string data){
+    int s = Discriminator::sufix.size();
+    if(data.substr(data.size()-s,s).compare(Discriminator::sufix) == 0){
+      std::ifstream dataFile;
+      dataFile.open(data);
+      if(dataFile.is_open()){
+        for(nl::json::iterator it = mapping.begin(); it != mapping.end(); ++it){
+          if(dataFile.eof()) break;
+
+          std::string rdata="";
+          std::getline(dataFile,rdata,'.');
+          nl::json base = {
+            {"addresses", *it},
+            {"data", rdata}
+          };
+          base.merge_patch(rbase);
+          rams.push_back(RAM(base));
+        }
+        dataFile.close();
+      }
     }
-    return rj;
+    else{
+      int pos=0;
+      for(nl::json::iterator it = mapping.begin(); it != mapping.end(); ++it){
+        int found = data.find('.',pos);
+        nl::json base = {
+          {"addresses", *it},
+          {"data", data.substr(pos,found-pos)}
+        };
+        pos = found+1;
+        base.merge_patch(rbase);
+        rams.push_back(RAM(base));
+      }
+    }
   }
 
-  nl::json getConfig(){
+  std::string getRAMsData(bool huge=false, std::string prefix=""){
+    std::string data;
+    if(huge){
+      std::string filename = prefix + getRandomString(10) + Discriminator::sufix;
+      std::ofstream dataFile;
+      dataFile.open(filename, std::ios::app);
+
+      for(unsigned int i=0; i<rams.size(); i++){
+        dataFile << (i != 0 ? "." : "") + rams[i].getData();
+      }
+
+      dataFile.close();
+      data = filename;
+    }
+    else{
+      for(unsigned int i=0; i<rams.size(); i++){
+        if(data.size()>0) data += ".";
+        data += rams[i].getData();
+      }
+    }
+    return data;
+  }
+
+  void setMapping(std::vector<std::vector<int>>& mapping){
+    int size = rams.size();
+    for(int i=0; i<size; i++){
+      rams[i].setMapping(mapping, i);
+    }
+  }
+
+  nl::json getConfig(bool all=true){
+    std::vector<std::vector<int>> mapping(rams.size());
+    setMapping(mapping);
     nl::json config = {
       {"entrySize", entrySize},
-      {"count", count}
+      {"mapping", mapping}
     };
+    if(all){
+      config["count"] = count;
+    }
     return config;
   }
 
@@ -18184,7 +18491,10 @@ private:
   int entrySize;
   int count;
   std::vector<RAM> rams;
+  static const std::string sufix;
 };
+
+const std::string Discriminator::sufix = ".wdpkg";
 
 class Wisard{
 public:
@@ -18302,10 +18612,10 @@ public:
     return config.dump(2);
   }
 
-  std::string json() {
+  std::string json(bool huge) {
     nl::json config = getConfig();
-    config["classes"] = getClassesJSON();
-    return config.dump(2);
+    config["classes"] = getClassesJSON(huge);
+    return config.dump();
   }
 
 protected:
@@ -18326,10 +18636,10 @@ protected:
     return Bleaching::make(allvotes, bleachingActivated, searchBestConfidence, confidence);
   }
 
-  nl::json getClassesJSON(){
+  nl::json getClassesJSON(bool huge){
     nl::json c;
     for(std::map<std::string, Discriminator>::iterator d=discriminators.begin(); d!=discriminators.end(); ++d){
-      c[d->first] = d->second.getJSON();
+      c[d->first] = d->second.getJSON(huge,d->first+"__");
     }
     return c;
   }
@@ -18344,6 +18654,7 @@ protected:
 
   nl::json getConfig(){
     nl::json config = {
+      {"version", __version__},
       {"addressSize", addressSize},
       {"bleachingActivated", bleachingActivated},
       {"verbose", verbose},

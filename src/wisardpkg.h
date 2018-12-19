@@ -1,6 +1,9 @@
 //base
 #include "base.h"
 
+//__version__
+#include "version.h"
+
 //libs - must be the first of all
 #include "libs/json.hpp"
 namespace nl = nlohmann;

@@ -10,6 +10,3 @@
 #include <time.h>
 #include <exception>
 #include <cmath>
-
-//__version__
-#include "version.h"
