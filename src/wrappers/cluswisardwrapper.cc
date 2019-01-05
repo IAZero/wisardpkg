@@ -1,6 +1,7 @@
 
 class ClusWisardWrapper: public ClusWisard{
 public:
+  ClusWisardWrapper(std::string config):ClusWisard(config){}
   ClusWisardWrapper(int addressSize, float minScore, int threshold, int discriminatorsLimit, py::kwargs kwargs):
       ClusWisard(addressSize,minScore,threshold,discriminatorsLimit)
   {

@@ -42,6 +42,38 @@ public:
 
     checkConfigInputs(minScore, threshold, discriminatorsLimit);
   }
+  ClusWisard(std::string config):ClusWisard(0,0,1,1,nl::json::parse(config)){
+      nl::json c = nl::json::parse(config);
+      addressSize = c["addressSize"];
+      minScore = c["minScore"];
+      threshold = c["threshold"];
+      discriminatorsLimit = c["discriminatorsLimit"];
+
+      nl::json dConfig = {
+        {"addressSize", addressSize},
+        {"minScore", minScore},
+        {"threshold", threshold},
+        {"discriminatorsLimit", discriminatorsLimit},
+        {"completeAddressing", completeAddressing},
+        {"ignoreZero", ignoreZero},
+        {"base", base}
+      };
+
+      nl::json classes = c["clusters"];
+      if(!classes.is_null()){
+        for(nl::json::iterator it = classes.begin(); it != classes.end(); ++it){
+          nl::json d = it.value();
+          d.merge_patch(dConfig);
+          clusters[it.key()] = Cluster(d);
+        }
+      }
+
+      nl::json unsupervisedConfig = c["unsupervisedCluster"];
+      if(!unsupervisedConfig.is_null()){
+        unsupervisedConfig.merge_patch(dConfig);
+        unsupervisedCluster = Cluster(unsupervisedConfig);
+      }
+  }
 
 
   void train(const std::vector<std::vector<int>>& images, const std::vector<std::string>& labels){
@@ -153,7 +185,7 @@ public:
     if(clusters.size()>0){
       config["clusters"] = getClustersJson();
     }
-    else if(unsupervisedCluster.getSize()>0){
+    if(unsupervisedCluster.getSize()>0){
       config["unsupervisedCluster"] = unsupervisedCluster.getJson();
     }
     return config.dump();

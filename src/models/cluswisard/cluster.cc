@@ -2,12 +2,51 @@
 class Cluster {
 public:
   Cluster(){}
-  Cluster(int entrySize, int addressSize, float minScore, int threshold,
+  Cluster(int entrySize, int addressSize, float minScore, unsigned int threshold,
     int discriminatorsLimit, bool completeAddressing=true, bool ignoreZero=false, int base=2):
     addressSize(addressSize), entrySize(entrySize), minScore(minScore),
     threshold(threshold), discriminatorsLimit(discriminatorsLimit),
     completeAddressing(completeAddressing), ignoreZero(ignoreZero), base(base){
     }
+  Cluster(nl::json options){
+    nl::json value;
+
+    value = options["addressSize"];
+    addressSize = value.is_null() ? 2 : value.get<int>();
+
+    value = options["entrySize"];
+    entrySize = value.is_null() ? 2 : value.get<int>();
+
+    value = options["minScore"];
+    minScore = value.is_null() ? 2 : value.get<float>();
+
+    value = options["discriminatorsLimit"];
+    discriminatorsLimit = value.is_null() ? 2 : value.get<int>();
+
+    value = options["threshold"];
+    threshold = value.is_null() ? 2 : value.get<unsigned int>();
+
+    value = options["ignoreZero"];
+    ignoreZero = value.is_null() ? false : value.get<bool>();
+
+    value = options["completeAddressing"];
+    completeAddressing = value.is_null() ? true : value.get<bool>();
+
+    value = options["base"];
+    base = value.is_null() ? 2 : value.get<int>();
+
+    nl::json dConfig = {
+      {"ignoreZero", ignoreZero},
+      {"base", base}
+    };
+
+    nl::json discriminatorsConfig = options["discriminators"];
+    for(nl::json::iterator it = discriminatorsConfig.begin(); it != discriminatorsConfig.end(); ++it){
+      nl::json d = it.value();
+      d.merge_patch(dConfig);
+      discriminators[discriminators.size()] = new Discriminator(d);
+    }
+  }
 
   float getScore(const std::vector<int>& votes) const{
     int max = 0;
@@ -102,9 +141,7 @@ public:
   }
 
   ~Cluster(){
-    for(unsigned int i=0; i<discriminators.size(); ++i){
-      delete discriminators[i];
-    }
+    discriminators.clear();
   }
 
 private:

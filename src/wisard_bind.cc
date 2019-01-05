@@ -44,6 +44,7 @@ PYBIND11_MODULE(wisardpkg, m){
     ;
 
     py::class_<ClusWisardWrapper>(m, "ClusWisard")
+      .def(py::init<std::string>())
       .def(py::init<int, float, int, int, py::kwargs>())
       .def("train", (void (ClusWisardWrapper::*)(const std::vector<std::vector<int>>&, const std::vector<std::string>&)) &ClusWisardWrapper::train)
       .def("train", (void (ClusWisardWrapper::*)(const std::vector<std::vector<int>>&, std::map<int, std::string>&)) &ClusWisardWrapper::train)
