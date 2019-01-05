@@ -173,7 +173,7 @@ protected:
       {"completeAddressing", completeAddressing},
       {"base", base},
       {"confidence", confidence},
-      {"searchBestConfidence", searchBestConfidence},
+      // {"searchBestConfidence", searchBestConfidence},
       {"returnConfidence", returnConfidence},
       {"returnActivationDegree", returnActivationDegree},
       {"returnClassesDegrees", returnClassesDegrees}

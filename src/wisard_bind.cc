@@ -52,6 +52,8 @@ PYBIND11_MODULE(wisardpkg, m){
       .def("classifyUnsupervised", (std::vector<std::string> (ClusWisardWrapper::*)(const std::vector<std::vector<int>>&)) &ClusWisardWrapper::classifyUnsupervised)
       .def("getMentalImage", &ClusWisardWrapper::getMentalImage)
       .def("getMentalImages", &ClusWisardWrapper::getMentalImages)
+      .def("jsonConfig", &ClusWisardWrapper::jsonConfig)
+      .def("json", &ClusWisardWrapper::json)
     ;
 
 }

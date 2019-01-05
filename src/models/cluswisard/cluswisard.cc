@@ -143,6 +143,22 @@ public:
     return mentalImages;
   }
 
+  std::string jsonConfig(){
+    nl::json config = getConfig();
+    return config.dump(2);
+  }
+
+  std::string json(){
+    nl::json config = getConfig();
+    if(clusters.size()>0){
+      config["clusters"] = getClustersJson();
+    }
+    else if(unsupervisedCluster.getSize()>0){
+      config["unsupervisedCluster"] = unsupervisedCluster.getJson();
+    }
+    return config.dump();
+  }
+
   ~ClusWisard(){
     clusters.clear();
   }
@@ -224,11 +240,39 @@ protected:
     clusters[label] = Cluster(entrySize, addressSize, minScore, threshold, discriminatorsLimit, completeAddressing, ignoreZero, base);
   }
 
+  nl::json getClustersJson(){
+    nl::json config;
+    for(std::map<std::string,Cluster>::iterator i=clusters.begin(); i!=clusters.end(); ++i){
+      config[i->first] = i->second.getJson();
+    }
+    return config;
+  }
+
+  nl::json getConfig(){
+    nl::json config = {
+      {"version", __version__},
+      {"addressSize", addressSize},
+      {"minScore", minScore},
+      {"threshold", threshold},
+      {"discriminatorsLimit", discriminatorsLimit},
+      {"bleachingActivated", bleachingActivated},
+      {"verbose", verbose},
+      {"ignoreZero", ignoreZero},
+      {"completeAddressing", completeAddressing},
+      {"base", base},
+      {"confidence", confidence},
+      // {"searchBestConfidence", searchBestConfidence},
+      {"returnConfidence", returnConfidence},
+      {"returnActivationDegree", returnActivationDegree},
+      {"returnClassesDegrees", returnClassesDegrees}
+    };
+    return config;
+  }
+
   int addressSize;
   float minScore;
   int threshold;
   int discriminatorsLimit;
-  int seed;
   bool bleachingActivated;
   bool verbose;
   bool completeAddressing;

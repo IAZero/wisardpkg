@@ -84,6 +84,23 @@ public:
     return images;
   }
 
+  nl::json getJson(){
+    nl::json discriminatorsConfig;
+    for(std::map<int, Discriminator*>::iterator d=discriminators.begin(); d!=discriminators.end(); ++d){
+      discriminatorsConfig[d->first] = d->second->getJSON(false, "");
+    }
+
+    nl::json config = {
+      {"entrySize", entrySize},
+      {"discriminators", discriminatorsConfig}
+    };
+    return config;
+  }
+
+  int getSize(){
+    return discriminators.size();
+  }
+
   ~Cluster(){
     for(unsigned int i=0; i<discriminators.size(); ++i){
       delete discriminators[i];

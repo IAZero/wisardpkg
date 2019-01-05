@@ -40,4 +40,6 @@ print("out:")
 for i,d in enumerate(X):
     print(out[i],d)
 
+print(clus.json())
+
 print("### DONE ClusWiSARD SUPERVISED ###")
