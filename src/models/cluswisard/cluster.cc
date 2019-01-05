@@ -123,10 +123,10 @@ public:
     return images;
   }
 
-  nl::json getJson(){
+  nl::json getJson(bool huge, std::string path){
     nl::json discriminatorsConfig;
     for(std::map<int, Discriminator*>::iterator d=discriminators.begin(); d!=discriminators.end(); ++d){
-      discriminatorsConfig[d->first] = d->second->getJSON(false, "");
+      discriminatorsConfig[d->first] = d->second->getJSON(huge, path+std::to_string(d->first)+"__");
     }
 
     nl::json config = {

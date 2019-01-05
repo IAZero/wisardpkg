@@ -54,7 +54,9 @@ PYBIND11_MODULE(wisardpkg, m){
       .def("getMentalImage", &ClusWisardWrapper::getMentalImage)
       .def("getMentalImages", &ClusWisardWrapper::getMentalImages)
       .def("jsonConfig", &ClusWisardWrapper::jsonConfig)
-      .def("json", &ClusWisardWrapper::json)
+      .def("json", (std::string (ClusWisardWrapper::*)()) &ClusWisardWrapper::json)
+      .def("json", (std::string (ClusWisardWrapper::*)(bool)) &ClusWisardWrapper::json)
+      .def("json", (std::string (ClusWisardWrapper::*)(bool,std::string)) &ClusWisardWrapper::json)
     ;
 
 }

@@ -180,15 +180,22 @@ public:
     return config.dump(2);
   }
 
-  std::string json(){
+  std::string json(bool huge, std::string path) {
     nl::json config = getConfig();
     if(clusters.size()>0){
-      config["clusters"] = getClustersJson();
+      config["clusters"] = getClustersJson(huge,path);
     }
     if(unsupervisedCluster.getSize()>0){
-      config["unsupervisedCluster"] = unsupervisedCluster.getJson();
+      config["unsupervisedCluster"] = unsupervisedCluster.getJson(huge,path+"unsupervised_cluster__");
     }
     return config.dump();
+  }
+
+  std::string json(bool huge) {
+    return json(huge,"");
+  }
+  std::string json() {
+    return json(false,"");
   }
 
   ~ClusWisard(){
@@ -272,10 +279,10 @@ protected:
     clusters[label] = Cluster(entrySize, addressSize, minScore, threshold, discriminatorsLimit, completeAddressing, ignoreZero, base);
   }
 
-  nl::json getClustersJson(){
+  nl::json getClustersJson(bool huge, std::string path){
     nl::json config;
     for(std::map<std::string,Cluster>::iterator i=clusters.begin(); i!=clusters.end(); ++i){
-      config[i->first] = i->second.getJson();
+      config[i->first] = i->second.getJson(huge,path+(i->first)+"__");
     }
     return config;
   }
