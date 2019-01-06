@@ -10,8 +10,8 @@ namespace nl = nlohmann;
 
 //common
 #include "common/definetypes.cc"
-#include "common/utils.cc"
 #include "common/exceptions.cc"
+#include "common/utils.cc"
 #include "common/bleaching.cc"
 
 //synthesizers
@@ -21,6 +21,7 @@ namespace nl = nlohmann;
 #include "binarization/kernelcanvas.cc"
 
 //wisard model
+#include "models/wisard/ramdatahandle.cc"
 #include "models/wisard/ram.cc"
 #include "models/wisard/discriminator.cc"
 #include "models/wisard/wisard.cc"

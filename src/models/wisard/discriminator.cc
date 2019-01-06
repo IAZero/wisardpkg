@@ -202,8 +202,8 @@ protected:
   // }
 
   void setRAMsData(nl::json mapping, nl::json rbase, std::string data){
-    int s = Discriminator::sufix.size();
-    if(data.substr(data.size()-s,s).compare(Discriminator::sufix) == 0){
+    int s = ramdata_sufix.size();
+    if(data.substr(data.size()-s,s).compare(ramdata_sufix) == 0){
       std::ifstream dataFile;
       dataFile.open(data);
       if(dataFile.is_open()){
@@ -240,7 +240,7 @@ protected:
   std::string getRAMsData(bool huge=false, std::string prefix=""){
     std::string data;
     if(huge){
-      std::string filename = prefix + getRandomString(10) + Discriminator::sufix;
+      std::string filename = prefix + getRandomString(10) + ramdata_sufix;
       std::ofstream dataFile;
       dataFile.open(filename, std::ios::app);
 
@@ -328,7 +328,4 @@ private:
   int entrySize;
   int count;
   std::vector<RAM> rams;
-  static const std::string sufix;
 };
-
-const std::string Discriminator::sufix = ".wdpkg";

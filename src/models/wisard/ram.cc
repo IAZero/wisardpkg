@@ -7,12 +7,9 @@ public:
     base=c["base"];
     addresses = c["addresses"].get<std::vector<int>>();
     checkLimitAddressSize(addresses.size(), base);
-    setData(c["data"]);
-    // nl::json pos = c["positions"];
-    // for(nl::json::iterator it = pos.begin(); it != pos.end(); ++it){
-    //   addr_t p = stoull(it.key());
-    //   positions[p] = it.value();
-    // }
+
+    RAMDataHandle handle(c["data"].get<std::string>());
+    positions = handle.get(0);
   }
   RAM(const int addressSize, const int entrySize, const bool ignoreZero=false, int base=2): ignoreZero(ignoreZero), base(base){
     checkLimitAddressSize(addressSize, base);
@@ -88,73 +85,9 @@ public:
     return config;
   }
 
-  void setData(std::string data){
-    std::string decodedData = Base64::decode(data);
-    const int base1 = sizeof(addr_t);
-    const int base2 = sizeof(int);
-    const int blockSize = (sizeof(addr_t)+sizeof(int));
-    if(decodedData.size()%blockSize != 0) return;
-
-    for(unsigned long i=0; i<decodedData.size(); i+=blockSize){
-      addr_t address = 0;
-      int value = 0;
-
-      for(int j=0; j<base1; j++){
-        addr_t temp = decodedData[i+j];
-        address |= (temp << (8*j));
-      }
-      for(int k=0; k<base2; k++){
-        int temp = decodedData[i+k+base1];
-        value |= (temp << (8*k));
-      }
-      positions[address]=value;
-    }
-  }
-
-  // TODO finish the compact represantation
-  std::string getDataCompact(){
-    auto headerInfo = getHeader();
-    std::string smask1 = convertToBytes(std::get<1>(headerInfo)),
-                smask0 = convertToBytes(std::get<0>(headerInfo)),
-                smean = convertToBytes(std::get<2>(headerInfo));
-
-    std::string header =
-      (char)smask1.size() + smask1 + smask0 +
-      (char)smean.size() + smean;
-
-    addr_t mask = std::get<0>(headerInfo) | std::get<1>(headerInfo);
-    unsigned int  sizeOfMask = getSizeOfMask(mask),
-                  sizeOfMean = getSizeOfMean(std::get<2>(headerInfo));
-
-    unsigned long size = (sizeOfMask + sizeOfMean)*positions.size();
-    if(size%8==0){
-      size /= 8;
-    }
-    else{
-      size /= 8;
-      size++;
-    }
-    std::string data(size,0);
-
-    for(auto j=positions.begin(); j!=positions.end(); ++j){
-
-    }
-    return Base64::encode(header+data);
-  }
-
   std::string getData(){
-    int blockSize = (sizeof(addr_t)+sizeof(int));
-    std::string data(positions.size()*blockSize,0);
-    int k=0;
-    for(auto j=positions.begin(); j!=positions.end(); ++j){
-      for(unsigned int i=0; i<sizeof(addr_t); i++){
-        data[k++] = (j->first >> (8*i)) & 0xff;
-      }
-      for(unsigned int i=0; i<sizeof(int); i++){
-        data[k++] = (j->second >> (8*i)) & 0xff;
-      }
-    }
-    return Base64::encode(data);
+    RAMDataHandle handle(positions);
+    return handle.data(0);
   }
 
   void setMapping(std::vector<std::vector<int>>& mapping, int i){
@@ -164,21 +97,6 @@ public:
       mapping[i][j] = addresses[j];
     }
   }
-
-  // nl::json getJSON(bool all=true){
-  //   nl::json config = {
-  //     {"addresses", addresses},
-  //     {"positions", nullptr}
-  //   };
-  //   if(all){
-  //     nl::json pos;
-  //     for(auto j=positions.begin(); j!=positions.end(); ++j){
-  //       pos[std::to_string(j->first)] = j->second;
-  //     }
-  //     config["positions"] = pos;
-  //   }
-  //   return config;
-  // }
 
   int getAddressSize(){
     return addresses.size();
@@ -217,46 +135,6 @@ private:
       baseNumber /= base;
     }
     return numberConverted;
-  }
-
-  std::tuple<addr_t, addr_t, int> getHeader(){
-    addr_t mask1 = -1;
-    addr_t mask0 = -1;
-    int mean = 0;
-    for(auto j=positions.begin(); j!=positions.end(); ++j){
-      mask1 &= j->first;
-      mask0 &= ~j->first;
-      mean += j->second;
-    }
-    mean /= positions.size();
-    return std::make_tuple(mask0,mask1,mean);
-  }
-
-  unsigned int getSizeOfMask(addr_t mAddress){
-    int size = 0;
-    for(unsigned int i=0; i<sizeof(addr_t)*8; i++){
-      size += ((mAddress >> i) & 0x01);
-    }
-    return size;
-  }
-
-  unsigned int getSizeOfMean(int mean){
-    int max = 0;
-    for(auto j=positions.begin(); j!=positions.end(); ++j){
-      int temp = std::abs(mean-j->second);
-      if(temp>max){
-        max = temp;
-      }
-    }
-    int size=0;
-    for(int i=sizeof(int)*8-1; i>-1; i--){
-      char temp = (max >> i) & 0x01;
-      if(temp == 1){
-        size = i;
-        break;
-      }
-    }
-    return size;
   }
 
   void checkLimitAddressSize(int addressSize, int basein){

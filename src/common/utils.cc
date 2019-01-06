@@ -41,6 +41,7 @@ long long ipow(long long base, long long exp){
   return result;
 }
 
+// little endian
 template<typename T>
 std::string convertToBytes(T value){
   std::string out(sizeof(T),0);
@@ -50,8 +51,12 @@ std::string convertToBytes(T value){
   return out;
 }
 
+// little endian
 template<typename T>
-T convertToValue(std::string data){
+T convertToValue(const std::string& data){
+  if(sizeof(T) != data.size()){
+    throw Exception("size of the type is not compatible with the size of string value!");
+  }
   T value = 0;
   for(unsigned int i=0; i<data.size(); i++){
     value |= data[i] << (8*i);
