@@ -76,6 +76,7 @@ private:
       while(found < inputdata.size()){
         found = inputdata.find('.',pos);
         ramdata[ramdata.size()] = dataToRam(inputdata.substr(pos,found-pos));
+        pos = found+1;
       }
     }
   }

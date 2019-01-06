@@ -15,6 +15,16 @@ PYBIND11_MODULE(wisardpkg, m){
       .def("make", &Synthesizer::make)
     ;
 
+    //handles
+    py::class_<RAMDataHandle>(m, "RAMDataHandle")
+      .def(py::init<std::string>())
+      .def("set", &RAMDataHandle::set)
+      .def("get", (int (RAMDataHandle::*)(int,int)) &RAMDataHandle::get)
+      .def("get", (ram_t (RAMDataHandle::*)(int)) &RAMDataHandle::get)
+      .def("data", (std::string (RAMDataHandle::*)()) &RAMDataHandle::data)
+      .def("data", (std::string (RAMDataHandle::*)(int)) &RAMDataHandle::data)
+    ;
+
     //base to models
     py::class_<DiscriminatorWrapper>(m, "Discriminator")
       .def(py::init<std::string>())
