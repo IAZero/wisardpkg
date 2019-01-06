@@ -9,6 +9,7 @@ libs = [
 ]
 
 includes = [
+    'common/definetypes.cc',
     'common/utils.cc',
     'common/exceptions.cc',
     'common/bleaching.cc',
