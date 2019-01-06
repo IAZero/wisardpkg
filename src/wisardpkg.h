@@ -9,6 +9,7 @@
 namespace nl = nlohmann;
 
 //common
+#include "common/definetypes.cc"
 #include "common/utils.cc"
 #include "common/exceptions.cc"
 #include "common/bleaching.cc"

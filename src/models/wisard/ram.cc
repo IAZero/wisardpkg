@@ -10,7 +10,7 @@ public:
     setData(c["data"]);
     // nl::json pos = c["positions"];
     // for(nl::json::iterator it = pos.begin(); it != pos.end(); ++it){
-    //   unsigned long long p = stoull(it.key());
+    //   addr_t p = stoull(it.key());
     //   positions[p] = it.value();
     // }
   }
@@ -24,7 +24,7 @@ public:
   }
 
   int getVote(const std::vector<int>& image){
-    unsigned long long index = getIndex(image);
+    addr_t index = getIndex(image);
     if(ignoreZero && index == 0)
       return 0;
     auto it = positions.find(index);
@@ -37,10 +37,10 @@ public:
   }
 
   void train(const std::vector<int>& image){
-    unsigned long long index = getIndex(image);
+    addr_t index = getIndex(image);
     auto it = positions.find(index);
     if(it == positions.end()){
-      positions.insert(it,std::pair<unsigned long long,int>(index, 1));
+      positions.insert(it,std::pair<addr_t,int>(index, 1));
     }
     else{
       it->second++;
@@ -48,7 +48,7 @@ public:
   }
 
   void untrain(const std::vector<int>& image){
-      unsigned long long index = getIndex(image);
+      addr_t index = getIndex(image);
       auto it = positions.find(index);
       if(it != positions.end()){
         it->second--;
@@ -90,17 +90,17 @@ public:
 
   void setData(std::string data){
     std::string decodedData = Base64::decode(data);
-    const int base1 = sizeof(unsigned long long);
+    const int base1 = sizeof(addr_t);
     const int base2 = sizeof(int);
-    const int blockSize = (sizeof(unsigned long long)+sizeof(int));
+    const int blockSize = (sizeof(addr_t)+sizeof(int));
     if(decodedData.size()%blockSize != 0) return;
 
     for(unsigned long i=0; i<decodedData.size(); i+=blockSize){
-      unsigned long long address = 0;
+      addr_t address = 0;
       int value = 0;
 
       for(int j=0; j<base1; j++){
-        unsigned long long temp = decodedData[i+j];
+        addr_t temp = decodedData[i+j];
         address |= (temp << (8*j));
       }
       for(int k=0; k<base2; k++){
@@ -122,7 +122,7 @@ public:
       (char)smask1.size() + smask1 + smask0 +
       (char)smean.size() + smean;
 
-    unsigned long long mask = std::get<0>(headerInfo) | std::get<1>(headerInfo);
+    addr_t mask = std::get<0>(headerInfo) | std::get<1>(headerInfo);
     unsigned int  sizeOfMask = getSizeOfMask(mask),
                   sizeOfMean = getSizeOfMean(std::get<2>(headerInfo));
 
@@ -143,11 +143,11 @@ public:
   }
 
   std::string getData(){
-    int blockSize = (sizeof(unsigned long long)+sizeof(int));
+    int blockSize = (sizeof(addr_t)+sizeof(int));
     std::string data(positions.size()*blockSize,0);
     int k=0;
     for(auto j=positions.begin(); j!=positions.end(); ++j){
-      for(unsigned int i=0; i<sizeof(unsigned long long); i++){
+      for(unsigned int i=0; i<sizeof(addr_t); i++){
         data[k++] = (j->first >> (8*i)) & 0xff;
       }
       for(unsigned int i=0; i<sizeof(int); i++){
@@ -190,9 +190,9 @@ public:
   }
 
 protected:
-  unsigned long long getIndex(const std::vector<int>& image) const{
-    unsigned long long index = 0;
-    unsigned long long p = 1;
+  addr_t getIndex(const std::vector<int>& image) const{
+    addr_t index = 0;
+    addr_t p = 1;
     for(unsigned int i=0; i<addresses.size(); i++){
       int bin = image[addresses[i]];
       checkPos(bin);
@@ -205,7 +205,7 @@ protected:
 
 private:
   std::vector<int> addresses;
-  std::unordered_map<unsigned long long,int> positions;
+  ram_t positions;
   bool ignoreZero;
   int base;
 
@@ -219,9 +219,9 @@ private:
     return numberConverted;
   }
 
-  std::tuple<unsigned long long, unsigned long long, int> getHeader(){
-    unsigned long long mask1 = -1;
-    unsigned long long mask0 = -1;
+  std::tuple<addr_t, addr_t, int> getHeader(){
+    addr_t mask1 = -1;
+    addr_t mask0 = -1;
     int mean = 0;
     for(auto j=positions.begin(); j!=positions.end(); ++j){
       mask1 &= j->first;
@@ -232,9 +232,9 @@ private:
     return std::make_tuple(mask0,mask1,mean);
   }
 
-  unsigned int getSizeOfMask(unsigned long long mAddress){
+  unsigned int getSizeOfMask(addr_t mAddress){
     int size = 0;
-    for(unsigned int i=0; i<sizeof(unsigned long long)*8; i++){
+    for(unsigned int i=0; i<sizeof(addr_t)*8; i++){
       size += ((mAddress >> i) & 0x01);
     }
     return size;
@@ -260,9 +260,9 @@ private:
   }
 
   void checkLimitAddressSize(int addressSize, int basein){
-    const unsigned long long limit = -1;
+    const addr_t limit = -1;
     if((basein == 2 && addressSize > 64) ||
-       (basein != 2 && (unsigned long long)ipow(basein,addressSize) > limit)){
+       (basein != 2 && (addr_t)ipow(basein,addressSize) > limit)){
       throw Exception("The base power to addressSize passed the limit of 2^64!");
     }
   }
