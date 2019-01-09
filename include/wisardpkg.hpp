@@ -1,7 +1,7 @@
 /*
 
 wisardpkg for c++11
-version 1.5.2
+version 1.6.0
 https://github.com/IAZero/wisardpkg
 */
 
@@ -17304,13 +17304,27 @@ inline nlohmann::json::json_pointer operator "" _json_pointer(const char* s, std
 
 namespace wisardpkg {
 
-const std::string  __version__ = "1.5.2"; 
+const std::string  __version__ = "1.6.0"; 
 
 
 
 
 namespace nl = nlohmann;
 
+typedef unsigned long long addr_t;
+typedef int content_t;
+typedef std::unordered_map<addr_t, content_t> ram_t;
+
+const std::string ramdata_sufix = ".wdpkg";
+class Exception: public std::exception{
+    public:
+        Exception(const char* msg): msg(msg){}
+        const char* msg;
+        virtual const char* what() const throw()
+        {
+          return msg;
+        }
+};
 inline int randint(int min, int max, bool isSeed=true){
   if(isSeed)
     std::srand(time(NULL));
@@ -17354,6 +17368,7 @@ long long ipow(long long base, long long exp){
   return result;
 }
 
+// little endian
 template<typename T>
 std::string convertToBytes(T value){
   std::string out(sizeof(T),0);
@@ -17363,8 +17378,12 @@ std::string convertToBytes(T value){
   return out;
 }
 
+// little endian
 template<typename T>
-T convertToValue(std::string data){
+T convertToValue(const std::string& data){
+  if(sizeof(T) != data.size()){
+    throw Exception("size of the type is not compatible with the size of string value!");
+  }
   T value = 0;
   for(unsigned int i=0; i<data.size(); i++){
     value |= data[i] << (8*i);
@@ -17457,15 +17476,6 @@ const std::string Base64::charsMap =
   "0123456789+/";
 
 std::unordered_map<char,char> Base64::indexMap = Base64::createMap();
-class Exception: public std::exception{
-    public:
-        Exception(const char* msg): msg(msg){}
-        const char* msg;
-        virtual const char* what() const throw()
-        {
-          return msg;
-        }
-};
 
 class Bleaching{
 public:
@@ -17887,6 +17897,176 @@ protected:
       throw Exception("Error: the dimension of input data is defferent of kernel's dimension!");
   }
 };
+class RAMDataHandle {
+public:
+  RAMDataHandle(std::string inputdata){
+    setData(inputdata);
+  }
+  RAMDataHandle(ram_t data){
+    ramdata[0]=data;
+  }
+
+  int get(int r, int addr){
+    return ramdata[r][addr];
+  }
+
+  ram_t get(int r){
+    return ramdata[r];
+  }
+
+  void set(int r, int addr, int value){
+    ramdata[r][addr] = value;
+  }
+
+  std::string data(){
+    std::string out;
+    for(unsigned int i=0; i<ramdata.size(); i++){
+      out += (i != 0 ? "." : "") + data(i);
+    }
+    return out;
+  }
+
+  std::string data(int r){
+    int blockSize = (sizeof(addr_t)+sizeof(content_t));
+    std::string out(ramdata[r].size()*blockSize,0);
+    int k=0;
+    for(auto j=ramdata[r].begin(); j!=ramdata[r].end(); ++j){
+      out.replace(k,sizeof(addr_t),convertToBytes(j->first));
+      out.replace(k+sizeof(addr_t),sizeof(content_t),convertToBytes(j->second));
+      k += blockSize;
+    }
+    return Base64::encode(out);
+  }
+
+  void save(std::string prefix){
+    std::string filename = prefix + ramdata_sufix;
+    std::ofstream dataFile;
+    dataFile.open(filename, std::ios::app);
+
+    for(unsigned int i=0; i<ramdata.size(); i++){
+      dataFile << (i != 0 ? "." : "") + data(i);
+    }
+
+    dataFile.close();
+  }
+
+private:
+  std::unordered_map<int,ram_t> ramdata;
+
+  void setData(std::string inputdata){
+    int s = ramdata_sufix.size();
+    if(inputdata.substr(inputdata.size()-s,s).compare(ramdata_sufix) == 0){
+      std::ifstream dataFile;
+      dataFile.open(inputdata);
+      if(dataFile.is_open()){
+        while(true){
+          if(dataFile.eof()) break;
+
+          std::string rdata="";
+          std::getline(dataFile,rdata,'.');
+          ramdata[ramdata.size()] = dataToRam(rdata);
+        }
+        dataFile.close();
+      }
+    }
+    else{
+      int pos=0;
+      unsigned int found = 0;
+      while(found < inputdata.size()){
+        found = inputdata.find('.',pos);
+        ramdata[ramdata.size()] = dataToRam(inputdata.substr(pos,found-pos));
+        pos = found+1;
+      }
+    }
+  }
+
+  ram_t dataToRam(const std::string& inputdata){
+    ram_t ramout;
+    std::string decodedData = Base64::decode(inputdata);
+    const int blockSize = (sizeof(addr_t)+sizeof(content_t));
+    if(decodedData.size()%blockSize != 0) return ramout;
+
+    for(unsigned long i=0; i<decodedData.size(); i+=blockSize){
+      addr_t address = convertToValue<addr_t>(decodedData.substr(i,sizeof(addr_t)));
+      content_t value = convertToValue<content_t>(decodedData.substr(i+sizeof(addr_t),sizeof(content_t)));
+      ramout[address]=value;
+    }
+    return ramout;
+  }
+
+  // TODO finish the compact represantation
+  // std::string getDataCompact(){
+  //   auto headerInfo = getHeader();
+  //   std::string smask1 = convertToBytes(std::get<1>(headerInfo)),
+  //               smask0 = convertToBytes(std::get<0>(headerInfo)),
+  //               smean = convertToBytes(std::get<2>(headerInfo));
+  //
+  //   std::string header =
+  //     (char)smask1.size() + smask1 + smask0 +
+  //     (char)smean.size() + smean;
+  //
+  //   addr_t mask = std::get<0>(headerInfo) | std::get<1>(headerInfo);
+  //   unsigned int  sizeOfMask = getSizeOfMask(mask),
+  //                 sizeOfMean = getSizeOfMean(std::get<2>(headerInfo));
+  //
+  //   unsigned long size = (sizeOfMask + sizeOfMean)*positions.size();
+  //   if(size%8==0){
+  //     size /= 8;
+  //   }
+  //   else{
+  //     size /= 8;
+  //     size++;
+  //   }
+  //   std::string data(size,0);
+  //
+  //   for(auto j=positions.begin(); j!=positions.end(); ++j){
+  //
+  //   }
+  //   return Base64::encode(header+data);
+  // }
+  //
+  // std::tuple<addr_t, addr_t, int> getHeader(){
+  //   addr_t mask1 = -1;
+  //   addr_t mask0 = -1;
+  //   int mean = 0;
+  //   for(auto j=positions.begin(); j!=positions.end(); ++j){
+  //     mask1 &= j->first;
+  //     mask0 &= ~j->first;
+  //     mean += j->second;
+  //   }
+  //   mean /= positions.size();
+  //   return std::make_tuple(mask0,mask1,mean);
+  // }
+  //
+  // unsigned int getSizeOfMask(addr_t mAddress){
+  //   int size = 0;
+  //   for(unsigned int i=0; i<sizeof(addr_t)*8; i++){
+  //     size += ((mAddress >> i) & 0x01);
+  //   }
+  //   return size;
+  // }
+  //
+  // unsigned int getSizeOfMean(int mean){
+  //   int max = 0;
+  //   for(auto j=positions.begin(); j!=positions.end(); ++j){
+  //     int temp = std::abs(mean-j->second);
+  //     if(temp>max){
+  //       max = temp;
+  //     }
+  //   }
+  //   int size=0;
+  //   for(int i=sizeof(int)*8-1; i>-1; i--){
+  //     char temp = (max >> i) & 0x01;
+  //     if(temp == 1){
+  //       size = i;
+  //       break;
+  //     }
+  //   }
+  //   return size;
+  // }
+
+
+};
 
 class RAM{
 public:
@@ -17896,12 +18076,9 @@ public:
     base=c["base"];
     addresses = c["addresses"].get<std::vector<int>>();
     checkLimitAddressSize(addresses.size(), base);
-    setData(c["data"]);
-    // nl::json pos = c["positions"];
-    // for(nl::json::iterator it = pos.begin(); it != pos.end(); ++it){
-    //   unsigned long long p = stoull(it.key());
-    //   positions[p] = it.value();
-    // }
+
+    RAMDataHandle handle(c["data"].get<std::string>());
+    positions = handle.get(0);
   }
   RAM(const int addressSize, const int entrySize, const bool ignoreZero=false, int base=2): ignoreZero(ignoreZero), base(base){
     checkLimitAddressSize(addressSize, base);
@@ -17913,7 +18090,7 @@ public:
   }
 
   int getVote(const std::vector<int>& image){
-    unsigned long long index = getIndex(image);
+    addr_t index = getIndex(image);
     if(ignoreZero && index == 0)
       return 0;
     auto it = positions.find(index);
@@ -17926,10 +18103,10 @@ public:
   }
 
   void train(const std::vector<int>& image){
-    unsigned long long index = getIndex(image);
+    addr_t index = getIndex(image);
     auto it = positions.find(index);
     if(it == positions.end()){
-      positions.insert(it,std::pair<unsigned long long,int>(index, 1));
+      positions.insert(it,std::pair<addr_t,int>(index, 1));
     }
     else{
       it->second++;
@@ -17937,7 +18114,7 @@ public:
   }
 
   void untrain(const std::vector<int>& image){
-      unsigned long long index = getIndex(image);
+      addr_t index = getIndex(image);
       auto it = positions.find(index);
       if(it != positions.end()){
         it->second--;
@@ -17977,73 +18154,9 @@ public:
     return config;
   }
 
-  void setData(std::string data){
-    std::string decodedData = Base64::decode(data);
-    const int base1 = sizeof(unsigned long long);
-    const int base2 = sizeof(int);
-    const int blockSize = (sizeof(unsigned long long)+sizeof(int));
-    if(decodedData.size()%blockSize != 0) return;
-
-    for(unsigned long i=0; i<decodedData.size(); i+=blockSize){
-      unsigned long long address = 0;
-      int value = 0;
-
-      for(int j=0; j<base1; j++){
-        unsigned long long temp = decodedData[i+j];
-        address |= (temp << (8*j));
-      }
-      for(int k=0; k<base2; k++){
-        int temp = decodedData[i+k+base1];
-        value |= (temp << (8*k));
-      }
-      positions[address]=value;
-    }
-  }
-
-  // TODO finish the compact represantation
-  std::string getDataCompact(){
-    auto headerInfo = getHeader();
-    std::string smask1 = convertToBytes(std::get<1>(headerInfo)),
-                smask0 = convertToBytes(std::get<0>(headerInfo)),
-                smean = convertToBytes(std::get<2>(headerInfo));
-
-    std::string header =
-      (char)smask1.size() + smask1 + smask0 +
-      (char)smean.size() + smean;
-
-    unsigned long long mask = std::get<0>(headerInfo) | std::get<1>(headerInfo);
-    unsigned int  sizeOfMask = getSizeOfMask(mask),
-                  sizeOfMean = getSizeOfMean(std::get<2>(headerInfo));
-
-    unsigned long size = (sizeOfMask + sizeOfMean)*positions.size();
-    if(size%8==0){
-      size /= 8;
-    }
-    else{
-      size /= 8;
-      size++;
-    }
-    std::string data(size,0);
-
-    for(auto j=positions.begin(); j!=positions.end(); ++j){
-
-    }
-    return Base64::encode(header+data);
-  }
-
   std::string getData(){
-    int blockSize = (sizeof(unsigned long long)+sizeof(int));
-    std::string data(positions.size()*blockSize,0);
-    int k=0;
-    for(auto j=positions.begin(); j!=positions.end(); ++j){
-      for(unsigned int i=0; i<sizeof(unsigned long long); i++){
-        data[k++] = (j->first >> (8*i)) & 0xff;
-      }
-      for(unsigned int i=0; i<sizeof(int); i++){
-        data[k++] = (j->second >> (8*i)) & 0xff;
-      }
-    }
-    return Base64::encode(data);
+    RAMDataHandle handle(positions);
+    return handle.data(0);
   }
 
   void setMapping(std::vector<std::vector<int>>& mapping, int i){
@@ -18053,21 +18166,6 @@ public:
       mapping[i][j] = addresses[j];
     }
   }
-
-  // nl::json getJSON(bool all=true){
-  //   nl::json config = {
-  //     {"addresses", addresses},
-  //     {"positions", nullptr}
-  //   };
-  //   if(all){
-  //     nl::json pos;
-  //     for(auto j=positions.begin(); j!=positions.end(); ++j){
-  //       pos[std::to_string(j->first)] = j->second;
-  //     }
-  //     config["positions"] = pos;
-  //   }
-  //   return config;
-  // }
 
   int getAddressSize(){
     return addresses.size();
@@ -18079,9 +18177,9 @@ public:
   }
 
 protected:
-  unsigned long long getIndex(const std::vector<int>& image) const{
-    unsigned long long index = 0;
-    unsigned long long p = 1;
+  addr_t getIndex(const std::vector<int>& image) const{
+    addr_t index = 0;
+    addr_t p = 1;
     for(unsigned int i=0; i<addresses.size(); i++){
       int bin = image[addresses[i]];
       checkPos(bin);
@@ -18094,7 +18192,7 @@ protected:
 
 private:
   std::vector<int> addresses;
-  std::unordered_map<unsigned long long,int> positions;
+  ram_t positions;
   bool ignoreZero;
   int base;
 
@@ -18108,50 +18206,10 @@ private:
     return numberConverted;
   }
 
-  std::tuple<unsigned long long, unsigned long long, int> getHeader(){
-    unsigned long long mask1 = -1;
-    unsigned long long mask0 = -1;
-    int mean = 0;
-    for(auto j=positions.begin(); j!=positions.end(); ++j){
-      mask1 &= j->first;
-      mask0 &= ~j->first;
-      mean += j->second;
-    }
-    mean /= positions.size();
-    return std::make_tuple(mask0,mask1,mean);
-  }
-
-  unsigned int getSizeOfMask(unsigned long long mAddress){
-    int size = 0;
-    for(unsigned int i=0; i<sizeof(unsigned long long)*8; i++){
-      size += ((mAddress >> i) & 0x01);
-    }
-    return size;
-  }
-
-  unsigned int getSizeOfMean(int mean){
-    int max = 0;
-    for(auto j=positions.begin(); j!=positions.end(); ++j){
-      int temp = std::abs(mean-j->second);
-      if(temp>max){
-        max = temp;
-      }
-    }
-    int size=0;
-    for(int i=sizeof(int)*8-1; i>-1; i--){
-      char temp = (max >> i) & 0x01;
-      if(temp == 1){
-        size = i;
-        break;
-      }
-    }
-    return size;
-  }
-
   void checkLimitAddressSize(int addressSize, int basein){
-    const unsigned long long limit = -1;
+    const addr_t limit = -1;
     if((basein == 2 && addressSize > 64) ||
-       (basein != 2 && (unsigned long long)ipow(basein,addressSize) > limit)){
+       (basein != 2 && (addr_t)ipow(basein,addressSize) > limit)){
       throw Exception("The base power to addressSize passed the limit of 2^64!");
     }
   }
@@ -18372,8 +18430,8 @@ protected:
   // }
 
   void setRAMsData(nl::json mapping, nl::json rbase, std::string data){
-    int s = Discriminator::sufix.size();
-    if(data.substr(data.size()-s,s).compare(Discriminator::sufix) == 0){
+    int s = ramdata_sufix.size();
+    if(data.substr(data.size()-s,s).compare(ramdata_sufix) == 0){
       std::ifstream dataFile;
       dataFile.open(data);
       if(dataFile.is_open()){
@@ -18410,7 +18468,7 @@ protected:
   std::string getRAMsData(bool huge=false, std::string prefix=""){
     std::string data;
     if(huge){
-      std::string filename = prefix + getRandomString(10) + Discriminator::sufix;
+      std::string filename = prefix + getRandomString(10) + ramdata_sufix;
       std::ofstream dataFile;
       dataFile.open(filename, std::ios::app);
 
@@ -18498,10 +18556,7 @@ private:
   int entrySize;
   int count;
   std::vector<RAM> rams;
-  static const std::string sufix;
 };
-
-const std::string Discriminator::sufix = ".wdpkg";
 
 class Wisard{
 public:
@@ -18677,7 +18732,7 @@ protected:
       {"completeAddressing", completeAddressing},
       {"base", base},
       {"confidence", confidence},
-      {"searchBestConfidence", searchBestConfidence},
+      // {"searchBestConfidence", searchBestConfidence},
       {"returnConfidence", returnConfidence},
       {"returnActivationDegree", returnActivationDegree},
       {"returnClassesDegrees", returnClassesDegrees}
@@ -18724,12 +18779,51 @@ protected:
 class Cluster {
 public:
   Cluster(){}
-  Cluster(int entrySize, int addressSize, float minScore, int threshold,
+  Cluster(int entrySize, int addressSize, float minScore, unsigned int threshold,
     int discriminatorsLimit, bool completeAddressing=true, bool ignoreZero=false, int base=2):
     addressSize(addressSize), entrySize(entrySize), minScore(minScore),
     threshold(threshold), discriminatorsLimit(discriminatorsLimit),
     completeAddressing(completeAddressing), ignoreZero(ignoreZero), base(base){
     }
+  Cluster(nl::json options){
+    nl::json value;
+
+    value = options["addressSize"];
+    addressSize = value.is_null() ? 2 : value.get<int>();
+
+    value = options["entrySize"];
+    entrySize = value.is_null() ? 2 : value.get<int>();
+
+    value = options["minScore"];
+    minScore = value.is_null() ? 2 : value.get<float>();
+
+    value = options["discriminatorsLimit"];
+    discriminatorsLimit = value.is_null() ? 2 : value.get<int>();
+
+    value = options["threshold"];
+    threshold = value.is_null() ? 2 : value.get<unsigned int>();
+
+    value = options["ignoreZero"];
+    ignoreZero = value.is_null() ? false : value.get<bool>();
+
+    value = options["completeAddressing"];
+    completeAddressing = value.is_null() ? true : value.get<bool>();
+
+    value = options["base"];
+    base = value.is_null() ? 2 : value.get<int>();
+
+    nl::json dConfig = {
+      {"ignoreZero", ignoreZero},
+      {"base", base}
+    };
+
+    nl::json discriminatorsConfig = options["discriminators"];
+    for(nl::json::iterator it = discriminatorsConfig.begin(); it != discriminatorsConfig.end(); ++it){
+      nl::json d = it.value();
+      d.merge_patch(dConfig);
+      discriminators[discriminators.size()] = new Discriminator(d);
+    }
+  }
 
   float getScore(const std::vector<int>& votes) const{
     int max = 0;
@@ -18806,10 +18900,25 @@ public:
     return images;
   }
 
-  ~Cluster(){
-    for(unsigned int i=0; i<discriminators.size(); ++i){
-      delete discriminators[i];
+  nl::json getJson(bool huge, std::string path){
+    nl::json discriminatorsConfig;
+    for(std::map<int, Discriminator*>::iterator d=discriminators.begin(); d!=discriminators.end(); ++d){
+      discriminatorsConfig[d->first] = d->second->getJSON(huge, path+std::to_string(d->first)+"__");
     }
+
+    nl::json config = {
+      {"entrySize", entrySize},
+      {"discriminators", discriminatorsConfig}
+    };
+    return config;
+  }
+
+  int getSize(){
+    return discriminators.size();
+  }
+
+  ~Cluster(){
+    discriminators.clear();
   }
 
 private:
@@ -18870,6 +18979,38 @@ public:
     returnClassesDegrees = value.is_null() ? false : value.get<bool>();
 
     checkConfigInputs(minScore, threshold, discriminatorsLimit);
+  }
+  ClusWisard(std::string config):ClusWisard(0,0,1,1,nl::json::parse(config)){
+      nl::json c = nl::json::parse(config);
+      addressSize = c["addressSize"];
+      minScore = c["minScore"];
+      threshold = c["threshold"];
+      discriminatorsLimit = c["discriminatorsLimit"];
+
+      nl::json dConfig = {
+        {"addressSize", addressSize},
+        {"minScore", minScore},
+        {"threshold", threshold},
+        {"discriminatorsLimit", discriminatorsLimit},
+        {"completeAddressing", completeAddressing},
+        {"ignoreZero", ignoreZero},
+        {"base", base}
+      };
+
+      nl::json classes = c["clusters"];
+      if(!classes.is_null()){
+        for(nl::json::iterator it = classes.begin(); it != classes.end(); ++it){
+          nl::json d = it.value();
+          d.merge_patch(dConfig);
+          clusters[it.key()] = Cluster(d);
+        }
+      }
+
+      nl::json unsupervisedConfig = c["unsupervisedCluster"];
+      if(!unsupervisedConfig.is_null()){
+        unsupervisedConfig.merge_patch(dConfig);
+        unsupervisedCluster = Cluster(unsupervisedConfig);
+      }
   }
 
 
@@ -18972,6 +19113,29 @@ public:
     return mentalImages;
   }
 
+  std::string jsonConfig(){
+    nl::json config = getConfig();
+    return config.dump(2);
+  }
+
+  std::string json(bool huge, std::string path) {
+    nl::json config = getConfig();
+    if(clusters.size()>0){
+      config["clusters"] = getClustersJson(huge,path);
+    }
+    if(unsupervisedCluster.getSize()>0){
+      config["unsupervisedCluster"] = unsupervisedCluster.getJson(huge,path+"unsupervised_cluster__");
+    }
+    return config.dump();
+  }
+
+  std::string json(bool huge) {
+    return json(huge,"");
+  }
+  std::string json() {
+    return json(false,"");
+  }
+
   ~ClusWisard(){
     clusters.clear();
   }
@@ -19053,11 +19217,39 @@ protected:
     clusters[label] = Cluster(entrySize, addressSize, minScore, threshold, discriminatorsLimit, completeAddressing, ignoreZero, base);
   }
 
+  nl::json getClustersJson(bool huge, std::string path){
+    nl::json config;
+    for(std::map<std::string,Cluster>::iterator i=clusters.begin(); i!=clusters.end(); ++i){
+      config[i->first] = i->second.getJson(huge,path+(i->first)+"__");
+    }
+    return config;
+  }
+
+  nl::json getConfig(){
+    nl::json config = {
+      {"version", __version__},
+      {"addressSize", addressSize},
+      {"minScore", minScore},
+      {"threshold", threshold},
+      {"discriminatorsLimit", discriminatorsLimit},
+      {"bleachingActivated", bleachingActivated},
+      {"verbose", verbose},
+      {"ignoreZero", ignoreZero},
+      {"completeAddressing", completeAddressing},
+      {"base", base},
+      {"confidence", confidence},
+      // {"searchBestConfidence", searchBestConfidence},
+      {"returnConfidence", returnConfidence},
+      {"returnActivationDegree", returnActivationDegree},
+      {"returnClassesDegrees", returnClassesDegrees}
+    };
+    return config;
+  }
+
   int addressSize;
   float minScore;
   int threshold;
   int discriminatorsLimit;
-  int seed;
   bool bleachingActivated;
   bool verbose;
   bool completeAddressing;
