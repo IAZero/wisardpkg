@@ -21,7 +21,7 @@ public:
   }
 
   int getVote(const std::vector<int>& image){
-    addr_t index = getIndex(image);
+    addr_t index = getIndex<std::vector<int>>(image);
     if(ignoreZero && index == 0)
       return 0;
     auto it = positions.find(index);
@@ -34,14 +34,11 @@ public:
   }
 
   void train(const std::vector<int>& image){
-    addr_t index = getIndex(image);
-    auto it = positions.find(index);
-    if(it == positions.end()){
-      positions.insert(it,std::pair<addr_t,int>(index, 1));
-    }
-    else{
-      it->second++;
-    }
+    train<std::vector<int>>(image);
+  }
+
+  void train(const BinInput& image){
+    train<BinInput>(image);
   }
 
   void untrain(const std::vector<int>& image){
@@ -108,7 +105,8 @@ public:
   }
 
 protected:
-  addr_t getIndex(const std::vector<int>& image) const{
+  template<typename T>
+  addr_t getIndex(const T& image) const{
     addr_t index = 0;
     addr_t p = 1;
     for(unsigned int i=0; i<addresses.size(); i++){
@@ -118,6 +116,18 @@ protected:
       p *= base;
     }
     return index;
+  }
+
+  template<typename T>
+  void train(const T& image){
+    addr_t index = getIndex<T>(image);
+    auto it = positions.find(index);
+    if(it == positions.end()){
+      positions.insert(it,std::pair<addr_t,int>(index, 1));
+    }
+    else{
+      it->second++;
+    }
   }
 
 

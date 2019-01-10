@@ -61,13 +61,22 @@ public:
     discriminators.clear();
   }
 
+  void train(const DataSet& dataset) {
+    int numberOfRAMS = calculateNumberOfRams(dataset[0].size(), addressSize, completeAddressing);
+    checkConfidence(numberOfRAMS);
+    for(int i=0; i<dataset.size(); i++){
+      if(verbose) std::cout << "\rtraining " << i+1 << " of " << dataset.size();
+      train<BinInput>(dataset[i], dataset.getLabel(i));
+    }
+  }
+
   void train(const std::vector<std::vector<int>>& images, const std::vector<std::string>& labels){
     int numberOfRAMS = calculateNumberOfRams(images[0].size(), addressSize, completeAddressing);
     checkConfidence(numberOfRAMS);
     checkInputSizes(images.size(), labels.size());
     for(unsigned int i=0; i<images.size(); i++){
       if(verbose) std::cout << "\rtraining " << i+1 << " of " << images.size();
-      train(images[i], labels[i]);
+      train<std::vector<int>>(images[i], labels[i]);
     }
     if(verbose) std::cout << "\r" << std::endl;
   }
@@ -129,8 +138,8 @@ public:
 
 
 protected:
-
-  void train(const std::vector<int>& image, const std::string& label){
+  template<typename T>
+  void train(const T& image, const std::string& label){
     if(discriminators.find(label) == discriminators.end()){
       makeDiscriminator(label, image.size());
     }

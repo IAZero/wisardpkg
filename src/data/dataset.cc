@@ -40,12 +40,16 @@ public:
     data.push_back(BinInput(input));
   }
 
+  const BinInput& operator[](int index) const {
+    return get(index);
+  }
+
   const BinInput& get(int index) const {
     return data[index];
   }
 
-  std::string getLabel(index_size_t index) {
-    return labels[index];
+  std::string getLabel(index_size_t index) const {
+    return labels.at(index);
   }
 
   int size() const {

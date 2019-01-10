@@ -19,6 +19,10 @@ public:
     input = decodedData.substr(s,decodedData.size()-s);
   }
 
+  int operator[](index_size_t index) const {
+    return get(index);
+  }
+
   int get(index_size_t index) const {
     if(index >= size()) {
       throw Exception("Index out of range!");

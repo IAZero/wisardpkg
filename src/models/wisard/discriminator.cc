@@ -58,11 +58,11 @@ public:
   }
 
   void train(const std::vector<int>& image){
-    checkEntrySize(image.size());
-    count++;
-    for(unsigned int i=0; i<rams.size(); i++){
-      rams[i].train(image);
-    }
+    train<std::vector<int>>(image);
+  }
+
+  void train(const BinInput& image) {
+    train<BinInput>(image);
   }
 
   void train(const std::vector<std::vector<int>>& image){
@@ -193,14 +193,6 @@ protected:
     }
   }
 
-  // nl::json getRAMSJSON(bool all=true){
-  //   nl::json rj = nl::json::array();
-  //   for(unsigned int i=0; i<rams.size(); i++){
-  //     rj[i] = rams[i].getJSON(all);
-  //   }
-  //   return rj;
-  // }
-
   void setRAMsData(nl::json mapping, nl::json rbase, std::string data){
     int s = ramdata_sufix.size();
     if(data.substr(data.size()-s,s).compare(ramdata_sufix) == 0){
@@ -278,6 +270,15 @@ protected:
       config["count"] = count;
     }
     return config;
+  }
+
+  template<typename T>
+  void train(const T& image) {
+    checkEntrySize(image.size());
+    count++;
+    for(unsigned int i=0; i<rams.size(); i++){
+      rams[i].train(image);
+    }
   }
 
 private:
