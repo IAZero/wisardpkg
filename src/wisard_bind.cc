@@ -3,6 +3,30 @@
 PYBIND11_MODULE(wisardpkg, m){
     m.attr("__version__") = __version__;
 
+    //data
+    py::class_<BinInput>(m, "BinInput")
+      .def(py::init<index_size_t>())
+      .def(py::init<const std::vector<short>&>())
+      .def(py::init<const std::string&>())
+      .def("get", &BinInput::get)
+      .def("set", &BinInput::set)
+      .def("size", &BinInput::size)
+      .def("data", &BinInput::data)
+    ;
+
+    py::class_<DataSet>(m, "DataSet")
+      .def(py::init())
+      .def(py::init<std::string>())
+      .def("add", (void (DataSet::*)(const BinInput&)) &DataSet::add)
+      .def("add", (void (DataSet::*)(const BinInput&,const std::string&)) &DataSet::add)
+      .def("add", (void (DataSet::*)(const std::vector<short>&)) &DataSet::add)
+      .def("add", (void (DataSet::*)(const std::vector<short>&,const std::string&)) &DataSet::add)
+      .def("get", &DataSet::get)
+      .def("getLabel", &DataSet::getLabel)
+      .def("size", &DataSet::size)
+      .def("save", &DataSet::save)
+    ;
+
     // binarizations
     py::class_<KernelCanvasWrapper>(m, "KernelCanvas")
       .def(py::init<int, int, py::kwargs>())

@@ -14,6 +14,9 @@ includes = [
     'common/utils.cc',
     'common/bleaching.cc',
 
+    'data/bininput.cc',
+    'data/dataset.cc',
+
     'synthetic_data/synthesizers.cc',
 
     'binarization/kernelcanvas.cc',

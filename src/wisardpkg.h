@@ -14,6 +14,10 @@ namespace nl = nlohmann;
 #include "common/utils.cc"
 #include "common/bleaching.cc"
 
+//data
+#include "data/bininput.cc"
+#include "data/dataset.cc"
+
 //synthesizers
 #include "synthetic_data/synthesizers.cc"
 

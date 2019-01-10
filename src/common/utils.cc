@@ -78,7 +78,7 @@ void print(T value, Args... args){
 class Base64 {
 public:
   // each character must be a char, just one byte.
-  static std::string encode(std::string dataIn){
+  static std::string encode(const std::string& dataIn){
     long sizeIn = dataIn.size();
     long size = 4*(sizeIn/3);
     if(dataIn.size()%3 != 0){
@@ -115,7 +115,7 @@ public:
     return dataOut;
   }
 
-  static std::string decode(std::string dataIn){
+  static std::string decode(const std::string& dataIn){
     long sizeIn = dataIn.size();
     long size = 3*(sizeIn/4) - (dataIn[sizeIn-2] == '=' ? 2 : (dataIn[sizeIn-1] == '=' ? 1 : 0));
     std::string dataOut(size, 0);
