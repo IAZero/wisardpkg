@@ -62,53 +62,19 @@ public:
   }
 
   void train(const std::vector<int>& image){
-    if(discriminators.size()==0){
-      makeDiscriminator(0);
-      discriminators[0]->train(image);
-      return;
-    }
+    train<std::vector<int>>(image);
+  }
 
-    float bestValue = 0.0;
-    bool trained = false;
-    Discriminator* bestDiscriminator = NULL;
-
-    for(unsigned int i=0; i<discriminators.size(); i++){
-      auto votes = discriminators[i]->classify(image);
-      float score = getScore(votes);
-      float count = discriminators[i]->getNumberOfTrainings();
-
-      if(score>=bestValue){
-          bestValue = score;
-          bestDiscriminator = discriminators[i];
-      }
-
-      float limit = minScore + count/threshold;
-      limit = limit > 1.0 ? 1.0 : limit;
-
-      if(score >= limit){
-        discriminators[i]->train(image);
-        trained = true;
-      }
-    }
-
-    if(!trained && (int)discriminators.size() < discriminatorsLimit){
-      int index = discriminators.size();
-      makeDiscriminator(index);
-      discriminators[index]->train(image);
-      trained = true;
-    }
-
-    if(!trained && bestDiscriminator != NULL){
-      bestDiscriminator->train(image);
-    }
+  void train(const BinInput& image){
+    train<BinInput>(image);
   }
 
   std::vector<std::vector<int>> classify(const std::vector<int>& image){
-    std::vector<std::vector<int>> output(discriminators.size());
-    for(unsigned int i=0; i<discriminators.size(); i++){
-      output[i] = discriminators[i]->classify(image);
-    }
-    return output;
+    return classify<std::vector<int>>(image);
+  }
+
+  std::vector<std::vector<int>> classify(const BinInput& image){
+    return classify<BinInput>(image);
   }
 
   unsigned int getNumberOfDiscriminators(){
@@ -157,5 +123,57 @@ private:
 
   void makeDiscriminator(const int index){
     discriminators[index] = new Discriminator(addressSize, entrySize, ignoreZero, completeAddressing, base);
+  }
+
+  template<typename T>
+  void train(const T& image){
+    if(discriminators.size()==0){
+      makeDiscriminator(0);
+      discriminators[0]->train(image);
+      return;
+    }
+
+    float bestValue = 0.0;
+    bool trained = false;
+    Discriminator* bestDiscriminator = NULL;
+
+    for(unsigned int i=0; i<discriminators.size(); i++){
+      auto votes = discriminators[i]->classify(image);
+      float score = getScore(votes);
+      float count = discriminators[i]->getNumberOfTrainings();
+
+      if(score>=bestValue){
+          bestValue = score;
+          bestDiscriminator = discriminators[i];
+      }
+
+      float limit = minScore + count/threshold;
+      limit = limit > 1.0 ? 1.0 : limit;
+
+      if(score >= limit){
+        discriminators[i]->train(image);
+        trained = true;
+      }
+    }
+
+    if(!trained && (int)discriminators.size() < discriminatorsLimit){
+      int index = discriminators.size();
+      makeDiscriminator(index);
+      discriminators[index]->train(image);
+      trained = true;
+    }
+
+    if(!trained && bestDiscriminator != NULL){
+      bestDiscriminator->train(image);
+    }
+  }
+
+  template<typename T>
+  std::vector<std::vector<int>> classify(const T& image){
+    std::vector<std::vector<int>> output(discriminators.size());
+    for(unsigned int i=0; i<discriminators.size(); i++){
+      output[i] = discriminators[i]->classify(image);
+    }
+    return output;
   }
 };
