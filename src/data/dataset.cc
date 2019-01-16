@@ -52,7 +52,7 @@ public:
     return labels.at(index);
   }
 
-  int size() const {
+  size_t size() const {
     return data.size();
   }
 

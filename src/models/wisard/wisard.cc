@@ -64,7 +64,7 @@ public:
   void train(const DataSet& dataset) {
     int numberOfRAMS = calculateNumberOfRams(dataset[0].size(), addressSize, completeAddressing);
     checkConfidence(numberOfRAMS);
-    for(int i=0; i<dataset.size(); i++){
+    for(size_t i=0; i<dataset.size(); i++){
       if(verbose) std::cout << "\rtraining " << i+1 << " of " << dataset.size();
       train<BinInput>(dataset[i], dataset.getLabel(i));
     }
@@ -82,16 +82,11 @@ public:
   }
 
   std::vector<std::string> classify(const std::vector<std::vector<int>>& images){
-    //float numberOfRAMS = calculateNumberOfRams(images[0].size(), addressSize, completeAddressing);
-    std::vector<std::string> labels(images.size());
+    return _classify<std::vector<std::vector<int>>>(images);
+  }
 
-    for(unsigned int i=0; i<images.size(); i++){
-      if(verbose) std::cout << "\rclassifying " << i+1 << " of " << images.size();
-      std::map<std::string,int> candidates = classify(images[i],searchBestConfidence);
-      labels[i] = Bleaching::getBiggestCandidate(candidates);
-    }
-    if(verbose) std::cout << "\r" << std::endl;
-    return labels;
+  std::vector<std::string> classify(const DataSet& images){
+    return _classify<DataSet>(images);
   }
 
   void leaveOneOut(const std::vector<int>& image, const std::string& label){
@@ -146,7 +141,30 @@ protected:
     discriminators[label].train(image);
   }
 
+  template<typename T>
+  std::vector<std::string> _classify(const T& images){
+    //float numberOfRAMS = calculateNumberOfRams(images[0].size(), addressSize, completeAddressing);
+    std::vector<std::string> labels(images.size());
+
+    for(unsigned int i=0; i<images.size(); i++){
+      if(verbose) std::cout << "\rclassifying " << i+1 << " of " << images.size();
+      std::map<std::string,int> candidates = classify(images[i],searchBestConfidence);
+      labels[i] = Bleaching::getBiggestCandidate(candidates);
+    }
+    if(verbose) std::cout << "\r" << std::endl;
+    return labels;
+  }
+
   std::map<std::string, int> classify(const std::vector<int>& image, bool searchBestConfidence=false){
+    return __classify<std::vector<int>>(image,searchBestConfidence);
+  }
+
+  std::map<std::string, int> classify(const BinInput& image, bool searchBestConfidence=false){
+    return __classify<BinInput>(image,searchBestConfidence);
+  }
+
+  template<typename T>
+  std::map<std::string, int> __classify(const T& image, bool searchBestConfidence=false){
     std::map<std::string,std::vector<int>> allvotes;
 
     for(std::map<std::string,Discriminator>::iterator i=discriminators.begin(); i!=discriminators.end(); ++i){

@@ -65,17 +65,11 @@ public:
   }
 
   py::list pyClassify(const std::vector<std::vector<int>>& images){
-    float numberOfRAMS = calculateNumberOfRams(images[0].size(), addressSize, completeAddressing);
+    return _pyClassify<std::vector<std::vector<int>>>(images);
+  }
 
-    py::list labels(images.size());
-    for(unsigned int i=0; i<images.size(); i++){
-      if(verbose) std::cout << "\rclassifying " << i+1 << " of " << images.size();
-      std::map<std::string,int> candidates = classify(images[i],searchBestConfidence);
-      std::string aClass = Bleaching::getBiggestCandidate(candidates);
-      setClassifyOutput(labels, i, aClass, numberOfRAMS, candidates);
-    }
-    if(verbose) std::cout << "\r" << std::endl;
-    return labels;
+  py::list pyClassify(const DataSet& images){
+    return _pyClassify<DataSet>(images);
   }
 
 protected:
@@ -90,5 +84,20 @@ protected:
       index++;
     }
     return output;
+  }
+
+  template<typename T>
+  py::list _pyClassify(const T& images){
+    float numberOfRAMS = calculateNumberOfRams(images[0].size(), addressSize, completeAddressing);
+
+    py::list labels(images.size());
+    for(unsigned int i=0; i<images.size(); i++){
+      if(verbose) std::cout << "\rclassifying " << i+1 << " of " << images.size();
+      std::map<std::string,int> candidates = classify(images[i],searchBestConfidence);
+      std::string aClass = Bleaching::getBiggestCandidate(candidates);
+      setClassifyOutput(labels, i, aClass, numberOfRAMS, candidates);
+    }
+    if(verbose) std::cout << "\r" << std::endl;
+    return labels;
   }
 };

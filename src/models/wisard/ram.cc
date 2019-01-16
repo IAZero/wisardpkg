@@ -21,16 +21,11 @@ public:
   }
 
   int getVote(const std::vector<int>& image){
-    addr_t index = getIndex<std::vector<int>>(image);
-    if(ignoreZero && index == 0)
-      return 0;
-    auto it = positions.find(index);
-    if(it == positions.end()){
-      return 0;
-    }
-    else{
-      return it->second;
-    }
+    return getVote<std::vector<int>>(image);
+  }
+
+  int getVote(const BinInput& image){
+    return getVote<BinInput>(image);
   }
 
   void train(const std::vector<int>& image){
@@ -127,6 +122,20 @@ protected:
     }
     else{
       it->second++;
+    }
+  }
+
+  template<typename T>
+  int getVote(const T& image){
+    addr_t index = getIndex<T>(image);
+    if(ignoreZero && index == 0)
+      return 0;
+    auto it = positions.find(index);
+    if(it == positions.end()){
+      return 0;
+    }
+    else{
+      return it->second;
     }
   }
 

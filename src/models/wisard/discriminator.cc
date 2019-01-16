@@ -49,12 +49,11 @@ public:
   }
 
   std::vector<int> classify(const std::vector<int>& image) {
-    checkEntrySize(image.size());
-    std::vector<int> votes(rams.size());
-    for(unsigned int i=0; i<rams.size(); i++){
-      votes[i] = rams[i].getVote(image);
-    }
-    return votes;
+    return _classify<std::vector<int>>(image);
+  }
+
+  std::vector<int> classify(const BinInput& image) {
+    return _classify<BinInput>(image);
   }
 
   void train(const std::vector<int>& image){
@@ -250,6 +249,16 @@ protected:
       }
     }
     return data;
+  }
+
+  template<typename T>
+  std::vector<int> _classify(const T& image) {
+    checkEntrySize(image.size());
+    std::vector<int> votes(rams.size());
+    for(unsigned int i=0; i<rams.size(); i++){
+      votes[i] = rams[i].getVote(image);
+    }
+    return votes;
   }
 
   void setMapping(std::vector<std::vector<int>>& mapping){
