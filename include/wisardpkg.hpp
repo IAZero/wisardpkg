@@ -1,7 +1,7 @@
 /*
 
 wisardpkg for c++11
-version 1.6.1
+version 1.6.2
 https://github.com/IAZero/wisardpkg
 */
 
@@ -17304,7 +17304,7 @@ inline nlohmann::json::json_pointer operator "" _json_pointer(const char* s, std
 
 namespace wisardpkg {
 
-const std::string  __version__ = "1.6.1"; 
+const std::string  __version__ = "1.6.2"; 
 
 
 
@@ -17371,27 +17371,20 @@ long long ipow(long long base, long long exp){
   return result;
 }
 
-// little endian
-template<typename T>
-std::string convertToBytes(T value){
-  std::string out(sizeof(T),0);
-  for(unsigned int i=0; i<sizeof(T); i++){
-    out[i] = (value >> (8*i)) & 0xff;
-  }
+template <typename T>
+std::string convertToBytes(T value)
+{
+  std::string out(sizeof(value), 0);
+  std::memcpy(&out[0], &value, sizeof(value));
   return out;
 }
 
-// little endian
-template<typename T>
-T convertToValue(const std::string& data){
-  if(sizeof(T) != data.size()){
-    throw Exception("size of the type is not compatible with the size of string value!");
-  }
-  T value = 0;
-  for(unsigned int i=0; i<data.size(); i++){
-    value |= data[i] << (8*i);
-  }
-  return value;
+template <typename T>
+T convertToValue(const std::string &data)
+{
+  T out;
+  std::memcpy(&out, &data[0], sizeof(out));
+  return out;
 }
 
 template<typename T>
