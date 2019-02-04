@@ -198,6 +198,15 @@ public:
     return json(false,"");
   }
 
+  long getsizeof(){
+    long size = sizeof(ClusWisard);
+    size += unsupervisedCluster.getsizeof();
+    for(std::map<std::string,Cluster>::iterator i=clusters.begin(); i!=clusters.end(); ++i){
+      size += i->first.size() + i->second.getsizeof();
+    }
+    return size;
+  }
+
   ~ClusWisard(){
     clusters.clear();
   }

@@ -56,6 +56,15 @@ public:
     }
   }
 
+  long getsizeof(){
+    long size = sizeof(Wisard);
+    size += sizeof(int)*indexes.size();
+    for(std::map<std::string, Discriminator>::iterator d=discriminators.begin(); d!=discriminators.end(); ++d){
+      size += d->first.size() + d->second.getsizeof();
+    }
+    return size;
+  }
+
   ~Wisard(){
     indexes.clear();
     discriminators.clear();

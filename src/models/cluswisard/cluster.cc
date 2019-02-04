@@ -106,6 +106,14 @@ public:
     return discriminators.size();
   }
 
+  long getsizeof(){
+    long size = sizeof(Cluster);
+    for(std::map<int, Discriminator*>::iterator d=discriminators.begin(); d!=discriminators.end(); ++d){
+      size += sizeof(int) + d->second->getsizeof();
+    }
+    return size;
+  }
+
   ~Cluster(){
     discriminators.clear();
   }

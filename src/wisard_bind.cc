@@ -47,6 +47,7 @@ PYBIND11_MODULE(wisardpkg, m){
       .def("get", (ram_t (RAMDataHandle::*)(int)) &RAMDataHandle::get)
       .def("data", (std::string (RAMDataHandle::*)()) &RAMDataHandle::data)
       .def("data", (std::string (RAMDataHandle::*)(int)) &RAMDataHandle::data)
+      .def("compare", &RAMDataHandle::compare)
     ;
 
     //base to models
@@ -62,6 +63,7 @@ PYBIND11_MODULE(wisardpkg, m){
       .def("json", (std::string (DiscriminatorWrapper::*)()) &DiscriminatorWrapper::json)
       .def("json", (std::string (DiscriminatorWrapper::*)(bool)) &DiscriminatorWrapper::json)
       .def("json", (std::string (DiscriminatorWrapper::*)(bool,std::string)) &DiscriminatorWrapper::json)
+      .def("getsizeof", &DiscriminatorWrapper::getsizeof)
     ;
 
     // models
@@ -79,6 +81,7 @@ PYBIND11_MODULE(wisardpkg, m){
       .def("json", (std::string (WisardWrapper::*)()) &WisardWrapper::json)
       .def("json", (std::string (WisardWrapper::*)(bool)) &WisardWrapper::json)
       .def("json", (std::string (WisardWrapper::*)(bool,std::string)) &WisardWrapper::json)
+      .def("getsizeof", &WisardWrapper::getsizeof)
     ;
 
     py::class_<ClusWisardWrapper>(m, "ClusWisard")
@@ -95,6 +98,7 @@ PYBIND11_MODULE(wisardpkg, m){
       .def("json", (std::string (ClusWisardWrapper::*)()) &ClusWisardWrapper::json)
       .def("json", (std::string (ClusWisardWrapper::*)(bool)) &ClusWisardWrapper::json)
       .def("json", (std::string (ClusWisardWrapper::*)(bool,std::string)) &ClusWisardWrapper::json)
+      .def("getsizeof", &ClusWisardWrapper::getsizeof)
     ;
 
 }

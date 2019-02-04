@@ -94,6 +94,13 @@ public:
     return addresses.size();
   }
 
+  long getsizeof(){
+    long size = sizeof(RAM);
+    size += addresses.size()*sizeof(int);
+    size += positions.size()*sizeof(ram_t);
+    return size;
+  }
+
   ~RAM(){
     addresses.clear();
     positions.clear();
