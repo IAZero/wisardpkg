@@ -158,7 +158,7 @@ for i,d in enumerate(X):
 ```
 
 ## Documentation:
-You can find the complete documentation in the [wiki](https://github.com/IAZero/wisardpkg/wiki).
+You can find the complete documentation in the [page](https://iazero.github.io/wisardpkg/).
 
 ## Build on libraries:
 [pybind11](https://github.com/pybind/pybind11)
