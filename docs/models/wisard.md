@@ -121,7 +121,7 @@ X = [
 ]
 y = [
    "cold",
-   "hot
+   "hot"
 ]
 wsd.leaveMoreOut(X,y)
 ```
