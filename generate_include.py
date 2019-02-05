@@ -19,6 +19,7 @@ includes = [
 
     'synthetic_data/synthesizers.cc',
 
+    'binarization/base.cc',
     'binarization/kernelcanvas.cc',
 
     'models/wisard/ramdatahandle.cc',

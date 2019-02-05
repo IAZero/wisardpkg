@@ -8,6 +8,7 @@ PYBIND11_MODULE(wisardpkg, m){
       .def(py::init<index_size_t>())
       .def(py::init<const std::vector<short>&>())
       .def(py::init<const std::string&>())
+      .def("__getitem__", &BinInput::get)
       .def("get", &BinInput::get)
       .def("set", &BinInput::set)
       .def("size", &BinInput::size)

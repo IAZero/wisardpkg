@@ -22,6 +22,7 @@ namespace nl = nlohmann;
 #include "synthetic_data/synthesizers.cc"
 
 //binarization
+#include "binarization/base.cc"
 #include "binarization/kernelcanvas.cc"
 
 //wisard model
