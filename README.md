@@ -1,4 +1,4 @@
-# wisardpkg
+# wisardpkg [![](https://img.shields.io/pypi/v/wisardpkg.svg)](https://pypi.org/project/wisardpkg/)
 
 ## Description:
 This is a project to make available the different models based on WiSARD,
