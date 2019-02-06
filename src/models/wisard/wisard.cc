@@ -18,6 +18,9 @@ public:
     value = c["completeAddressing"];
     completeAddressing = value.is_null() ? true : value.get<bool>();
 
+    value = c["mapping"];
+    mapping = value.is_null() ? std::map<std::string, std::vector<std::vector<int>>>() : value.get<std::map<std::string, std::vector<std::vector<int>>>>();
+
     value = c["indexes"];
     indexes = value.is_null() ? std::vector<int>(0) : value.get<std::vector<int>>();
 
@@ -218,11 +221,18 @@ protected:
   }
 
   void makeDiscriminator(std::string label, int entrySize){
-    if(indexes.size()==0){
-      discriminators[label] = Discriminator(addressSize, entrySize, ignoreZero, completeAddressing, base);
+    auto it = mapping.find(label);
+    if (it != mapping.end())
+    {
+      discriminators[label] = Discriminator(it->second, entrySize, ignoreZero, base);
     }
-    else{
+    else if (indexes.size() != 0)
+    {
       discriminators[label] = Discriminator(indexes, addressSize, entrySize, ignoreZero, base);
+    }
+    else
+    {
+      discriminators[label] = Discriminator(addressSize, entrySize, ignoreZero, completeAddressing, base);
     }
   }
 
@@ -241,6 +251,7 @@ protected:
   int addressSize;
   bool bleachingActivated;
   bool verbose;
+  std::map<std::string, std::vector<std::vector<int>>> mapping;
   std::vector<int> indexes;
   bool ignoreZero;
   bool completeAddressing;

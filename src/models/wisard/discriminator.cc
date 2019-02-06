@@ -29,14 +29,23 @@ public:
     value = options["indexes"];
     std::vector<int> indexes = value.is_null() ? std::vector<int>(0) : value.get<std::vector<int>>();
 
+    value = options["mapping"];
+    std::vector<std::vector<int>> mapping = value.is_null() ? std::vector<std::vector<int>>(0) : value.get<std::vector<std::vector<int>>>();
+
     value = options["base"];
     int base = value.is_null() ? 2 : value.get<int>();
 
-    if(indexes.size() == 0){
-      setRAMShuffle(addressSize, ignoreZero, completeAddressing, base);
+    if (mapping.size() != 0)
+    {
+      setRAMByMapping(mapping, ignoreZero, base);
     }
-    else{
+    else if (indexes.size() != 0)
+    {
       setRAMByIndex(indexes, addressSize, ignoreZero, base);
+    }
+    else
+    {
+      setRAMShuffle(addressSize, ignoreZero, completeAddressing, base);
     }
   }
 
@@ -46,6 +55,10 @@ public:
 
   Discriminator(std::vector<int> indexes, int addressSize, int entrySize, bool ignoreZero=false, int base=2): entrySize(entrySize){
     setRAMByIndex(indexes, addressSize, ignoreZero, base);
+  }
+
+  Discriminator(std::vector<std::vector<int>> mapping, int entrySize, bool ignoreZero = false, int base = 2) : entrySize(entrySize){
+    setRAMByMapping(mapping, ignoreZero, base);
   }
 
   std::vector<int> classify(const std::vector<int>& image) {
@@ -197,6 +210,17 @@ protected:
     for(unsigned int i=0; i<rams.size(); i++){
       std::vector<int> subIndexes(indexes.begin() + (i*addressSize), indexes.begin() + ((i+1)*addressSize));
       rams[i] = RAM(subIndexes, ignoreZero, base);
+    }
+  }
+
+  void setRAMByMapping(std::vector<std::vector<int>> mapping, bool ignoreZero = false, int base = 2){
+    checkBase(base);
+    count=0;
+
+    rams = std::vector<RAM>(mapping.size());
+
+    for (unsigned int i = 0; i < mapping.size(); i++){
+      rams[i] = RAM(mapping[i], ignoreZero, base);
     }
   }
 
