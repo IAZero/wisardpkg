@@ -5,6 +5,7 @@ python:
   - "3.5"
   - "3.6"
 install:
-  - sudo apt-get install -qq gcc-4.8 g++-4.8
+  - sudo apt-get update
+  - sudo apt-get install gcc g++
   - pip install pybind11
 script: python setup.py install
