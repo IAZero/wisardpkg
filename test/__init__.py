@@ -1,15 +1,5 @@
-import discriminator_test
-
 import discriminator_mapping_test
 
-import wisard_test
-
 import wisard_mapping_test
-
-import cluswisard_test_supervised
-
-import cluswisard_test_semi_supervised
-
-import cluswisard_test_unsupervised
 
 import kernel_canvas_test
