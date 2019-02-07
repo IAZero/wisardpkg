@@ -1,4 +1,4 @@
-# wisardpkg [![](https://img.shields.io/pypi/v/wisardpkg.svg)](https://pypi.org/project/wisardpkg/)
+# wisardpkg [![](https://img.shields.io/pypi/v/wisardpkg.svg)](https://pypi.org/project/wisardpkg/) [![](https://travis-ci.org/IAZero/wisardpkg.svg?branch=master)](https://travis-ci.org/IAZero/wisardpkg)
 
 ## Description:
 This is a project to make available the different models based on WiSARD,
