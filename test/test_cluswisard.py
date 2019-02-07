@@ -89,7 +89,11 @@ class ClusWisardTestCase(TestCase):
             clus = wp.ClusWisard(3,0.1,10,5)
             clus.train(self.X,self.y)
             out = clus.json()
-            self.assertIsInstance(out,str)
+            import sys
+            if sys.version_info[0] < 3:
+                self.assertIsInstance(out,unicode)
+            else:
+                self.assertIsInstance(out,str)
             out2 = json.loads(out)
             clus2 = wp.ClusWisard(out)
             self.assertSequenceEqual(clus.classify(self.X),clus2.classify(self.X))
@@ -101,7 +105,11 @@ class ClusWisardTestCase(TestCase):
             clus = wp.ClusWisard(3,0.1,10,5)
             clus.trainUnsupervised(self.X)
             out = clus.json()
-            self.assertIsInstance(out,str)
+            import sys
+            if sys.version_info[0] < 3:
+                self.assertIsInstance(out,unicode)
+            else:
+                self.assertIsInstance(out,str)
             out2 = json.loads(out)
             self.assertIsInstance(out2,dict)
             clus2 = wp.ClusWisard(out)

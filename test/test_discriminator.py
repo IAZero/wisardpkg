@@ -38,6 +38,13 @@ class DiscriminatorTestCase(TestCase):
             d = wp.Discriminator(3,len(self.X[0]))
             d.train(self.X)
             out = d.json()
+
+            import sys
+            if sys.version_info[0] < 3:
+                self.assertIsInstance(out,unicode)
+            else:
+                self.assertIsInstance(out,str)
+
             out2 = json.loads(out)
             self.assertIsInstance(out2,dict)
             d2 = wp.Discriminator(out)

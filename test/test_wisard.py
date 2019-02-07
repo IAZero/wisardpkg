@@ -47,7 +47,13 @@ class WisardTestCase(TestCase):
             wsd = wp.Wisard(3)
             wsd.train(self.X,self.y)
             ojsonout = wsd.json()
-            self.assertIsInstance(ojsonout,str)
+
+            import sys
+            if sys.version_info[0] < 3:
+                self.assertIsInstance(ojsonout,unicode)
+            else:
+                self.assertIsInstance(ojsonout,str)
+                
             jsonout = json.loads(ojsonout)
             self.assertIsInstance(jsonout,dict)
             wsd2 = wp.Wisard(ojsonout)
