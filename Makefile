@@ -27,8 +27,8 @@ cpptest:
 	./$(TEST_EXEC)
 	rm $(TEST_EXEC)
 
-unittest:
-	$(PYTHON) $(TEST_DIR)/unittest.py
-
-test-build:
+compile2:
 	make -C $(SRC_DIR) test-build
+	
+unittest: compile2
+	python test/testset.py
