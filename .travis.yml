@@ -1,10 +1,10 @@
+dist: xenial
 language: python
 python:
   - "2.7"
   - "3.4"
   - "3.5"
   - "3.6"
-compiler: gcc
 install:
   - gcc --version
   - pip install pybind11
