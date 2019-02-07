@@ -46,7 +46,6 @@ class WisardTestCase(TestCase):
         try:
             wsd = wp.Wisard(3)
             wsd.train(self.X,self.y)
-            out = wsd.classify(self.X)
             ojsonout = wsd.json()
             self.assertIsInstance(ojsonout,str)
             jsonout = json.loads(ojsonout)
