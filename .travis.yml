@@ -8,4 +8,4 @@ python:
 install:
   - gcc --version
   - pip install pybind11
-script: python setup.py install
+script: python setup.py install && python test/testset.py
