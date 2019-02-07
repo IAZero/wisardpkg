@@ -6,6 +6,6 @@ python:
   - "3.6"
 install:
   - sudo apt-get update
-  - sudo apt-get install gcc g++
+  - sudo apt-get install build-essential
   - pip install pybind11
 script: python setup.py install
