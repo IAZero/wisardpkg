@@ -7,4 +7,4 @@ python:
   - "3.7"
 install:
   - pip install pybind11
-script: make
+script: make test-build

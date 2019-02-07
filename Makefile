@@ -29,3 +29,6 @@ cpptest:
 
 unittest:
 	$(PYTHON) $(TEST_DIR)/unittest.py
+
+test-build:
+	make -C $(SRC_DIR) test-build
