@@ -27,10 +27,10 @@ class ClusWisardTestCase(TestCase):
 
     def test_build(self):
         try:
-            addressSize = 3 # tamanho do endereçamento das rams
-            minScore = 0.1 # score mínimo do processo de treino
-            threshold = 10 # limite de treinos por discriminador
-            discriminatorLimit = 5 # limit de discriminadores por cluster
+            addressSize = 3
+            minScore = 0.1
+            threshold = 10
+            discriminatorLimit = 5
             clus = wp.ClusWisard(addressSize,minScore,threshold,discriminatorLimit)
             self.assertIsInstance(clus,wp.ClusWisard)
         except RuntimeError and TypeError:
