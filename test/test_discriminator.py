@@ -51,3 +51,21 @@ class DiscriminatorTestCase(TestCase):
             self.assertSequenceEqual(d.classify(self.X[0]),d2.classify(self.X[0]))
         except RuntimeError and TypeError:
             self.fail("json test fail!")
+
+    def test_mapping(self):
+        try:
+            X = [
+                [1, 1, 1, 0, 0, 0, 0, 0, 0],
+                [1, 1, 1, 1, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 1, 1, 1, 1, 1],
+                [0, 0, 0, 0, 0, 1, 1, 1, 1]
+            ]
+
+            mapping = [[0, 8], [1, 8], [2, 7], [3, 6], [4, 5]]
+            d = wp.Discriminator(2, len(X[0]), mapping=mapping)
+            d.train(X)
+            out = d.classify(X[0])
+            self.assertEqual(len(out),len(mapping))
+            self.assertSequenceEqual(json.loads(d.json())["mapping"], mapping)
+        except RuntimeError and TypeError:
+            self.fail("mapping test fail!")

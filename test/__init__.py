@@ -1,3 +1,0 @@
-import discriminator_mapping_test
-
-import wisard_mapping_test
