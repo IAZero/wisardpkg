@@ -96,7 +96,7 @@ public:
 
   long getsizeof(){
     long size = sizeof(RAM);
-    size += addresses.size()*sizeof(int);
+    size += addresses.size()*sizeof(addr_t);
     size += positions.size()*(sizeof(addr_t)+sizeof(content_t));
     return size;
   }

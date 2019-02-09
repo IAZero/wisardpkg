@@ -5,9 +5,13 @@ import json
 class WisardTestCase(TestCase):
     X = [
         [1,1,1,0,0,0,0,0,0],
+        [1,1,1,1,0,0,1,0,0],
+        [1,1,1,0,0,0,1,0,0],
         [1,1,1,1,0,0,0,0,0],
         [1,0,1,0,1,0,1,0,1],
         [0,0,0,0,1,1,1,1,1],
+        [0,0,1,0,0,1,1,1,1],
+        [0,0,1,0,1,1,1,1,1],
         [0,0,0,0,0,1,1,1,1]
     ]
 
@@ -15,6 +19,10 @@ class WisardTestCase(TestCase):
         "cold",
         "cold",
         "cold",
+        "cold",
+        "cold",
+        "hot",
+        "hot",
         "hot",
         "hot"
     ]
@@ -53,10 +61,31 @@ class WisardTestCase(TestCase):
                 self.assertIsInstance(ojsonout,unicode)
             else:
                 self.assertIsInstance(ojsonout,str)
-                
+
             jsonout = json.loads(ojsonout)
             self.assertIsInstance(jsonout,dict)
             wsd2 = wp.Wisard(ojsonout)
             self.assertSequenceEqual(wsd.classify(self.X),wsd2.classify(self.X))
         except RuntimeError and TypeError:
             self.fail("json test fail")
+
+    def test_sizeof(self):
+        try:
+            wsd = wp.Wisard(20)
+            X = []
+            y = []
+            from random import randint as ri
+            for i in range(300):
+                l = [ ri(0,1) if j < 51 else 0 for j in range(100) ]
+                X.append(l)
+                y.append("cold")
+
+            for i in range(300):
+                l = [ ri(0,1) if j > 50 else 0 for j in range(100) ]
+                X.append(l)
+                y.append("hot")
+            wsd.train(X,y)
+
+            self.assertLess(wsd.getsizeof(),len(wsd.json()))
+        except RuntimeError and TypeError:
+            self.fail("sizeof test fail")
