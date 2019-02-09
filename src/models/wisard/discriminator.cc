@@ -101,22 +101,13 @@ public:
 
   std::vector<int> getMentalImage()
   {
-    std::vector<bool> pos(entrySize, false);
     std::vector<int> mentalImage(entrySize, 0);
-
-    for (unsigned int r = 0; r < rams.size(); r++)
-    {
+    for (unsigned int r = 0; r < rams.size(); r++){
       std::vector<std::vector<int>> piece = rams[r].getMentalImage();
-      for (std::vector<int> p : piece)
-      {
-        if (pos[p[0]] == false)
-        {
-          mentalImage[p[0]] += p[1];
-          pos[p[0]] = true;
-        }
+      for (std::vector<int> p : piece){
+        mentalImage[p[0]] += p[1];
       }
     }
-
     return mentalImage;
   }
 

@@ -89,3 +89,24 @@ class WisardTestCase(TestCase):
             self.assertLess(wsd.getsizeof(),len(wsd.json()))
         except RuntimeError and TypeError:
             self.fail("sizeof test fail")
+
+    def test_mental_image(self):
+        try:
+            wsd = wp.Wisard(3)
+            X = [
+                [1,1,1,1,1,0,0,0,0],
+                [1,1,1,1,0,0,0,0,0],
+                [0,0,0,0,1,1,1,1,1],
+                [0,0,0,0,0,1,1,1,1]
+            ]
+            y = ["cold","cold","hot","hot"]
+            wsd.train(X,y)
+            m = [
+                [2,2,2,2,1,0,0,0,0],
+                [0,0,0,0,1,2,2,2,2]
+            ]
+            im = wsd.getMentalImages()
+            self.assertSequenceEqual(m[0],im["cold"])
+            self.assertSequenceEqual(m[1],im["hot"])
+        except RuntimeError and TypeError:
+            self.fail("mental image test fail")
