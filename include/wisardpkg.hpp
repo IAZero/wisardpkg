@@ -1,7 +1,7 @@
 /*
 
 wisardpkg for c++11
-version 1.6.2
+version 1.6.3
 https://github.com/IAZero/wisardpkg
 */
 
@@ -17304,7 +17304,7 @@ inline nlohmann::json::json_pointer operator "" _json_pointer(const char* s, std
 
 namespace wisardpkg {
 
-const std::string  __version__ = "1.6.2"; 
+const std::string  __version__ = "1.6.3"; 
 
 
 
@@ -17808,6 +17808,10 @@ private:
     }
   }
 };
+class BinBase {
+  virtual BinInput transform(const std::vector<std::vector<double>>& data);
+  virtual BinInput transform(const std::vector<double>& data);
+};
 
 class KernelCanvas{
 public:
@@ -18310,8 +18314,8 @@ public:
 
   long getsizeof(){
     long size = sizeof(RAM);
-    size += addresses.size()*sizeof(int);
-    size += positions.size()*sizeof(ram_t);
+    size += addresses.size()*sizeof(addr_t);
+    size += positions.size()*(sizeof(addr_t)+sizeof(content_t));
     return size;
   }
 
@@ -18339,7 +18343,7 @@ protected:
     addr_t index = getIndex<T>(image);
     auto it = positions.find(index);
     if(it == positions.end()){
-      positions.insert(it,std::pair<addr_t,int>(index, 1));
+      positions.insert(it,std::pair<addr_t,content_t>(index, 1));
     }
     else{
       it->second++;
@@ -18428,14 +18432,23 @@ public:
     value = options["indexes"];
     std::vector<int> indexes = value.is_null() ? std::vector<int>(0) : value.get<std::vector<int>>();
 
+    value = options["mapping"];
+    std::vector<std::vector<int>> mapping = value.is_null() ? std::vector<std::vector<int>>(0) : value.get<std::vector<std::vector<int>>>();
+
     value = options["base"];
     int base = value.is_null() ? 2 : value.get<int>();
 
-    if(indexes.size() == 0){
-      setRAMShuffle(addressSize, ignoreZero, completeAddressing, base);
+    if (mapping.size() != 0)
+    {
+      setRAMByMapping(mapping, ignoreZero, base);
     }
-    else{
+    else if (indexes.size() != 0)
+    {
       setRAMByIndex(indexes, addressSize, ignoreZero, base);
+    }
+    else
+    {
+      setRAMShuffle(addressSize, ignoreZero, completeAddressing, base);
     }
   }
 
@@ -18445,6 +18458,10 @@ public:
 
   Discriminator(std::vector<int> indexes, int addressSize, int entrySize, bool ignoreZero=false, int base=2): entrySize(entrySize){
     setRAMByIndex(indexes, addressSize, ignoreZero, base);
+  }
+
+  Discriminator(std::vector<std::vector<int>> mapping, int entrySize, bool ignoreZero = false, int base = 2) : entrySize(entrySize){
+    setRAMByMapping(mapping, ignoreZero, base);
   }
 
   std::vector<int> classify(const std::vector<int>& image) {
@@ -18485,15 +18502,12 @@ public:
     return rams.size();
   }
 
-  std::vector<int> getMentalImage(){
-    std::vector<int> mentalImage(entrySize);
-    for(unsigned int i=0; i<mentalImage.size(); i++) {
-      mentalImage[i]=0;
-    }
-
-    for(unsigned int r=0; r<rams.size(); r++){
+  std::vector<int> getMentalImage()
+  {
+    std::vector<int> mentalImage(entrySize, 0);
+    for (unsigned int r = 0; r < rams.size(); r++){
       std::vector<std::vector<int>> piece = rams[r].getMentalImage();
-      for(std::vector<int> p: piece){
+      for (std::vector<int> p : piece){
         mentalImage[p[0]] += p[1];
       }
     }
@@ -18596,6 +18610,17 @@ protected:
     for(unsigned int i=0; i<rams.size(); i++){
       std::vector<int> subIndexes(indexes.begin() + (i*addressSize), indexes.begin() + ((i+1)*addressSize));
       rams[i] = RAM(subIndexes, ignoreZero, base);
+    }
+  }
+
+  void setRAMByMapping(std::vector<std::vector<int>> mapping, bool ignoreZero = false, int base = 2){
+    checkBase(base);
+    count=0;
+
+    rams = std::vector<RAM>(mapping.size());
+
+    for (unsigned int i = 0; i < mapping.size(); i++){
+      rams[i] = RAM(mapping[i], ignoreZero, base);
     }
   }
 
@@ -18765,6 +18790,9 @@ public:
 
     value = c["completeAddressing"];
     completeAddressing = value.is_null() ? true : value.get<bool>();
+
+    value = c["mapping"];
+    mapping = value.is_null() ? std::map<std::string, std::vector<std::vector<int>>>() : value.get<std::map<std::string, std::vector<std::vector<int>>>>();
 
     value = c["indexes"];
     indexes = value.is_null() ? std::vector<int>(0) : value.get<std::vector<int>>();
@@ -18966,11 +18994,18 @@ protected:
   }
 
   void makeDiscriminator(std::string label, int entrySize){
-    if(indexes.size()==0){
-      discriminators[label] = Discriminator(addressSize, entrySize, ignoreZero, completeAddressing, base);
+    auto it = mapping.find(label);
+    if (it != mapping.end())
+    {
+      discriminators[label] = Discriminator(it->second, entrySize, ignoreZero, base);
     }
-    else{
+    else if (indexes.size() != 0)
+    {
       discriminators[label] = Discriminator(indexes, addressSize, entrySize, ignoreZero, base);
+    }
+    else
+    {
+      discriminators[label] = Discriminator(addressSize, entrySize, ignoreZero, completeAddressing, base);
     }
   }
 
@@ -18989,6 +19024,7 @@ protected:
   int addressSize;
   bool bleachingActivated;
   bool verbose;
+  std::map<std::string, std::vector<std::vector<int>>> mapping;
   std::vector<int> indexes;
   bool ignoreZero;
   bool completeAddressing;
