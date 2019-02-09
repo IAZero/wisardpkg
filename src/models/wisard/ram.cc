@@ -97,7 +97,7 @@ public:
   long getsizeof(){
     long size = sizeof(RAM);
     size += addresses.size()*sizeof(int);
-    size += positions.size()*sizeof(ram_t);
+    size += positions.size()*(sizeof(addr_t)+sizeof(content_t));
     return size;
   }
 
@@ -125,7 +125,7 @@ protected:
     addr_t index = getIndex<T>(image);
     auto it = positions.find(index);
     if(it == positions.end()){
-      positions.insert(it,std::pair<addr_t,int>(index, 1));
+      positions.insert(it,std::pair<addr_t,content_t>(index, 1));
     }
     else{
       it->second++;

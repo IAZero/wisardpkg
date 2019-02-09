@@ -8,6 +8,9 @@ exec_py2=`python-config --extension-suffix`
 code=wisard_bind.cc
 
 all:
+	rm -f $(bin)*.so
 	$(cc) $(flags) -o $(bin)$(exec_py) $(code)
+
 test-build:
+	rm -f $(bin)*.so
 	$(cc) $(flags2) -o $(bin)$(exec_py2) $(code)
