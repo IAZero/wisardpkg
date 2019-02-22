@@ -4,7 +4,7 @@ PYBIND11_MODULE(wisardpkg, m){
     m.attr("__version__") = __version__;
 
     //data
-    py::class_<BinInput>(m, "BinInput")
+    py::class_<BinInput>(m, "BinInput", py::module_local())
       .def(py::init<index_size_t>())
       .def(py::init<const std::vector<short>&>())
       .def(py::init<const std::string&>())
@@ -15,7 +15,7 @@ PYBIND11_MODULE(wisardpkg, m){
       .def("data", &BinInput::data)
     ;
 
-    py::class_<DataSet>(m, "DataSet")
+    py::class_<DataSet>(m, "DataSet", py::module_local())
       .def(py::init())
       .def(py::init<std::string>())
       .def("add", (void (DataSet::*)(const BinInput&)) &DataSet::add)
@@ -29,19 +29,19 @@ PYBIND11_MODULE(wisardpkg, m){
     ;
 
     // binarizations
-    py::class_<KernelCanvasWrapper>(m, "KernelCanvas")
+    py::class_<KernelCanvasWrapper>(m, "KernelCanvas", py::module_local())
       .def(py::init<int, int, py::kwargs>())
       .def("transform", &KernelCanvasWrapper::transform)
     ;
 
     //sythesizer
-    py::class_<Synthesizer>(m, "Synthesizer")
+    py::class_<Synthesizer>(m, "Synthesizer", py::module_local())
       .def(py::init<std::vector<int>>())
       .def("make", &Synthesizer::make)
     ;
 
     //handles
-    py::class_<RAMDataHandle>(m, "RAMDataHandle")
+    py::class_<RAMDataHandle>(m, "RAMDataHandle", py::module_local())
       .def(py::init<std::string>())
       .def("set", &RAMDataHandle::set)
       .def("get", (int (RAMDataHandle::*)(int,int)) &RAMDataHandle::get)
@@ -52,7 +52,7 @@ PYBIND11_MODULE(wisardpkg, m){
     ;
 
     //base to models
-    py::class_<DiscriminatorWrapper>(m, "Discriminator")
+    py::class_<DiscriminatorWrapper>(m, "Discriminator", py::module_local())
       .def(py::init<std::string>())
       .def(py::init<int,int,py::kwargs>())
       .def("train", (void (DiscriminatorWrapper::*)(const std::vector<int>&)) &DiscriminatorWrapper::train)
@@ -68,7 +68,7 @@ PYBIND11_MODULE(wisardpkg, m){
     ;
 
     // models
-    py::class_<WisardWrapper>(m, "Wisard")
+    py::class_<WisardWrapper>(m, "Wisard", py::module_local())
       .def(py::init<std::string>())
       .def(py::init<int,py::kwargs>())
       .def("train", (void (WisardWrapper::*)(const std::vector<std::vector<int>>&, const std::vector<std::string>&)) &WisardWrapper::train)
@@ -85,7 +85,7 @@ PYBIND11_MODULE(wisardpkg, m){
       .def("getsizeof", &WisardWrapper::getsizeof)
     ;
 
-    py::class_<ClusWisardWrapper>(m, "ClusWisard")
+    py::class_<ClusWisardWrapper>(m, "ClusWisard", py::module_local())
       .def(py::init<std::string>())
       .def(py::init<int, float, int, int, py::kwargs>())
       .def("train", (void (ClusWisardWrapper::*)(const std::vector<std::vector<int>>&, const std::vector<std::string>&)) &ClusWisardWrapper::train)
