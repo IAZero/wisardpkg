@@ -67,6 +67,17 @@ PYBIND11_MODULE(wisardpkg, m){
       .def("getsizeof", &DiscriminatorWrapper::getsizeof)
     ;
 
+    // classification methods
+    py::class_<ClassificationBase>(m, "ClassificationBase", py::module_local())
+      .def("clone",&ClassificationBase::clone)
+      .def("className",&ClassificationBase::className)
+      .def("json",&ClassificationBase::json)
+    ;
+    
+    py::class_<Bleaching, ClassificationBase>(m, "Bleaching", py::module_local())
+      .def(py::init<bool,int>())
+    ;
+
     // models
     py::class_<WisardWrapper>(m, "Wisard", py::module_local())
       .def(py::init<std::string>())

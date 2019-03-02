@@ -32,11 +32,11 @@ public:
     return labels;
   }
 
-  std::string className(){
+  std::string className() const{
     return "Bleaching";
   }
 
-  std::string json(){
+  std::string json() const{
     nl::json config = {
       {"bleachingActivated", bleachingActivated},
       {"confidence", confidence}
