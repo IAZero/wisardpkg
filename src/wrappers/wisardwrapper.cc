@@ -11,9 +11,6 @@ public:
       if(std::string(py::str(arg.first)).compare("verbose") == 0)
         verbose = arg.second.cast<bool>();
 
-      if(std::string(py::str(arg.first)).compare("ignoreZero") == 0)
-        ignoreZero = arg.second.cast<bool>();
-
       if(std::string(py::str(arg.first)).compare("completeAddressing") == 0)
         completeAddressing = arg.second.cast<bool>();
 
@@ -26,8 +23,8 @@ public:
       if(std::string(py::str(arg.first)).compare("base") == 0)
         base = arg.second.cast<int>();
 
-      if(std::string(py::str(arg.first)).compare("searchBestConfidence") == 0)
-        searchBestConfidence = arg.second.cast<bool>();
+      if(std::string(py::str(arg.first)).compare("ignoreZero") == 0)
+        ignoreZero = arg.second.cast<bool>();
 
       if(std::string(py::str(arg.first)).compare("returnConfidence") == 0)
         returnConfidence = arg.second.cast<bool>();
@@ -37,9 +34,6 @@ public:
 
       if(std::string(py::str(arg.first)).compare("returnClassesDegrees") == 0)
         returnClassesDegrees = arg.second.cast<bool>();
-
-      if(std::string(py::str(arg.first)).compare("confidence") == 0)
-        confidence = arg.second.cast<int>();
     }
   }
 
@@ -54,7 +48,7 @@ public:
     }
 
     if(returnConfidence){
-      float confidence = Bleaching::getConfidence(candidates, candidates[aClass]);
+      float confidence = classificationMethod->getConfidence(candidates, candidates[aClass]);
       labels[i]["confidence"]=confidence;
     }
 
@@ -97,7 +91,7 @@ protected:
     for(unsigned int i=0; i<images.size(); i++){
       if(verbose) std::cout << "\rclassifying " << i+1 << " of " << images.size();
       std::map<std::string,int> candidates = classify(images[i],searchBestConfidence);
-      std::string aClass = Bleaching::getBiggestCandidate(candidates);
+      std::string aClass = classificationMethod->getBiggestCandidate(candidates);
       setClassifyOutput(labels, i, aClass, numberOfRAMS, candidates);
     }
     if(verbose) std::cout << "\r" << std::endl;

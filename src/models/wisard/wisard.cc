@@ -6,8 +6,8 @@ public:
     srand(randint(0,1000000));
     nl::json value;
 
-    value = c["bleachingActivated"];
-    bleachingActivated = value.is_null() ? true : value.get<bool>();
+    // value = c["classificationMethod"];
+    // classificationMethod = value.is_null() ? new Bleaching() : value.get<Bleaching*>();
 
     value = c["verbose"];
     verbose = value.is_null() ? false : value.get<bool>();
@@ -26,12 +26,6 @@ public:
 
     value = c["base"];
     base = value.is_null() ? 2 : value.get<int>();
-
-    value = c["confidence"];
-    confidence = value.is_null() ? 1 : value.get<int>();
-
-    value = c["searchBestConfidence"];
-    searchBestConfidence = value.is_null() ? false : value.get<bool>();
 
     value = c["returnConfidence"];
     returnConfidence = value.is_null() ? false : value.get<bool>();
@@ -161,7 +155,7 @@ protected:
     for(unsigned int i=0; i<images.size(); i++){
       if(verbose) std::cout << "\rclassifying " << i+1 << " of " << images.size();
       std::map<std::string,int> candidates = classify(images[i],searchBestConfidence);
-      labels[i] = Bleaching::getBiggestCandidate(candidates);
+      labels[i] = classificationMethod->getBiggestCandidate(candidates);
     }
     if(verbose) std::cout << "\r" << std::endl;
     return labels;
@@ -182,7 +176,7 @@ protected:
     for(std::map<std::string,Discriminator>::iterator i=discriminators.begin(); i!=discriminators.end(); ++i){
       allvotes[i->first] = i->second.classify(image);
     }
-    return Bleaching::make(allvotes, bleachingActivated, searchBestConfidence, confidence);
+    return classificationMethod->run(allvotes);
   }
 
   nl::json getClassesJSON(bool huge, std::string path){
@@ -205,13 +199,13 @@ protected:
     nl::json config = {
       {"version", __version__},
       {"addressSize", addressSize},
-      {"bleachingActivated", bleachingActivated},
+      // {"bleachingActivated", bleachingActivated},
       {"verbose", verbose},
       {"indexes", indexes},
       {"ignoreZero", ignoreZero},
       {"completeAddressing", completeAddressing},
       {"base", base},
-      {"confidence", confidence},
+      // {"confidence", confidence},
       // {"searchBestConfidence", searchBestConfidence},
       {"returnConfidence", returnConfidence},
       {"returnActivationDegree", returnActivationDegree},
@@ -260,6 +254,7 @@ protected:
   bool returnConfidence;
   bool returnActivationDegree;
   bool returnClassesDegrees;
+  ClassificationBase* classificationMethod;
   int confidence;
   std::map<std::string, Discriminator> discriminators;
 };

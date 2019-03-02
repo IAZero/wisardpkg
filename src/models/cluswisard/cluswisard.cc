@@ -10,8 +10,8 @@ public:
     srand(randint(0,1000000));
     nl::json value;
 
-    value = options["bleachingActivated"];
-    bleachingActivated = value.is_null() ? true : value.get<bool>();
+    // value = options["classificationMethod"];
+    // classificationMethod = value.is_null() ? new Bleaching() : value.get<Bleaching*>();
 
     value = options["verbose"];
     verbose = value.is_null() ? false : value.get<bool>();
@@ -24,12 +24,6 @@ public:
 
     value = options["base"];
     base = value.is_null() ? 2 : value.get<int>();
-
-    value = options["confidence"];
-    confidence = value.is_null() ? 1 : value.get<int>();
-
-    value = options["searchBestConfidence"];
-    searchBestConfidence = value.is_null() ? false : value.get<bool>();
 
     value = options["returnConfidence"];
     returnConfidence = value.is_null() ? false : value.get<bool>();
@@ -138,7 +132,7 @@ public:
     for(unsigned int i=0; i<images.size(); i++){
       if(verbose) std::cout << "\rclassifying " << i+1 << " of " << images.size();
       std::map<std::string,int> candidates = classify(images[i], searchBestConfidence);
-      std::string label = Bleaching::getBiggestCandidate(candidates);
+      std::string label = classificationMethod->getBiggestCandidate(candidates);
       labels[i] = label.substr(0,label.find("::"));
 
       candidates.clear();
@@ -153,7 +147,7 @@ public:
     for(unsigned int i=0; i<images.size(); i++){
       if(verbose) std::cout << "\rclassifying unsupervised " << i+1 << " of " << images.size();
       std::map<std::string,int> candidates = classifyUnsupervised(images[i]);
-      std::string label = Bleaching::getBiggestCandidate(candidates);
+      std::string label = classificationMethod->getBiggestCandidate(candidates);
       labels[i] = label.substr(0,label.find("::"));
 
       candidates.clear();
@@ -221,7 +215,7 @@ protected:
 
   void train(const std::vector<int>& image){
     std::map<std::string,int> candidates = classify(image);
-    std::string label = Bleaching::getBiggestCandidate(candidates);
+    std::string label = classificationMethod->getBiggestCandidate(candidates);
     label = label.substr(0,label.find("::"));
     clusters[label].train(image);
   }
@@ -236,7 +230,7 @@ protected:
       }
     }
 
-    return Bleaching::make(allvotes, bleachingActivated, searchBestConfidence, confidence);
+    return classificationMethod->run(allvotes);
   }
 
   std::map<std::string, int> classifyUnsupervised(const std::vector<int>& image){
@@ -245,7 +239,7 @@ protected:
     for(unsigned int i=0; i<votes.size(); ++i){
       allvotes[std::to_string(i)] = votes[i];
     }
-    return Bleaching::make(allvotes, bleachingActivated);
+    return classificationMethod->run(allvotes);
   }
 
   void checkInputLabels(const int numberOfInputs, std::map<int, std::string>& labels){
@@ -303,12 +297,12 @@ protected:
       {"minScore", minScore},
       {"threshold", threshold},
       {"discriminatorsLimit", discriminatorsLimit},
-      {"bleachingActivated", bleachingActivated},
+      // {"bleachingActivated", bleachingActivated},
       {"verbose", verbose},
       {"ignoreZero", ignoreZero},
       {"completeAddressing", completeAddressing},
       {"base", base},
-      {"confidence", confidence},
+      // {"confidence", confidence},
       // {"searchBestConfidence", searchBestConfidence},
       {"returnConfidence", returnConfidence},
       {"returnActivationDegree", returnActivationDegree},
@@ -333,4 +327,5 @@ protected:
   int confidence;
   std::map<std::string, Cluster> clusters;
   Cluster unsupervisedCluster;
+  ClassificationBase* classificationMethod;
 };

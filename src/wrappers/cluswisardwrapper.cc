@@ -6,8 +6,8 @@ public:
       ClusWisard(addressSize,minScore,threshold,discriminatorsLimit)
   {
       for(auto arg: kwargs){
-        if(std::string(py::str(arg.first)).compare("bleachingActivated") == 0)
-          bleachingActivated = arg.second.cast<bool>();
+        if(std::string(py::str(arg.first)).compare("classificationMethod") == 0)
+          classificationMethod = arg.second.cast<ClassificationBase*>();
 
         if(std::string(py::str(arg.first)).compare("verbose") == 0)
           verbose = arg.second.cast<bool>();
@@ -21,9 +21,6 @@ public:
         if(std::string(py::str(arg.first)).compare("base") == 0)
           base = arg.second.cast<int>();
 
-        if(std::string(py::str(arg.first)).compare("searchBestConfidence") == 0)
-          searchBestConfidence = arg.second.cast<bool>();
-
         if(std::string(py::str(arg.first)).compare("returnConfidence") == 0)
           returnConfidence = arg.second.cast<bool>();
 
@@ -32,9 +29,6 @@ public:
 
         if(std::string(py::str(arg.first)).compare("returnClassesDegrees") == 0)
           returnClassesDegrees = arg.second.cast<bool>();
-
-        if(std::string(py::str(arg.first)).compare("confidence") == 0)
-          confidence = arg.second.cast<int>();
       }
   }
 
@@ -45,7 +39,7 @@ public:
     for(unsigned int i=0; i<images.size(); i++){
       if(verbose) std::cout << "\rclassifying " << i+1 << " of " << images.size();
       std::map<std::string,int> candidates = classify(images[i], searchBestConfidence);
-      std::string label = Bleaching::getBiggestCandidate(candidates);
+      std::string label = classificationMethod->getBiggestCandidate(candidates);
       std::string aClass = label.substr(0,label.find("::"));
 
       if(returnConfidence || returnActivationDegree || returnClassesDegrees){
@@ -58,7 +52,7 @@ public:
       }
 
       if(returnConfidence){
-        float confidence = Bleaching::getConfidence(candidates, candidates[label]);
+        float confidence = classificationMethod->getConfidence(candidates, candidates[label]);
         labels[i]["confidence"]=confidence;
       }
 

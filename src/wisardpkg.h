@@ -12,7 +12,10 @@ namespace nl = nlohmann;
 #include "common/definetypes.cc"
 #include "common/exceptions.cc"
 #include "common/utils.cc"
-#include "common/bleaching.cc"
+
+//classification methods
+#include "classification_methods/classificationbase.cc"
+#include "classification_methods/bleaching.cc"
 
 //data
 #include "data/bininput.cc"
