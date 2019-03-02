@@ -6,6 +6,10 @@ public:
   Bleaching(const bool bleachingActivated,const int confidence)
     :bleachingActivated(bleachingActivated),confidence(confidence){}
 
+  ClassificationBase* clone() const{
+    return new Bleaching(bleachingActivated,confidence);
+  }
+
   std::map<std::string, int> run(std::map<std::string,std::vector<int>>& allvotes) {
     std::map<std::string, int> labels;
     int bleaching = 1;

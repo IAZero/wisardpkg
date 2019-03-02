@@ -4,7 +4,7 @@ public:
   ClassificationBase(){}
   ClassificationBase(std::string json){}
   virtual std::map<std::string, int> run(std::map<std::string,std::vector<int>>& allvotes);
-  virtual Mean* clone() const = 0;
+  virtual ClassificationBase* clone() const = 0;
   std::string json(){return "";}
   std::string className(){return "ClassificationBase";}
 

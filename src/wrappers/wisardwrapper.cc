@@ -5,8 +5,10 @@ public:
   WisardWrapper(int addressSize, py::kwargs kwargs): Wisard(addressSize){
 
     for(auto arg: kwargs){
-      if(std::string(py::str(arg.first)).compare("bleachingActivated") == 0)
-        bleachingActivated = arg.second.cast<bool>();
+      if(std::string(py::str(arg.first)).compare("classificationMethod") == 0){
+        classificationMethod = arg.second.cast<ClassificationBase*>();
+        classificationMethod = classificationMethod->clone();
+      }
 
       if(std::string(py::str(arg.first)).compare("verbose") == 0)
         verbose = arg.second.cast<bool>();

@@ -6,8 +6,10 @@ public:
       ClusWisard(addressSize,minScore,threshold,discriminatorsLimit)
   {
       for(auto arg: kwargs){
-        if(std::string(py::str(arg.first)).compare("classificationMethod") == 0)
+        if(std::string(py::str(arg.first)).compare("classificationMethod") == 0){
           classificationMethod = arg.second.cast<ClassificationBase*>();
+          classificationMethod = classificationMethod->clone();
+        }
 
         if(std::string(py::str(arg.first)).compare("verbose") == 0)
           verbose = arg.second.cast<bool>();
