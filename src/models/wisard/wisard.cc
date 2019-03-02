@@ -8,6 +8,7 @@ public:
 
     // value = c["classificationMethod"];
     // classificationMethod = value.is_null() ? new Bleaching() : value.get<Bleaching*>();
+    classificationMethod = new Bleaching();
 
     value = c["verbose"];
     verbose = value.is_null() ? false : value.get<bool>();
@@ -68,8 +69,6 @@ public:
   }
 
   void train(const DataSet& dataset) {
-    int numberOfRAMS = calculateNumberOfRams(dataset[0].size(), addressSize, completeAddressing);
-    checkConfidence(numberOfRAMS);
     for(size_t i=0; i<dataset.size(); i++){
       if(verbose) std::cout << "\rtraining " << i+1 << " of " << dataset.size();
       train<BinInput>(dataset[i], dataset.getLabel(i));
@@ -77,8 +76,6 @@ public:
   }
 
   void train(const std::vector<std::vector<int>>& images, const std::vector<std::string>& labels){
-    int numberOfRAMS = calculateNumberOfRams(images[0].size(), addressSize, completeAddressing);
-    checkConfidence(numberOfRAMS);
     checkInputSizes(images.size(), labels.size());
     for(unsigned int i=0; i<images.size(); i++){
       if(verbose) std::cout << "\rtraining " << i+1 << " of " << images.size();
@@ -149,24 +146,23 @@ protected:
 
   template<typename T>
   std::vector<std::string> _classify(const T& images){
-    //float numberOfRAMS = calculateNumberOfRams(images[0].size(), addressSize, completeAddressing);
     std::vector<std::string> labels(images.size());
 
     for(unsigned int i=0; i<images.size(); i++){
       if(verbose) std::cout << "\rclassifying " << i+1 << " of " << images.size();
-      std::map<std::string,int> candidates = classify(images[i],searchBestConfidence);
+      std::map<std::string,int> candidates = classify(images[i]);
       labels[i] = classificationMethod->getBiggestCandidate(candidates);
     }
     if(verbose) std::cout << "\r" << std::endl;
     return labels;
   }
 
-  std::map<std::string, int> classify(const std::vector<int>& image, bool searchBestConfidence=false){
-    return __classify<std::vector<int>>(image,searchBestConfidence);
+  std::map<std::string, int> classify(const std::vector<int>& image){
+    return __classify<std::vector<int>>(image);
   }
 
-  std::map<std::string, int> classify(const BinInput& image, bool searchBestConfidence=false){
-    return __classify<BinInput>(image,searchBestConfidence);
+  std::map<std::string, int> classify(const BinInput& image){
+    return __classify<BinInput>(image);
   }
 
   template<typename T>
@@ -199,14 +195,11 @@ protected:
     nl::json config = {
       {"version", __version__},
       {"addressSize", addressSize},
-      // {"bleachingActivated", bleachingActivated},
       {"verbose", verbose},
       {"indexes", indexes},
       {"ignoreZero", ignoreZero},
       {"completeAddressing", completeAddressing},
       {"base", base},
-      // {"confidence", confidence},
-      // {"searchBestConfidence", searchBestConfidence},
       {"returnConfidence", returnConfidence},
       {"returnActivationDegree", returnActivationDegree},
       {"returnClassesDegrees", returnClassesDegrees}
@@ -236,25 +229,16 @@ protected:
     }
   }
 
-  void checkConfidence(int numberOfRAMS){
-    if(confidence > numberOfRAMS){
-      throw Exception("The confidence can not be bigger than number of RAMs!");
-    }
-  }
-
   int addressSize;
-  bool bleachingActivated;
   bool verbose;
   std::map<std::string, std::vector<std::vector<int>>> mapping;
   std::vector<int> indexes;
   bool ignoreZero;
   bool completeAddressing;
   int base;
-  bool searchBestConfidence;
   bool returnConfidence;
   bool returnActivationDegree;
   bool returnClassesDegrees;
   ClassificationBase* classificationMethod;
-  int confidence;
   std::map<std::string, Discriminator> discriminators;
 };

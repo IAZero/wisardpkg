@@ -12,6 +12,7 @@ public:
 
     // value = options["classificationMethod"];
     // classificationMethod = value.is_null() ? new Bleaching() : value.get<Bleaching*>();
+    classificationMethod = new Bleaching();
 
     value = options["verbose"];
     verbose = value.is_null() ? false : value.get<bool>();
