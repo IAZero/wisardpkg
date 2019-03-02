@@ -72,8 +72,6 @@ public:
 
 
   void train(const std::vector<std::vector<int>>& images, const std::vector<std::string>& labels){
-    int numberOfRAMS = calculateNumberOfRams(images[0].size(), addressSize, completeAddressing);
-    checkConfidence(numberOfRAMS);
     checkInputSizes(images.size(), labels.size());
 
     for(unsigned int i=0; i<images.size(); i++){
@@ -84,8 +82,6 @@ public:
   }
 
   void train(const std::vector<std::vector<int>>& images, std::map<int, std::string>& labels){
-    int numberOfRAMS = calculateNumberOfRams(images[0].size(), addressSize, completeAddressing);
-    checkConfidence(numberOfRAMS);
     checkInputLabels(images.size(), labels);
 
     unsigned int size = images.size()-labels.size();
@@ -126,13 +122,12 @@ public:
     }
   }
 
-  std::vector<std::string> classify(const std::vector<std::vector<int>>& images){
-    //float numberOfRAMS = calculateNumberOfRams(images[0].size(), addressSize, completeAddressing);
+  std::vector<std::string> classify(const std::vector<std::vector<int>>& images){;
 
     std::vector<std::string> labels(images.size());
     for(unsigned int i=0; i<images.size(); i++){
       if(verbose) std::cout << "\rclassifying " << i+1 << " of " << images.size();
-      std::map<std::string,int> candidates = classify(images[i], searchBestConfidence);
+      std::map<std::string,int> candidates = classify(images[i]);
       std::string label = classificationMethod->getBiggestCandidate(candidates);
       labels[i] = label.substr(0,label.find("::"));
 
@@ -221,7 +216,7 @@ protected:
     clusters[label].train(image);
   }
 
-  std::map<std::string, int> classify(const std::vector<int>& image, bool searchBestConfidence=false){
+  std::map<std::string, int> classify(const std::vector<int>& image){
     std::map<std::string,std::vector<int>> allvotes;
 
     for(std::map<std::string,Cluster>::iterator i=clusters.begin(); i!=clusters.end(); ++i){
@@ -273,12 +268,6 @@ protected:
     }
   }
 
-  void checkConfidence(int numberOfRAMS){
-    if(confidence > numberOfRAMS){
-      throw Exception("The confidence can not be bigger than number of RAMs!");
-    }
-  }
-
   void makeClusters(const std::string label,const int entrySize){
     clusters[label] = Cluster(entrySize, addressSize, minScore, threshold, discriminatorsLimit, completeAddressing, ignoreZero, base);
   }
@@ -298,13 +287,10 @@ protected:
       {"minScore", minScore},
       {"threshold", threshold},
       {"discriminatorsLimit", discriminatorsLimit},
-      // {"bleachingActivated", bleachingActivated},
       {"verbose", verbose},
       {"ignoreZero", ignoreZero},
       {"completeAddressing", completeAddressing},
       {"base", base},
-      // {"confidence", confidence},
-      // {"searchBestConfidence", searchBestConfidence},
       {"returnConfidence", returnConfidence},
       {"returnActivationDegree", returnActivationDegree},
       {"returnClassesDegrees", returnClassesDegrees}
@@ -316,7 +302,6 @@ protected:
   float minScore;
   int threshold;
   int discriminatorsLimit;
-  bool bleachingActivated;
   bool verbose;
   bool completeAddressing;
   bool ignoreZero;
@@ -325,7 +310,6 @@ protected:
   bool returnConfidence;
   bool returnActivationDegree;
   bool returnClassesDegrees;
-  int confidence;
   std::map<std::string, Cluster> clusters;
   Cluster unsupervisedCluster;
   ClassificationBase* classificationMethod;

@@ -40,7 +40,7 @@ public:
     py::list labels(images.size());
     for(unsigned int i=0; i<images.size(); i++){
       if(verbose) std::cout << "\rclassifying " << i+1 << " of " << images.size();
-      std::map<std::string,int> candidates = classify(images[i], searchBestConfidence);
+      std::map<std::string,int> candidates = classify(images[i]);
       std::string label = classificationMethod->getBiggestCandidate(candidates);
       std::string aClass = label.substr(0,label.find("::"));
 
