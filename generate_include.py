@@ -12,7 +12,10 @@ includes = [
     'common/definetypes.cc',
     'common/exceptions.cc',
     'common/utils.cc',
-    'common/bleaching.cc',
+
+    'classification_methods/classificationbase.cc',
+    'classification_methods/bleaching.cc',
+    'classification_methods/register.cc',
 
     'data/bininput.cc',
     'data/dataset.cc',
