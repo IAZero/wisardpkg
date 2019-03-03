@@ -10,9 +10,13 @@ public:
     srand(randint(0,1000000));
     nl::json value;
 
-    // value = options["classificationMethod"];
-    // classificationMethod = value.is_null() ? new Bleaching() : value.get<Bleaching*>();
-    classificationMethod = new Bleaching();
+    value = options["classificationMethod"];
+    if(value.is_null()){
+      classificationMethod = new Bleaching();
+    }
+    else{
+      classificationMethod = ClassificationMethods::load(value);
+    }
 
     value = options["verbose"];
     verbose = value.is_null() ? false : value.get<bool>();
@@ -288,6 +292,7 @@ protected:
       {"threshold", threshold},
       {"discriminatorsLimit", discriminatorsLimit},
       {"verbose", verbose},
+      {"classificationMethod", ClassificationMethods::json(classificationMethod)},
       {"ignoreZero", ignoreZero},
       {"completeAddressing", completeAddressing},
       {"base", base},

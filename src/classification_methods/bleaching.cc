@@ -3,6 +3,16 @@ class Bleaching: public ClassificationBase {
 public:
   Bleaching()
     :bleachingActivated(true),confidence(1){}
+  Bleaching(nl::json config){
+    nl::json value;
+
+    value = config["bleachingActivated"];
+    bleachingActivated = value.is_null() ? true : value.get<bool>();
+
+    value = config["confidence"];
+    confidence = value.is_null() ? 1 : value.get<int>();
+  }
+  
   Bleaching(const bool bleachingActivated,const int confidence)
     :bleachingActivated(bleachingActivated),confidence(confidence){}
 
