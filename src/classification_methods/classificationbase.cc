@@ -27,4 +27,21 @@ public:
     }
     return (biggest-secondBiggest)/biggest;
   }
+
+protected:
+  static std::tuple<bool, int> isThereAmbiguity(std::map<std::string,int>& candidates, int confidence) {
+    int biggest = 0;
+    bool ambiguity = false;
+    for(std::map<std::string,int>::iterator i=candidates.begin(); i != candidates.end(); ++i){
+      if(i->second > biggest){
+        biggest = i->second;
+        ambiguity = false;
+      }
+      else if( (biggest - i->second) < confidence ){
+        ambiguity = true;
+      }
+    }
+    std::tuple<bool, int> ambiguityAndHighest = std::make_tuple(ambiguity, biggest);
+    return ambiguityAndHighest;
+  }
 };

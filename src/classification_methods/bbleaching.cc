@@ -8,7 +8,7 @@ public:
   std::map<std::string, int>& run(std::map<std::string,std::vector<int>>& allvotes) {
     std::map<std::string, int>* labels = new std::map<std::string, int>;
 
-    std::tuple<bool,int,int> ambiguity;
+    std::tuple<bool,int> ambiguity;
     int biggest = getBiggestValue(allvotes);
     int steps = 1;
     int piece = biggest/(int)std::pow(2,steps);
@@ -42,7 +42,7 @@ public:
   }
 
   string json(){}
-  
+
 private:
   bool bleachingActivated;
 
@@ -56,21 +56,5 @@ private:
       }
     }
     return biggest;
-  }
-
-  static std::tuple<bool, int, int> isThereAmbiguity(std::map<std::string,int>& candidates) {
-    int biggest = 0;
-    bool ambiguity = false;
-    for(std::map<std::string,int>::iterator i=candidates.begin(); i != candidates.end(); ++i){
-      if(i->second > biggest){
-        biggest = i->second;
-        ambiguity = false;
-      }
-      else if(i->second == biggest){
-        ambiguity = true;
-      }
-    }
-    std::tuple<bool, int, int> ambiguityAndHighest = std::make_tuple(ambiguity, biggest, 0);
-    return ambiguityAndHighest;
   }
 };
