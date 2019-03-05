@@ -143,10 +143,9 @@ const std::string Base64::charsMap =
 
 std::unordered_map<char,char> Base64::indexMap = Base64::createMap();
 
-
 namespace math
 {
-  
+
   template<typename T>
   double mean(std::vector<T> v){
     double sum = std::accumulate(std::begin(v), std::end(v), 0.0);
@@ -161,6 +160,36 @@ namespace math
     for(T& elem : v) accum += (elem - m) * (elem - m);
     
     return std::sqrt(accum / (v.size()-1));
+  }
+
+  template<typename T>
+  struct min_max_pair{
+    min_max_pair(T min, T max) : min(min), max(max) {}
+    T min;
+    T max;
+  };
+  
+  template<typename T>
+  struct min_max_pair<T> getMinAndMax(std::vector<T> v){
+    min_max_pair<T> mmp(v[0], v[0]);
+      
+    for(T& elem: v){
+      if(elem < mmp.min) mmp.min = elem;
+      if(elem > mmp.max) mmp.max = elem;
+    }
+    return mmp;
+  }
+
+  template<typename T>
+  std::vector<double> normalize(std::vector<T> v){
+    std::vector<double> normalized(v.size(), 0.0);
+    min_max_pair<T> mmp = getMinAndMax(v);
+    
+    double diff = mmp.max - mmp.min;
+    for(unsigned int i = 0; i < v.size(); i++){
+        normalized[i] = (v[i]-mmp.min) / diff;
+    }
+    return normalized;
   }
 
 } // math
