@@ -142,3 +142,25 @@ const std::string Base64::charsMap =
   "0123456789+/";
 
 std::unordered_map<char,char> Base64::indexMap = Base64::createMap();
+
+
+namespace math
+{
+  
+  template<typename T>
+  double mean(std::vector<T> v){
+    double sum = std::accumulate(std::begin(v), std::end(v), 0.0);
+    return sum / v.size();
+  }
+
+  template<typename T>
+  double stdev(std::vector<T> v){
+    double accum = 0.0;
+    double m = mean(v);
+    
+    for(T& elem : v) accum += (elem - m) * (elem - m);
+    
+    return std::sqrt(accum / (v.size()-1));
+  }
+
+} // math
