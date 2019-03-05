@@ -22,20 +22,26 @@ public:
 
   std::map<std::string, int> run(std::map<std::string,std::vector<int>>& allvotes) {
     std::map<std::string, int> labels;
-    int bleaching = 1;
+    int bleaching = 0;
     std::tuple<bool,int> ambiguity;
 
     do{
+      int min=0;
+      bool firstTime=true;
       for(std::map<std::string,std::vector<int>>::iterator i=allvotes.begin(); i!=allvotes.end(); ++i){
         labels[i->first] = 0;
         for(unsigned int j=0; j<i->second.size(); j++){
-          if(i->second[j] >= bleaching){
+          if(i->second[j] > bleaching){
             labels[i->first]++;
+            if(firstTime || i->second[j] < min){
+              min = i->second[j];
+              firstTime = false;
+            }
           }
         }
       }
       if(!bleachingActivated) break;
-      bleaching++;
+      bleaching = min;
       ambiguity = isThereAmbiguity(labels, confidence);
     }while( std::get<0>(ambiguity) && std::get<1>(ambiguity) > 1 );
 
