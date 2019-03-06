@@ -34,6 +34,11 @@ PYBIND11_MODULE(wisardpkg, m){
       .def("transform", &KernelCanvasWrapper::transform)
     ;
 
+    py::class_<Thresholding>(m, "Thresholding", py::module_local())
+      .def(py::init<double>())
+      .def("transform", &Thresholding::transform)
+    ;
+
     //sythesizer
     py::class_<Synthesizer>(m, "Synthesizer", py::module_local())
       .def(py::init<std::vector<int>>())
