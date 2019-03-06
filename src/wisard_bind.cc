@@ -44,6 +44,11 @@ PYBIND11_MODULE(wisardpkg, m){
       .def("transform", &MeanThresholding::transform)
     ;
 
+    py::class_<Thermometer>(m, "Thermometer", py::module_local())
+      .def(py::init<std::vector<int>, std::vector<double>>())
+      .def("transform", &Thermometer::transform)
+    ;
+
     //sythesizer
     py::class_<Synthesizer>(m, "Synthesizer", py::module_local())
       .def(py::init<std::vector<int>>())

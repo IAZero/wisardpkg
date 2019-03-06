@@ -32,6 +32,7 @@ namespace nl = nlohmann;
 #include "binarization/kernelcanvas.cc"
 #include "binarization/thresholding.cc"
 #include "binarization/meanthresholding.cc"
+#include "binarization/thermometer.cc"
 
 //wisard model
 #include "models/wisard/ramdatahandle.cc"

@@ -147,9 +147,13 @@ namespace math
 {
 
   template<typename T>
+  double sum(std::vector<T> v){
+    return std::accumulate(std::begin(v), std::end(v), 0.0);
+  }
+
+  template<typename T>
   double mean(std::vector<T> v){
-    double sum = std::accumulate(std::begin(v), std::end(v), 0.0);
-    return sum / v.size();
+    return sum(v) / v.size();
   }
 
   template<typename T>
