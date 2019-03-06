@@ -21,7 +21,9 @@ class ThermometerTestCase(TestCase):
 
             out = therm.transform(data)
             expectedOut = wp.BinInput(expected)
-            for i in range(out.size()):
-                self.assertTrue(out.get(i) == expectedOut.get(i))
+            a = [out[i] for i in range(out.size())]
+            b = [expectedOut[i] for i in range(expectedOut.size())]
+            self.assertSequenceEqual(a, b)
+                
         except RuntimeError and TypeError:
             self.fail("thresthermometerholding transform fail!")
