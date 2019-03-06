@@ -39,6 +39,11 @@ PYBIND11_MODULE(wisardpkg, m){
       .def("transform", &Thresholding::transform)
     ;
 
+    py::class_<MeanThresholding>(m, "MeanThresholding", py::module_local())
+      .def(py::init<>())
+      .def("transform", &MeanThresholding::transform)
+    ;
+
     //sythesizer
     py::class_<Synthesizer>(m, "Synthesizer", py::module_local())
       .def(py::init<std::vector<int>>())
