@@ -3,12 +3,12 @@ public:
   MeanThresholding() {}
 
   BinInput transform(const std::vector<double>& data){
-    std::vector<short> out(data.size());
+    BinInput out(data.size());
     double tValue = math::mean(data);
     
     for(size_t i = 0; i < data.size(); i++)
     {
-      out[i] = data[i] < tValue ? 0 : 1;
+      out.set(i, data[i] < tValue ? 0 : 1);
     }
     
     return BinInput(out);
