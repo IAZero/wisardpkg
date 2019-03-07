@@ -28,8 +28,11 @@ namespace nl = nlohmann;
 #include "synthetic_data/synthesizers.cc"
 
 //binarization
-#include "binarization/base.cc"
+#include "binarization/binbase.cc"
 #include "binarization/kernelcanvas.cc"
+#include "binarization/thresholding.cc"
+#include "binarization/meanthresholding.cc"
+#include "binarization/thermometer.cc"
 
 //wisard model
 #include "models/wisard/ramdatahandle.cc"

@@ -29,9 +29,25 @@ PYBIND11_MODULE(wisardpkg, m){
     ;
 
     // binarizations
+    py::class_<BinBase>(m, "BinBase", py::module_local())
+      .def("transform", (BinInput (BinBase::*)(const std::vector<double>&)) &BinBase::transform)
+    ;
+
     py::class_<KernelCanvasWrapper>(m, "KernelCanvas", py::module_local())
       .def(py::init<int, int, py::kwargs>())
       .def("transform", &KernelCanvasWrapper::transform)
+    ;
+
+    py::class_<Thresholding, BinBase>(m, "Thresholding", py::module_local())
+      .def(py::init<double>())
+    ;
+
+    py::class_<MeanThresholding, BinBase>(m, "MeanThresholding", py::module_local())
+      .def(py::init<>())
+    ;
+
+    py::class_<Thermometer, BinBase>(m, "Thermometer", py::module_local())
+      .def(py::init<std::vector<int>, std::vector<double>>())
     ;
 
     //sythesizer
