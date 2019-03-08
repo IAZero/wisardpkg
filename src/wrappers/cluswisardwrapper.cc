@@ -35,6 +35,16 @@ public:
   }
 
   py::list pyClassify(const std::vector<std::vector<int>>& images){
+    return _pyClassify<std::vector<std::vector<int>>>(images);
+  }
+
+  py::list pyClassify(const DataSet& images){
+    return _pyClassify<DataSet>(images);
+  }
+
+protected:
+  template<typename T>
+  py::list _pyClassify(const T& images){
     float numberOfRAMS = calculateNumberOfRams(images[0].size(), addressSize, completeAddressing);
 
     py::list labels(images.size());
@@ -73,7 +83,6 @@ public:
     return labels;
   }
 
-protected:
   py::list getClassesDegrees(std::map<std::string, int> candidates) const{
     float total = 0;
     int index = 0;
