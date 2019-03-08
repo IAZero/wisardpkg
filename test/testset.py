@@ -8,6 +8,8 @@ from test_mean_thresholding import MeanThresholdingTestCase
 from test_thermometer import ThermometerTestCase
 from test_bininput import BinInputTestCase
 from test_dataset import DataSetTestCase
+from test_ramdatahandle import RAMDataHandleTestCase
+from test_synthesizer import SynthesizerTestCase
 
 if __name__ == '__main__':
     main(verbosity=2)
