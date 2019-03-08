@@ -40,7 +40,7 @@ ram_data = RAMDataHandle(base64_data)
 
 content_index = 0
 value = 10
-ram_content = ram_data.get(ram_index,content_index,value)
+ram_content = ram_data.set(ram_index,content_index,value)
 ```
 
 ### data
@@ -53,7 +53,7 @@ ram_data = RAMDataHandle(base64_data)
 ### change a value
 content_index = 0
 value = 10
-ram_content = ram_data.get(ram_index,content_index,value)
+ram_data.set(ram_index,content_index,value)
 
 ### and generate base64 data again
 modified_base64_data = ram_data.data()
