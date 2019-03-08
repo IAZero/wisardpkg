@@ -2,6 +2,8 @@
 
 PYBIND11_MODULE(wisardpkg, m){
     m.attr("__version__") = __version__;
+    m.attr("ramdata_sufix") = ramdata_sufix;
+    m.attr("dataset_sufix") = dataset_sufix;
 
     //data
     py::class_<BinInput>(m, "BinInput", py::module_local())
