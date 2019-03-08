@@ -35,12 +35,30 @@ public:
   }
 
   py::list pyClassify(const std::vector<std::vector<int>>& images){
+    return _pyClassify<std::vector<std::vector<int>>>(images,false);
+  }
+
+  py::list pyClassify(const DataSet& images){
+    return _pyClassify<DataSet>(images,false);
+  }
+
+  py::list pyClassifyUnsupervised(const std::vector<std::vector<int>>& images){
+    return _pyClassify<std::vector<std::vector<int>>>(images,true);
+  }
+
+  py::list pyClassifyUnsupervised(const DataSet& images){
+    return _pyClassify<DataSet>(images,true);
+  }
+
+protected:
+  template<typename T>
+  py::list _pyClassify(const T& images, bool unsupervised){
     float numberOfRAMS = calculateNumberOfRams(images[0].size(), addressSize, completeAddressing);
 
     py::list labels(images.size());
     for(unsigned int i=0; i<images.size(); i++){
       if(verbose) std::cout << "\rclassifying " << i+1 << " of " << images.size();
-      std::map<std::string,int> candidates = classify(images[i]);
+      std::map<std::string,int> candidates = unsupervised ? classifyUnsupervised(images[i]): classify(images[i]);
       std::string label = classificationMethod->getBiggestCandidate(candidates);
       std::string aClass = label.substr(0,label.find("::"));
 
@@ -73,7 +91,6 @@ public:
     return labels;
   }
 
-protected:
   py::list getClassesDegrees(std::map<std::string, int> candidates) const{
     float total = 0;
     int index = 0;
