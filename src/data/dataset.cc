@@ -28,7 +28,7 @@ public:
   }
 
   void add(const BinInput& input, const std::string& label){
-    if(label.size()>0) labels[data.size()]=label;
+    addLabel(label);
     data.push_back(input);
   }
 
@@ -36,7 +36,7 @@ public:
     add(input,"");
   }
   void add(const std::vector<short>& input, const std::string& label){
-    if(label.size()>0) labels[data.size()]=label;
+    addLabel(label);
     data.push_back(BinInput(input));
   }
 
@@ -50,6 +50,26 @@ public:
 
   std::string getLabel(index_size_t index) const {
     return labels.at(index);
+  }
+
+  const std::vector<int>& getUnlabelIndices() const {
+    return unlabelIndices;
+  }
+
+  const std::vector<int>& getlabelIndices() const {
+    return labelIndices;
+  }
+
+  bool isSupervised() const {
+    return data.size() == labels.size();
+  }
+
+  bool isUnsupervised() const {
+    return labels.size() == 0;
+  }
+
+  bool isSemiSupervised() const {
+    return data.size() > labels.size() && !isUnsupervised();
   }
 
   size_t size() const {
@@ -69,6 +89,18 @@ public:
   }
 
 private:
+  std::vector<int> unlabelIndices;
+  std::vector<int> labelIndices;
   std::vector<BinInput> data;
   std::unordered_map<int,std::string> labels;
+
+  void addLabel(std::label){
+    if(label.size()>0) {
+      labels[data.size()]=label;
+      labelIndices.push_back(data.size());
+    }
+    else{
+      unlabelIndices.push_back(data.size());
+    }
+  }
 };
