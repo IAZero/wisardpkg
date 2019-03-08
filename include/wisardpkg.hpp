@@ -21,7 +21,7 @@ https://github.com/IAZero/wisardpkg
 #include <time.h>
 #include <exception>
 #include <cmath>
-
+#include <numeric> // std::accumulate
 /*
 JSON for Modern C++
 version 3.1.2
@@ -17473,45 +17473,69 @@ const std::string Base64::charsMap =
 
 std::unordered_map<char,char> Base64::indexMap = Base64::createMap();
 
-class Bleaching{
+namespace math
+{
+
+  template<typename T>
+  double sum(std::vector<T> v){
+    return std::accumulate(std::begin(v), std::end(v), 0.0);
+  }
+
+  template<typename T>
+  double mean(std::vector<T> v){
+    return sum(v) / v.size();
+  }
+
+  template<typename T>
+  double stdev(std::vector<T> v){
+    double accum = 0.0;
+    double m = mean(v);
+    
+    for(T& elem : v) accum += (elem - m) * (elem - m);
+    
+    return std::sqrt(accum / (v.size()-1));
+  }
+
+  template<typename T>
+  struct min_max_pair{
+    min_max_pair(T min, T max) : min(min), max(max) {}
+    T min;
+    T max;
+  };
+  
+  template<typename T>
+  struct min_max_pair<T> getMinAndMax(std::vector<T> v){
+    min_max_pair<T> mmp(v[0], v[0]);
+      
+    for(T& elem: v){
+      if(elem < mmp.min) mmp.min = elem;
+      if(elem > mmp.max) mmp.max = elem;
+    }
+    return mmp;
+  }
+
+  template<typename T>
+  std::vector<double> normalize(std::vector<T> v){
+    std::vector<double> normalized(v.size(), 0.0);
+    min_max_pair<T> mmp = getMinAndMax(v);
+    
+    double diff = mmp.max - mmp.min;
+    for(unsigned int i = 0; i < v.size(); i++){
+        normalized[i] = (v[i]-mmp.min) / diff;
+    }
+    return normalized;
+  }
+
+} // math
+
+class ClassificationBase {
 public:
-  static std::map<std::string, int> make(std::map<std::string,std::vector<int>>& allvotes, const bool bleachingActivated, bool searchBestConfidence=false, int confidence=1) {
-    if(searchBestConfidence){
-      return Bleaching::makeWithConfidence(allvotes, bleachingActivated, confidence);
-    }
-    else{
-      return Bleaching::makeConfidenceless(allvotes, bleachingActivated, confidence);
-    }
-  }
+  virtual std::map<std::string, int> run(std::map<std::string,std::vector<int>>& allvotes) = 0;
+  virtual ClassificationBase* clone() const = 0;
+  virtual std::string json() const = 0;
+  virtual std::string className() const = 0;
 
-  static std::map<std::string, int> makeWithConfidence(std::map<std::string,std::vector<int>>& allvotes, const bool bleachingActivated, const int confidence) {
-    return Bleaching::makeConfidenceless(allvotes, bleachingActivated, confidence);
-  }
-
-
-  static std::map<std::string, int> makeConfidenceless(std::map<std::string,std::vector<int>>& allvotes, const bool bleachingActivated, const int confidence) {
-    std::map<std::string, int> labels;
-    int bleaching = 1;
-    std::tuple<bool,int> ambiguity;
-
-    do{
-      for(std::map<std::string,std::vector<int>>::iterator i=allvotes.begin(); i!=allvotes.end(); ++i){
-        labels[i->first] = 0;
-        for(unsigned int j=0; j<i->second.size(); j++){
-          if(i->second[j] >= bleaching){
-            labels[i->first]++;
-          }
-        }
-      }
-      if(!bleachingActivated) break;
-      bleaching++;
-      ambiguity = isThereAmbiguity(labels, confidence);
-    }while( std::get<0>(ambiguity) && std::get<1>(ambiguity) > 1 );
-
-    return labels;
-  }
-
-  static std::string getBiggestCandidate(std::map<std::string,int>& candidates) {
+  std::string getBiggestCandidate(std::map<std::string,int>& candidates) const {
     std::string label = "";
     int biggest = 0;
     for(std::map<std::string,int>::iterator i=candidates.begin(); i != candidates.end(); ++i){
@@ -17523,7 +17547,7 @@ public:
     return label;
   }
 
-  static float getConfidence(std::map<std::string,int>& candidates, int biggest) {
+  float getConfidence(std::map<std::string,int>& candidates, int biggest) const {
     float secondBiggest = 0;
     for(std::map<std::string,int>::iterator i=candidates.begin(); i != candidates.end(); ++i){
       if(i->second >= secondBiggest && i->second < biggest){
@@ -17533,7 +17557,7 @@ public:
     return (biggest-secondBiggest)/biggest;
   }
 
-private:
+protected:
   static std::tuple<bool, int> isThereAmbiguity(std::map<std::string,int>& candidates, int confidence) {
     int biggest = 0;
     bool ambiguity = false;
@@ -17551,72 +17575,101 @@ private:
   }
 };
 
-class BBleaching{
+class Bleaching: public ClassificationBase {
 public:
-  static std::map<std::string, int>& make(std::map<std::string,std::vector<int>>& allvotes, const bool bleachingActivated) {
-    std::map<std::string, int>* labels = new std::map<std::string, int>;
+  Bleaching()
+    :bleachingActivated(true),confidence(1){}
+  Bleaching(nl::json config){
+    nl::json value;
 
-    std::tuple<bool,int,int> ambiguity;
-    int biggest = getBiggestValue(allvotes);
-    int steps = 1;
-    int piece = biggest/(int)std::pow(2,steps);
-    int bleaching = piece;
+    value = config["bleachingActivated"];
+    bleachingActivated = value.is_null() ? true : value.get<bool>();
+
+    value = config["confidence"];
+    confidence = value.is_null() ? 1 : value.get<int>();
+  }
+
+  Bleaching(const bool bleachingActivated,const int confidence)
+    :bleachingActivated(bleachingActivated),confidence(confidence){}
+
+  ClassificationBase* clone() const{
+    return new Bleaching(bleachingActivated,confidence);
+  }
+
+  std::map<std::string, int> run(std::map<std::string,std::vector<int>>& allvotes) {
+    std::map<std::string, int> labels;
+    int bleaching = 0;
+    std::tuple<bool,int> ambiguity;
 
     do{
+      int min=0;
+      bool firstTime=true;
       for(std::map<std::string,std::vector<int>>::iterator i=allvotes.begin(); i!=allvotes.end(); ++i){
-        (*labels)[i->first] = 0;
+        labels[i->first] = 0;
         for(unsigned int j=0; j<i->second.size(); j++){
-          if(i->second[j] >= bleaching){
-            (*labels)[i->first]++;
+          if(i->second[j] > bleaching){
+            labels[i->first]++;
+            if(firstTime || i->second[j] < min){
+              min = i->second[j];
+              firstTime = false;
+            }
           }
         }
       }
       if(!bleachingActivated) break;
+      bleaching = min;
+      ambiguity = isThereAmbiguity(labels, confidence);
+    }while( std::get<0>(ambiguity) && std::get<1>(ambiguity) > 1 );
 
-      ambiguity = isThereAmbiguity(*labels);
-      steps++;
-      piece = biggest/(int)pow(2,steps);
-      if(piece == 0) break;
+    return labels;
+  }
 
-      if(std::get<1>(ambiguity) > 0){
-        bleaching = bleaching + piece;
-      }
-      else{
-        bleaching = bleaching - piece;
-      }
-    }while( std::get<0>(ambiguity) && std::get<1>(ambiguity) > 0 );
+  std::string className() const{
+    return "Bleaching";
+  }
 
-    return *labels;
+  std::string json() const{
+    nl::json config = {
+      {"bleachingActivated", bleachingActivated},
+      {"confidence", confidence}
+    };
+    return config.dump();
+  }
+
+
+private:
+  bool bleachingActivated;
+  int confidence;
+};
+class ClassificationMethods {
+public:
+  static nl::json json(ClassificationBase* obj){
+    nl::json params = nl::json::parse(obj->json());
+    nl::json config = {
+      {ClassificationMethods::className, obj->className()},
+      {ClassificationMethods::params, params}
+    };
+    return config;
+  }
+
+  static ClassificationBase* load(nl::json config){
+    nl::json classNamej = config[ClassificationMethods::className];
+    std::string className = classNamej.is_null() ? "" : classNamej.get<std::string>();
+
+    if(className.compare("Bleaching")==0){
+      nl::json params = config[ClassificationMethods::params];
+      return new Bleaching(params);
+    }
+
+    return new Bleaching();
   }
 private:
-  static int getBiggestValue(std::map<std::string,std::vector<int>>& allvotes){
-    int biggest = 0;
-    for(std::map<std::string,std::vector<int>>::iterator i=allvotes.begin(); i!=allvotes.end(); ++i){
-      for(unsigned int j=0; j<i->second.size(); j++){
-        if(i->second[j]>biggest){
-          biggest = i->second[j];
-        }
-      }
-    }
-    return biggest;
-  }
-
-  static std::tuple<bool, int, int> isThereAmbiguity(std::map<std::string,int>& candidates) {
-    int biggest = 0;
-    bool ambiguity = false;
-    for(std::map<std::string,int>::iterator i=candidates.begin(); i != candidates.end(); ++i){
-      if(i->second > biggest){
-        biggest = i->second;
-        ambiguity = false;
-      }
-      else if(i->second == biggest){
-        ambiguity = true;
-      }
-    }
-    std::tuple<bool, int, int> ambiguityAndHighest = std::make_tuple(ambiguity, biggest, 0);
-    return ambiguityAndHighest;
-  }
+  static const std::string className;
+  static const std::string params;
 };
+
+const std::string ClassificationMethods::className = "className";
+const std::string ClassificationMethods::params = "params";
 class BinInput {
 public:
   BinInput():remain(0){}
@@ -17708,7 +17761,7 @@ public:
   }
 
   void add(const BinInput& input, const std::string& label){
-    if(label.size()>0) labels[data.size()]=label;
+    addLabel(label);
     data.push_back(input);
   }
 
@@ -17716,7 +17769,7 @@ public:
     add(input,"");
   }
   void add(const std::vector<short>& input, const std::string& label){
-    if(label.size()>0) labels[data.size()]=label;
+    addLabel(label);
     data.push_back(BinInput(input));
   }
 
@@ -17730,6 +17783,26 @@ public:
 
   std::string getLabel(index_size_t index) const {
     return labels.at(index);
+  }
+
+  const std::vector<int>& getUnlabelIndices() const {
+    return unlabelIndices;
+  }
+
+  const std::vector<int>& getLabelIndices() const {
+    return labelIndices;
+  }
+
+  bool isSupervised() const {
+    return data.size() == labels.size();
+  }
+
+  bool isUnsupervised() const {
+    return labels.size() == 0;
+  }
+
+  bool isSemiSupervised() const {
+    return data.size() > labels.size() && !isUnsupervised();
   }
 
   size_t size() const {
@@ -17749,8 +17822,20 @@ public:
   }
 
 private:
+  std::vector<int> unlabelIndices;
+  std::vector<int> labelIndices;
   std::vector<BinInput> data;
   std::unordered_map<int,std::string> labels;
+
+  void addLabel(std::string label){
+    if(labels.size()>0) {
+      labels[data.size()]=label;
+      labelIndices.push_back(data.size());
+    }
+    else{
+      unlabelIndices.push_back(data.size());
+    }
+  }
 };
 
 
@@ -17809,8 +17894,9 @@ private:
   }
 };
 class BinBase {
-  virtual BinInput transform(const std::vector<std::vector<double>>& data);
-  virtual BinInput transform(const std::vector<double>& data);
+public:
+  BinInput transform(const std::vector<std::vector<double>>& data);
+  virtual BinInput transform(const std::vector<double>& data) = 0;
 };
 
 class KernelCanvas{
@@ -18030,6 +18116,82 @@ protected:
   void checkDimension(int size){
     if(size != dim)
       throw Exception("Error: the dimension of input data is defferent of kernel's dimension!");
+  }
+};
+class Thresholding : public BinBase{
+private:
+  double tValue;
+
+public:
+  Thresholding(double tValue) : tValue(tValue) {}
+
+  BinInput transform(const std::vector<double>& data){
+    BinInput out(data.size());
+    for(size_t i = 0; i < data.size(); i++)
+    {
+      out.set(i, data[i] < tValue ? 0 : 1);
+    }
+    
+    return out;
+  }
+};
+class MeanThresholding : public BinBase{
+public:
+  MeanThresholding() {}
+
+  BinInput transform(const std::vector<double>& data){
+    BinInput out(data.size());
+    double tValue = math::mean(data);
+    
+    for(size_t i = 0; i < data.size(); i++)
+    {
+      out.set(i, data[i] < tValue ? 0 : 1);
+    }
+    
+    return BinInput(out);
+  }
+};
+class Thermometer : public BinBase {
+protected:
+  std::vector<int> sizes;
+  std::vector<double> maximum;
+  int outputSize;
+public:
+  Thermometer(const std::vector<int>& sizes, const std::vector<double>& maximum) : sizes(sizes), maximum(maximum){
+    if(sizes.size() != maximum.size()){
+      throw Exception("the sizes of 'sizes' and 'maximum' differ!");
+    }
+    outputSize = math::sum(sizes);
+  }
+
+  static std::vector<short> toBinary(const double value, const int size, const double max){
+    std::vector<short> code(size, 0);
+    double counter = 0.0;
+
+    for(int i = 0; i < size; i++){
+      code[i] = value >= counter ? 1 : 0;
+      counter += max/size;
+    }
+    return code;
+  }
+
+  BinInput transform(const std::vector<double>& data){
+    if(sizes.size() != data.size()){
+      throw Exception("data size is not valid!");
+    }
+    BinInput out(outputSize);
+    int j = 0;
+    for(size_t i = 0; i < data.size(); i++)
+    {
+      std::vector<short> code = toBinary(data[i], sizes[i], maximum[i]);
+      for(short& p : code)
+      {
+        out.set(j, p);
+        j++;
+      }
+      
+    }
+    return out;
   }
 };
 class RAMDataHandle {
@@ -18779,8 +18941,13 @@ public:
     srand(randint(0,1000000));
     nl::json value;
 
-    value = c["bleachingActivated"];
-    bleachingActivated = value.is_null() ? true : value.get<bool>();
+    value = c["classificationMethod"];
+    if(value.is_null()){
+      classificationMethod = new Bleaching();
+    }
+    else{
+      classificationMethod = ClassificationMethods::load(value);
+    }
 
     value = c["verbose"];
     verbose = value.is_null() ? false : value.get<bool>();
@@ -18799,12 +18966,6 @@ public:
 
     value = c["base"];
     base = value.is_null() ? 2 : value.get<int>();
-
-    value = c["confidence"];
-    confidence = value.is_null() ? 1 : value.get<int>();
-
-    value = c["searchBestConfidence"];
-    searchBestConfidence = value.is_null() ? false : value.get<bool>();
 
     value = c["returnConfidence"];
     returnConfidence = value.is_null() ? false : value.get<bool>();
@@ -18847,8 +19008,6 @@ public:
   }
 
   void train(const DataSet& dataset) {
-    int numberOfRAMS = calculateNumberOfRams(dataset[0].size(), addressSize, completeAddressing);
-    checkConfidence(numberOfRAMS);
     for(size_t i=0; i<dataset.size(); i++){
       if(verbose) std::cout << "\rtraining " << i+1 << " of " << dataset.size();
       train<BinInput>(dataset[i], dataset.getLabel(i));
@@ -18856,8 +19015,6 @@ public:
   }
 
   void train(const std::vector<std::vector<int>>& images, const std::vector<std::string>& labels){
-    int numberOfRAMS = calculateNumberOfRams(images[0].size(), addressSize, completeAddressing);
-    checkConfidence(numberOfRAMS);
     checkInputSizes(images.size(), labels.size());
     for(unsigned int i=0; i<images.size(); i++){
       if(verbose) std::cout << "\rtraining " << i+1 << " of " << images.size();
@@ -18928,24 +19085,23 @@ protected:
 
   template<typename T>
   std::vector<std::string> _classify(const T& images){
-    //float numberOfRAMS = calculateNumberOfRams(images[0].size(), addressSize, completeAddressing);
     std::vector<std::string> labels(images.size());
 
     for(unsigned int i=0; i<images.size(); i++){
       if(verbose) std::cout << "\rclassifying " << i+1 << " of " << images.size();
-      std::map<std::string,int> candidates = classify(images[i],searchBestConfidence);
-      labels[i] = Bleaching::getBiggestCandidate(candidates);
+      std::map<std::string,int> candidates = classify(images[i]);
+      labels[i] = classificationMethod->getBiggestCandidate(candidates);
     }
     if(verbose) std::cout << "\r" << std::endl;
     return labels;
   }
 
-  std::map<std::string, int> classify(const std::vector<int>& image, bool searchBestConfidence=false){
-    return __classify<std::vector<int>>(image,searchBestConfidence);
+  std::map<std::string, int> classify(const std::vector<int>& image){
+    return __classify<std::vector<int>>(image);
   }
 
-  std::map<std::string, int> classify(const BinInput& image, bool searchBestConfidence=false){
-    return __classify<BinInput>(image,searchBestConfidence);
+  std::map<std::string, int> classify(const BinInput& image){
+    return __classify<BinInput>(image);
   }
 
   template<typename T>
@@ -18955,7 +19111,7 @@ protected:
     for(std::map<std::string,Discriminator>::iterator i=discriminators.begin(); i!=discriminators.end(); ++i){
       allvotes[i->first] = i->second.classify(image);
     }
-    return Bleaching::make(allvotes, bleachingActivated, searchBestConfidence, confidence);
+    return classificationMethod->run(allvotes);
   }
 
   nl::json getClassesJSON(bool huge, std::string path){
@@ -18978,14 +19134,12 @@ protected:
     nl::json config = {
       {"version", __version__},
       {"addressSize", addressSize},
-      {"bleachingActivated", bleachingActivated},
       {"verbose", verbose},
       {"indexes", indexes},
       {"ignoreZero", ignoreZero},
       {"completeAddressing", completeAddressing},
+      {"classificationMethod", ClassificationMethods::json(classificationMethod)},
       {"base", base},
-      {"confidence", confidence},
-      // {"searchBestConfidence", searchBestConfidence},
       {"returnConfidence", returnConfidence},
       {"returnActivationDegree", returnActivationDegree},
       {"returnClassesDegrees", returnClassesDegrees}
@@ -19015,25 +19169,17 @@ protected:
     }
   }
 
-  void checkConfidence(int numberOfRAMS){
-    if(confidence > numberOfRAMS){
-      throw Exception("The confidence can not be bigger than number of RAMs!");
-    }
-  }
-
   int addressSize;
-  bool bleachingActivated;
   bool verbose;
   std::map<std::string, std::vector<std::vector<int>>> mapping;
   std::vector<int> indexes;
   bool ignoreZero;
   bool completeAddressing;
   int base;
-  bool searchBestConfidence;
   bool returnConfidence;
   bool returnActivationDegree;
   bool returnClassesDegrees;
-  int confidence;
+  ClassificationBase* classificationMethod;
   std::map<std::string, Discriminator> discriminators;
 };
 
@@ -19235,8 +19381,13 @@ public:
     srand(randint(0,1000000));
     nl::json value;
 
-    value = options["bleachingActivated"];
-    bleachingActivated = value.is_null() ? true : value.get<bool>();
+    value = options["classificationMethod"];
+    if(value.is_null()){
+      classificationMethod = new Bleaching();
+    }
+    else{
+      classificationMethod = ClassificationMethods::load(value);
+    }
 
     value = options["verbose"];
     verbose = value.is_null() ? false : value.get<bool>();
@@ -19249,12 +19400,6 @@ public:
 
     value = options["base"];
     base = value.is_null() ? 2 : value.get<int>();
-
-    value = options["confidence"];
-    confidence = value.is_null() ? 1 : value.get<int>();
-
-    value = options["searchBestConfidence"];
-    searchBestConfidence = value.is_null() ? false : value.get<bool>();
 
     value = options["returnConfidence"];
     returnConfidence = value.is_null() ? false : value.get<bool>();
@@ -19300,10 +19445,7 @@ public:
       }
   }
 
-
   void train(const std::vector<std::vector<int>>& images, const std::vector<std::string>& labels){
-    int numberOfRAMS = calculateNumberOfRams(images[0].size(), addressSize, completeAddressing);
-    checkConfidence(numberOfRAMS);
     checkInputSizes(images.size(), labels.size());
 
     for(unsigned int i=0; i<images.size(); i++){
@@ -19313,9 +19455,20 @@ public:
     if(verbose) std::cout << "\r" << std::endl;
   }
 
+  void train(const DataSet& images){
+    int j=1;
+    for(int i: images.getLabelIndices()){
+      if(verbose) std::cout << "\rtraining supervised " << j++ << " of " << images.size();
+      train(images[i],images.getLabel(i));
+    }
+    if(verbose) std::cout << "\r" << std::endl;
+    for(int i: images.getUnlabelIndices()){
+      if(verbose) std::cout << "\rtraining unsupervised " << j++ << " of " << images.size();
+      train(images[i]);
+    }
+  }
+
   void train(const std::vector<std::vector<int>>& images, std::map<int, std::string>& labels){
-    int numberOfRAMS = calculateNumberOfRams(images[0].size(), addressSize, completeAddressing);
-    checkConfidence(numberOfRAMS);
     checkInputLabels(images.size(), labels);
 
     unsigned int size = images.size()-labels.size();
@@ -19347,6 +19500,15 @@ public:
 
   }
 
+  void trainUnsupervised(const DataSet& images){
+    if((int)clusters.size()==0){
+      unsupervisedCluster = Cluster(images[0].size(), addressSize, minScore, threshold, discriminatorsLimit, completeAddressing, ignoreZero);
+    }
+    for(int i: images.getUnlabelIndices()){
+      unsupervisedCluster.train(images[i]);
+    }
+  }
+
   void trainUnsupervised(const std::vector<std::vector<int>>& images){
     if((int)clusters.size()==0){
       unsupervisedCluster = Cluster(images[0].size(), addressSize, minScore, threshold, discriminatorsLimit, completeAddressing, ignoreZero);
@@ -19356,14 +19518,13 @@ public:
     }
   }
 
-  std::vector<std::string> classify(const std::vector<std::vector<int>>& images){
-    //float numberOfRAMS = calculateNumberOfRams(images[0].size(), addressSize, completeAddressing);
+  std::vector<std::string> classify(const std::vector<std::vector<int>>& images){;
 
     std::vector<std::string> labels(images.size());
     for(unsigned int i=0; i<images.size(); i++){
       if(verbose) std::cout << "\rclassifying " << i+1 << " of " << images.size();
-      std::map<std::string,int> candidates = classify(images[i], searchBestConfidence);
-      std::string label = Bleaching::getBiggestCandidate(candidates);
+      std::map<std::string,int> candidates = classify(images[i]);
+      std::string label = classificationMethod->getBiggestCandidate(candidates);
       labels[i] = label.substr(0,label.find("::"));
 
       candidates.clear();
@@ -19373,19 +19534,12 @@ public:
     return labels;
   }
 
-  std::vector<std::string> classifyUnsupervised(const std::vector<std::vector<int>>& images){
-    std::vector<std::string> labels(images.size());
-    for(unsigned int i=0; i<images.size(); i++){
-      if(verbose) std::cout << "\rclassifying unsupervised " << i+1 << " of " << images.size();
-      std::map<std::string,int> candidates = classifyUnsupervised(images[i]);
-      std::string label = Bleaching::getBiggestCandidate(candidates);
-      labels[i] = label.substr(0,label.find("::"));
+  std::vector<std::string> classifyUnsupervised(const DataSet& images){
+    return classifyUnsupervised<DataSet>(images);
+  }
 
-      candidates.clear();
-      std::map<std::string,int>().swap(candidates);
-    }
-    if(verbose) std::cout << "\r" << std::endl;
-    return labels;
+  std::vector<std::string> classifyUnsupervised(const std::vector<std::vector<int>>& images){
+    return classifyUnsupervised<std::vector<std::vector<int>>>(images);
   }
 
   std::vector<std::vector<int>> getMentalImage(std::string label){
@@ -19437,7 +19591,32 @@ public:
   }
 
 protected:
+  template<typename T>
+  std::vector<std::string> classifyUnsupervised(const T& images){
+    std::vector<std::string> labels(images.size());
+    for(unsigned int i=0; i<images.size(); i++){
+      if(verbose) std::cout << "\rclassifying unsupervised " << i+1 << " of " << images.size();
+      std::map<std::string,int> candidates = classifyUnsupervised(images[i]);
+      std::string label = classificationMethod->getBiggestCandidate(candidates);
+      labels[i] = label.substr(0,label.find("::"));
+
+      candidates.clear();
+      std::map<std::string,int>().swap(candidates);
+    }
+    if(verbose) std::cout << "\r" << std::endl;
+    return labels;
+  }
+
   void train(const std::vector<int>& image, const std::string& label){
+    _train<std::vector<int>>(image,label);
+  }
+
+  void train(const BinInput& image, const std::string& label){
+    _train<BinInput>(image,label);
+  }
+
+  template<typename T>
+  void _train(const T& image, const std::string& label){
     if(clusters.find(label) == clusters.end()){
       makeClusters(label, image.size());
     }
@@ -19445,13 +19624,31 @@ protected:
   }
 
   void train(const std::vector<int>& image){
+    _train<std::vector<int>>(image);
+  }
+
+  void train(const BinInput& image){
+    _train<BinInput>(image);
+  }
+
+  template<typename T>
+  void _train(const T& image){
     std::map<std::string,int> candidates = classify(image);
-    std::string label = Bleaching::getBiggestCandidate(candidates);
+    std::string label = classificationMethod->getBiggestCandidate(candidates);
     label = label.substr(0,label.find("::"));
     clusters[label].train(image);
   }
 
-  std::map<std::string, int> classify(const std::vector<int>& image, bool searchBestConfidence=false){
+  std::map<std::string, int> classify(const std::vector<int>& image){
+    return _classify<std::vector<int>>(image);
+  }
+
+  std::map<std::string, int> classify(const BinInput& image){
+    return _classify<BinInput>(image);
+  }
+
+  template<typename T>
+  std::map<std::string, int> _classify(const T& image){
     std::map<std::string,std::vector<int>> allvotes;
 
     for(std::map<std::string,Cluster>::iterator i=clusters.begin(); i!=clusters.end(); ++i){
@@ -19461,16 +19658,25 @@ protected:
       }
     }
 
-    return Bleaching::make(allvotes, bleachingActivated, searchBestConfidence, confidence);
+    return classificationMethod->run(allvotes);
   }
 
   std::map<std::string, int> classifyUnsupervised(const std::vector<int>& image){
+    return _classifyUnsupervised<std::vector<int>>(image);
+  }
+
+  std::map<std::string, int> classifyUnsupervised(const BinInput& image){
+    return _classifyUnsupervised<BinInput>(image);
+  }
+
+  template<typename T>
+  std::map<std::string, int> _classifyUnsupervised(const T& image){
     std::map<std::string,std::vector<int>> allvotes;
     std::vector<std::vector<int>> votes = unsupervisedCluster.classify(image);
     for(unsigned int i=0; i<votes.size(); ++i){
       allvotes[std::to_string(i)] = votes[i];
     }
-    return Bleaching::make(allvotes, bleachingActivated);
+    return classificationMethod->run(allvotes);
   }
 
   void checkInputLabels(const int numberOfInputs, std::map<int, std::string>& labels){
@@ -19503,12 +19709,6 @@ protected:
     }
   }
 
-  void checkConfidence(int numberOfRAMS){
-    if(confidence > numberOfRAMS){
-      throw Exception("The confidence can not be bigger than number of RAMs!");
-    }
-  }
-
   void makeClusters(const std::string label,const int entrySize){
     clusters[label] = Cluster(entrySize, addressSize, minScore, threshold, discriminatorsLimit, completeAddressing, ignoreZero, base);
   }
@@ -19528,13 +19728,11 @@ protected:
       {"minScore", minScore},
       {"threshold", threshold},
       {"discriminatorsLimit", discriminatorsLimit},
-      {"bleachingActivated", bleachingActivated},
       {"verbose", verbose},
+      {"classificationMethod", ClassificationMethods::json(classificationMethod)},
       {"ignoreZero", ignoreZero},
       {"completeAddressing", completeAddressing},
       {"base", base},
-      {"confidence", confidence},
-      // {"searchBestConfidence", searchBestConfidence},
       {"returnConfidence", returnConfidence},
       {"returnActivationDegree", returnActivationDegree},
       {"returnClassesDegrees", returnClassesDegrees}
@@ -19546,7 +19744,6 @@ protected:
   float minScore;
   int threshold;
   int discriminatorsLimit;
-  bool bleachingActivated;
   bool verbose;
   bool completeAddressing;
   bool ignoreZero;
@@ -19555,9 +19752,9 @@ protected:
   bool returnConfidence;
   bool returnActivationDegree;
   bool returnClassesDegrees;
-  int confidence;
   std::map<std::string, Cluster> clusters;
   Cluster unsupervisedCluster;
+  ClassificationBase* classificationMethod;
 };
 
 }

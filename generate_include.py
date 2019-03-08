@@ -22,8 +22,11 @@ includes = [
 
     'synthetic_data/synthesizers.cc',
 
-    'binarization/base.cc',
+    'binarization/binbase.cc',
     'binarization/kernelcanvas.cc',
+    'binarization/thresholding.cc',
+    'binarization/meanthresholding.cc',
+    'binarization/thermometer.cc',
 
     'models/wisard/ramdatahandle.cc',
     'models/wisard/ram.cc',
