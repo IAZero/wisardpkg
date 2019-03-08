@@ -58,14 +58,19 @@ class WisardTestCase(TestCase):
 
             import sys
             if sys.version_info[0] < 3:
-                self.assertIsInstance(ojsonout,unicode)
+                with self.subTest(type="instance_json_python2"):
+                    self.assertIsInstance(ojsonout,unicode)
             else:
-                self.assertIsInstance(ojsonout,str)
+                with self.subTest(type="instance_json_python3"):
+                    self.assertIsInstance(ojsonout,str)
 
             jsonout = json.loads(ojsonout)
-            self.assertIsInstance(jsonout,dict)
-            wsd2 = wp.Wisard(ojsonout)
-            self.assertSequenceEqual(wsd.classify(self.X),wsd2.classify(self.X))
+            with self.subTest(type="instance_dict"):
+                self.assertIsInstance(jsonout,dict)
+
+            with self.subTest(type="sequence"):
+                wsd2 = wp.Wisard(ojsonout)
+                self.assertSequenceEqual(wsd.classify(self.X),wsd2.classify(self.X))
         except RuntimeError and TypeError:
             self.fail("json test fail")
 
@@ -101,12 +106,36 @@ class WisardTestCase(TestCase):
             ]
             y = ["cold","cold","hot","hot"]
             wsd.train(X,y)
-            m = [
-                [2,2,2,2,1,0,0,0,0],
-                [0,0,0,0,1,2,2,2,2]
-            ]
+            m = {
+                "cold":[2,2,2,2,1,0,0,0,0],
+                "hot":[0,0,0,0,1,2,2,2,2]
+            }
             im = wsd.getMentalImages()
-            self.assertSequenceEqual(m[0],im["cold"])
-            self.assertSequenceEqual(m[1],im["hot"])
+            for key in m:
+                with self.subTest(key=key):
+                    self.assertSequenceEqual(m[key],im[key])
         except RuntimeError and TypeError:
             self.fail("mental image test fail")
+
+    def test_mapping(self):
+        try:
+            mapping = {"cold": [[0, 8], [1, 8], [2, 7], [3, 6], [4, 5]],
+                       "hot": [[8, 7], [6, 5], [4, 3], [2, 1], [0, 3]]}
+            wsd = wp.Wisard(2,mapping=mapping)
+            X = [
+                [1,1,1,1,1,0,0,0,0],
+                [1,1,1,1,0,0,0,0,0],
+                [0,0,0,0,1,1,1,1,1],
+                [0,0,0,0,0,1,1,1,1]
+            ]
+            y = ["cold","cold","hot","hot"]
+            wsd.train(X,y)
+            str_json = wsd.json()
+            import json
+            dict_json = json.loads(str_json)
+            for label in mapping:
+                 with self.subTest(label=label):
+                     self.assertSequenceEqual(dict_json["classes"][label]["mapping"],mapping[label])
+
+        except RuntimeError and TypeError:
+            self.fail("mapping test fail")
