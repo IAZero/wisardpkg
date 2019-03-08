@@ -48,7 +48,7 @@ public:
     return data[index];
   }
 
-  std::string getLabel(index_size_t index) const {
+  const std::string& getLabel(int index) const {
     return labels.at(index);
   }
 
@@ -95,7 +95,7 @@ private:
   std::unordered_map<int,std::string> labels;
 
   void addLabel(std::string label){
-    if(labels.size()>0) {
+    if(label.size()>0) {
       labels[data.size()]=label;
       labelIndices.push_back(data.size());
     }
