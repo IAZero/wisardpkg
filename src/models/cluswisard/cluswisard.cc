@@ -74,7 +74,6 @@ public:
       }
   }
 
-
   void train(const std::vector<std::vector<int>>& images, const std::vector<std::string>& labels){
     checkInputSizes(images.size(), labels.size());
 
@@ -83,6 +82,19 @@ public:
       train(images[i],labels[i]);
     }
     if(verbose) std::cout << "\r" << std::endl;
+  }
+
+  void train(const DataSet& images){
+    int j=1;
+    for(int i: images.getLabelIndices()){
+      if(verbose) std::cout << "\rtraining supervised " << j++ << " of " << images.size();
+      train(images[i],images.getLabel(i));
+    }
+    if(verbose) std::cout << "\r" << std::endl;
+    for(int i: images.getUnlabelIndices()){
+      if(verbose) std::cout << "\rtraining unsupervised " << j++ << " of " << images.size();
+      train(images[i]);
+    }
   }
 
   void train(const std::vector<std::vector<int>>& images, std::map<int, std::string>& labels){
@@ -117,6 +129,15 @@ public:
 
   }
 
+  void trainUnsupervised(const DataSet& images){
+    if((int)clusters.size()==0){
+      unsupervisedCluster = Cluster(images[0].size(), addressSize, minScore, threshold, discriminatorsLimit, completeAddressing, ignoreZero);
+    }
+    for(int i: images.getUnlabelIndices()){
+      unsupervisedCluster.train(images[i]);
+    }
+  }
+
   void trainUnsupervised(const std::vector<std::vector<int>>& images){
     if((int)clusters.size()==0){
       unsupervisedCluster = Cluster(images[0].size(), addressSize, minScore, threshold, discriminatorsLimit, completeAddressing, ignoreZero);
@@ -142,19 +163,12 @@ public:
     return labels;
   }
 
-  std::vector<std::string> classifyUnsupervised(const std::vector<std::vector<int>>& images){
-    std::vector<std::string> labels(images.size());
-    for(unsigned int i=0; i<images.size(); i++){
-      if(verbose) std::cout << "\rclassifying unsupervised " << i+1 << " of " << images.size();
-      std::map<std::string,int> candidates = classifyUnsupervised(images[i]);
-      std::string label = classificationMethod->getBiggestCandidate(candidates);
-      labels[i] = label.substr(0,label.find("::"));
+  std::vector<std::string> classifyUnsupervised(const DataSet& images){
+    return classifyUnsupervised<DataSet>(images);
+  }
 
-      candidates.clear();
-      std::map<std::string,int>().swap(candidates);
-    }
-    if(verbose) std::cout << "\r" << std::endl;
-    return labels;
+  std::vector<std::string> classifyUnsupervised(const std::vector<std::vector<int>>& images){
+    return classifyUnsupervised<std::vector<std::vector<int>>>(images);
   }
 
   std::vector<std::vector<int>> getMentalImage(std::string label){
@@ -206,7 +220,32 @@ public:
   }
 
 protected:
+  template<typename T>
+  std::vector<std::string> classifyUnsupervised(const T& images){
+    std::vector<std::string> labels(images.size());
+    for(unsigned int i=0; i<images.size(); i++){
+      if(verbose) std::cout << "\rclassifying unsupervised " << i+1 << " of " << images.size();
+      std::map<std::string,int> candidates = classifyUnsupervised(images[i]);
+      std::string label = classificationMethod->getBiggestCandidate(candidates);
+      labels[i] = label.substr(0,label.find("::"));
+
+      candidates.clear();
+      std::map<std::string,int>().swap(candidates);
+    }
+    if(verbose) std::cout << "\r" << std::endl;
+    return labels;
+  }
+
   void train(const std::vector<int>& image, const std::string& label){
+    _train<std::vector<int>>(image,label);
+  }
+
+  void train(const BinInput& image, const std::string& label){
+    _train<BinInput>(image,label);
+  }
+
+  template<typename T>
+  void _train(const T& image, const std::string& label){
     if(clusters.find(label) == clusters.end()){
       makeClusters(label, image.size());
     }
@@ -214,6 +253,15 @@ protected:
   }
 
   void train(const std::vector<int>& image){
+    _train<std::vector<int>>(image);
+  }
+
+  void train(const BinInput& image){
+    _train<BinInput>(image);
+  }
+
+  template<typename T>
+  void _train(const T& image){
     std::map<std::string,int> candidates = classify(image);
     std::string label = classificationMethod->getBiggestCandidate(candidates);
     label = label.substr(0,label.find("::"));
@@ -221,6 +269,15 @@ protected:
   }
 
   std::map<std::string, int> classify(const std::vector<int>& image){
+    return _classify<std::vector<int>>(image);
+  }
+
+  std::map<std::string, int> classify(const BinInput& image){
+    return _classify<BinInput>(image);
+  }
+
+  template<typename T>
+  std::map<std::string, int> _classify(const T& image){
     std::map<std::string,std::vector<int>> allvotes;
 
     for(std::map<std::string,Cluster>::iterator i=clusters.begin(); i!=clusters.end(); ++i){
@@ -234,6 +291,15 @@ protected:
   }
 
   std::map<std::string, int> classifyUnsupervised(const std::vector<int>& image){
+    return _classifyUnsupervised<std::vector<int>>(image);
+  }
+
+  std::map<std::string, int> classifyUnsupervised(const BinInput& image){
+    return _classifyUnsupervised<BinInput>(image);
+  }
+
+  template<typename T>
+  std::map<std::string, int> _classifyUnsupervised(const T& image){
     std::map<std::string,std::vector<int>> allvotes;
     std::vector<std::vector<int>> votes = unsupervisedCluster.classify(image);
     for(unsigned int i=0; i<votes.size(); ++i){

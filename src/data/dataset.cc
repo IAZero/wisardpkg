@@ -56,7 +56,7 @@ public:
     return unlabelIndices;
   }
 
-  const std::vector<int>& getlabelIndices() const {
+  const std::vector<int>& getLabelIndices() const {
     return labelIndices;
   }
 
@@ -94,8 +94,8 @@ private:
   std::vector<BinInput> data;
   std::unordered_map<int,std::string> labels;
 
-  void addLabel(std::label){
-    if(label.size()>0) {
+  void addLabel(std::string label){
+    if(labels.size()>0) {
       labels[data.size()]=label;
       labelIndices.push_back(data.size());
     }

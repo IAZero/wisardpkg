@@ -89,7 +89,7 @@ PYBIND11_MODULE(wisardpkg, m){
       .def("className",&ClassificationBase::className)
       .def("json",&ClassificationBase::json)
     ;
-    
+
     py::class_<Bleaching, ClassificationBase>(m, "Bleaching", py::module_local())
       .def(py::init<bool,int>())
     ;
@@ -117,7 +117,7 @@ PYBIND11_MODULE(wisardpkg, m){
       .def(py::init<int, float, int, int, py::kwargs>())
       .def("train", (void (ClusWisardWrapper::*)(const std::vector<std::vector<int>>&, const std::vector<std::string>&)) &ClusWisardWrapper::train)
       .def("train", (void (ClusWisardWrapper::*)(const std::vector<std::vector<int>>&, std::map<int, std::string>&)) &ClusWisardWrapper::train)
-      .def("trainUnsupervised", &ClusWisardWrapper::trainUnsupervised)
+      .def("trainUnsupervised", (void (ClusWisardWrapper::*)(const std::vector<std::vector<int>>&)) &ClusWisardWrapper::trainUnsupervised)
       .def("classify", (py::list (ClusWisardWrapper::*)(const std::vector<std::vector<int>>&)) &ClusWisardWrapper::pyClassify)
       .def("classifyUnsupervised", (std::vector<std::string> (ClusWisardWrapper::*)(const std::vector<std::vector<int>>&)) &ClusWisardWrapper::classifyUnsupervised)
       .def("getMentalImage", &ClusWisardWrapper::getMentalImage)
