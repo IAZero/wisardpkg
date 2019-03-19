@@ -13,4 +13,6 @@ __pycache__
 # data
 *.wdpkg
 *.wpkds
-.vscode/settings.json
+
+# ide
+.vscode
