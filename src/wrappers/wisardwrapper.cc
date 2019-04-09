@@ -71,6 +71,15 @@ public:
     return _pyClassify<DataSet>(images);
   }
 
+  double score(const DataSet& dataset) {
+    double out = 0.0;
+    for(size_t i=0; i<dataset.size(); i++){
+      std::map<std::string,int> candidates = classify(dataset[i]);
+      out += classificationMethod->getBiggestCandidate(candidates) == dataset.getLabel(i) ? 1.0 : 0.0;
+    }
+    return out/dataset.size();
+  }
+
 protected:
   py::list getClassesDegrees(std::map<std::string, int> candidates) const{
     float total = 0;
