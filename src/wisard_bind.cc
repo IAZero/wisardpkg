@@ -127,6 +127,7 @@ PYBIND11_MODULE(wisardpkg, m){
       .def("classify", (py::list (ClusWisardWrapper::*)(const DataSet&)) &ClusWisardWrapper::pyClassify)
       .def("classifyUnsupervised", (py::list (ClusWisardWrapper::*)(const std::vector<std::vector<int>>&)) &ClusWisardWrapper::pyClassifyUnsupervised)
       .def("classifyUnsupervised", (py::list (ClusWisardWrapper::*)(const DataSet&)) &ClusWisardWrapper::pyClassifyUnsupervised)
+      .def("score", (double (ClusWisardWrapper::*)(const DataSet&)) &ClusWisardWrapper::score)
       .def("getMentalImage", &ClusWisardWrapper::getMentalImage)
       .def("getMentalImages", &ClusWisardWrapper::getMentalImages)
       .def("jsonConfig", &ClusWisardWrapper::jsonConfig)
