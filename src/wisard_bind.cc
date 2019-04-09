@@ -104,6 +104,7 @@ PYBIND11_MODULE(wisardpkg, m){
       .def("train", (void (WisardWrapper::*)(const DataSet&)) &WisardWrapper::train)
       .def("classify", (py::list (WisardWrapper::*)(const std::vector<std::vector<int>>&)) &WisardWrapper::pyClassify)
       .def("classify", (py::list (WisardWrapper::*)(const DataSet&)) &WisardWrapper::pyClassify)
+      .def("score", (double (WisardWrapper::*)(const DataSet&)) &WisardWrapper::score)
       .def("getMentalImages", &WisardWrapper::getMentalImages)
       .def("leaveOneOut", (void (WisardWrapper::*)(const std::vector<int>&, const std::string&)) &WisardWrapper::leaveOneOut)
       .def("leaveMoreOut", (void (WisardWrapper::*)(const std::vector<std::vector<int>>&, const std::vector<std::string>&)) &WisardWrapper::leaveMoreOut)
