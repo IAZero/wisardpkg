@@ -1,7 +1,7 @@
 /*
 
 wisardpkg for c++11
-version 1.6.3
+version 2.0.0a1
 https://github.com/IAZero/wisardpkg
 */
 
@@ -17304,7 +17304,7 @@ inline nlohmann::json::json_pointer operator "" _json_pointer(const char* s, std
 
 namespace wisardpkg {
 
-const std::string  __version__ = "1.6.3"; 
+const std::string  __version__ = "2.0.0a1"; 
 
 
 
@@ -17781,7 +17781,7 @@ public:
     return data[index];
   }
 
-  std::string getLabel(index_size_t index) const {
+  const std::string& getLabel(int index) const {
     return labels.at(index);
   }
 
@@ -17828,7 +17828,7 @@ private:
   std::unordered_map<int,std::string> labels;
 
   void addLabel(std::string label){
-    if(labels.size()>0) {
+    if(label.size()>0) {
       labels[data.size()]=label;
       labelIndices.push_back(data.size());
     }
