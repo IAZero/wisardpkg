@@ -179,11 +179,11 @@ public:
     return config.dump();
   }
 
-  long getsizeof(){
+  long getsizeof() const {
     long size = sizeof(ClusWisard);
     size += unsupervisedCluster.getsizeof();
-    for(std::map<std::string,Cluster>::iterator i=clusters.begin(); i!=clusters.end(); ++i){
-      size += i->first.size() + i->second.getsizeof();
+    for(auto& i: clusters){
+      size += i.first.size() + i.second.getsizeof();
     }
     return size;
   }

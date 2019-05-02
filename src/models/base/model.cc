@@ -2,8 +2,8 @@ class Model {
 public:
     // Model(std::string);
 
-    virtual void train(const DataSet& dataset);
-    virtual double score(const DataSet& dataset) const;
-    virtual long getsizeof() const;
+    virtual void train(const DataSet& dataset) = 0;
+    virtual double score(const DataSet& dataset) const = 0;
+    virtual long getsizeof() const = 0;
     virtual std::string json(const std::string filename="") const;
 };

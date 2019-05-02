@@ -138,7 +138,7 @@ public:
     return config;
   }
 
-  long getsizeof(){
+  long getsizeof() const{
     long size = sizeof(Discriminator);
     for(unsigned int i=0; i<rams.size(); i++){
       size += rams[i].getsizeof();

@@ -141,10 +141,10 @@ public:
     return discriminators.size();
   }
 
-  long getsizeof(){
+  long getsizeof() const{
     long size = sizeof(Cluster);
-    for(std::map<int, Discriminator*>::iterator d=discriminators.begin(); d!=discriminators.end(); ++d){
-      size += sizeof(int) + d->second->getsizeof();
+    for(auto& d: discriminators){
+      size += sizeof(int) + d.second->getsizeof();
     }
     return size;
   }

@@ -102,7 +102,7 @@ public:
     return addresses.size();
   }
 
-  long getsizeof(){
+  long getsizeof() const{
     long size = sizeof(RAM);
     size += addresses.size()*sizeof(addr_t);
     size += positions.size()*(sizeof(addr_t)+sizeof(content_t));
