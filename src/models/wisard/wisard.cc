@@ -83,19 +83,18 @@ public:
     }
   }
 
-  std::vector<std::string> classify(const DataSet& images){
+  std::vector<std::string> classify(const DataSet& images) const{
     std::vector<std::string> labels(images.size());
 
     for(unsigned int i=0; i<images.size(); i++){
       if(verbose) std::cout << "\rclassifying " << i+1 << " of " << images.size();
-      std::map<std::string,int> candidates = _classify(images[i]);
-      labels[i] = classificationMethod->getBiggestCandidate(candidates);
+      labels[i] = classify(images[i]);
     }
     if(verbose) std::cout << "\r" << std::endl;
     return labels;
   }
 
-  std::string classify(const BinInput& input){
+  std::string classify(const BinInput& input) const {
       std::map<std::string,int> candidates = _classify(input);
       return classificationMethod->getBiggestCandidate(candidates);
   }
