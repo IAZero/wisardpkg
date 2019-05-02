@@ -141,7 +141,7 @@ public:
     return mentalImages;
   }
 
-  std::string json(std::string filename="") {
+  std::string json(std::string filename="") const {
     nl::json config = {
       {"version", __version__},
       {"addressSize", addressSize},

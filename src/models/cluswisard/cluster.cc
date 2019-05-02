@@ -137,7 +137,7 @@ public:
     return config;
   }
 
-  int getSize(){
+  int getSize() const{
     return discriminators.size();
   }
 
