@@ -20,23 +20,31 @@ public:
     checkLimitAddressSize(indexes.size(), base);
   }
 
-  int getVote(const std::vector<int>& image){
-    return getVote<std::vector<int>>(image);
-  }
-
   int getVote(const BinInput& image){
-    return getVote<BinInput>(image);
-  }
-
-  void train(const std::vector<int>& image){
-    train<std::vector<int>>(image);
+    addr_t index = getIndex(image);
+    if(ignoreZero && index == 0)
+      return 0;
+    auto it = positions.find(index);
+    if(it == positions.end()){
+      return 0;
+    }
+    else{
+      return it->second;
+    }
   }
 
   void train(const BinInput& image){
-    train<BinInput>(image);
+    addr_t index = getIndex(image);
+    auto it = positions.find(index);
+    if(it == positions.end()){
+      positions.insert(it,std::pair<addr_t,content_t>(index, 1));
+    }
+    else{
+      it->second++;
+    }
   }
 
-  void untrain(const std::vector<int>& image){
+  void untrain(const BinInput& image){
       addr_t index = getIndex(image);
       auto it = positions.find(index);
       if(it != positions.end()){
@@ -69,7 +77,7 @@ public:
     return mentalPiece;
   }
 
-  nl::json getConfig(){
+  nl::json getJson() const{
     nl::json config = {
       {"ignoreZero", ignoreZero},
       {"base", base}
@@ -77,12 +85,12 @@ public:
     return config;
   }
 
-  std::string getData(){
+  std::string getData() const {
     RAMDataHandle handle(positions);
     return handle.data(0);
   }
 
-  void setMapping(std::vector<std::vector<int>>& mapping, int i){
+  void setMapping(std::vector<std::vector<int>>& mapping, int i) const {
     int size = addresses.size();
     mapping[i].resize(size);
     for(int j=0; j<size; j++) {
@@ -107,8 +115,7 @@ public:
   }
 
 protected:
-  template<typename T>
-  addr_t getIndex(const T& image) const{
+  addr_t getIndex(const BinInput& image) const{
     addr_t index = 0;
     addr_t p = 1;
     for(unsigned int i=0; i<addresses.size(); i++){
@@ -118,32 +125,6 @@ protected:
       p *= base;
     }
     return index;
-  }
-
-  template<typename T>
-  void train(const T& image){
-    addr_t index = getIndex<T>(image);
-    auto it = positions.find(index);
-    if(it == positions.end()){
-      positions.insert(it,std::pair<addr_t,content_t>(index, 1));
-    }
-    else{
-      it->second++;
-    }
-  }
-
-  template<typename T>
-  int getVote(const T& image){
-    addr_t index = getIndex<T>(image);
-    if(ignoreZero && index == 0)
-      return 0;
-    auto it = positions.find(index);
-    if(it == positions.end()){
-      return 0;
-    }
-    else{
-      return it->second;
-    }
   }
 
 

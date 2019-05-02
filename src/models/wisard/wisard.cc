@@ -1,5 +1,5 @@
 
-class Wisard{
+class Wisard: public ClassificationModel {
 public:
   Wisard(int addressSize): Wisard(addressSize, {}){}
   Wisard(int addressSize, nl::json c): addressSize(addressSize){
@@ -79,21 +79,12 @@ public:
     }
   }
 
-  void train(const std::vector<std::vector<int>>& images, const std::vector<std::string>& labels){
-    checkInputSizes(images.size(), labels.size());
-    for(unsigned int i=0; i<images.size(); i++){
-      if(verbose) std::cout << "\rtraining " << i+1 << " of " << images.size();
-      train<std::vector<int>>(images[i], labels[i]);
-    }
-    if(verbose) std::cout << "\r" << std::endl;
-  }
-
-  std::vector<std::string> classify(const std::vector<std::vector<int>>& images){
-    return _classify<std::vector<std::vector<int>>>(images);
-  }
-
   std::vector<std::string> classify(const DataSet& images){
     return _classify<DataSet>(images);
+  }
+
+  std::string classify(const BinInput& input){
+    return "";
   }
 
   void leaveOneOut(const std::vector<int>& image, const std::string& label){
@@ -120,24 +111,36 @@ public:
     return images;
   }
 
-  std::string jsonConfig(){
-    nl::json config = getConfig();
-    config["classes"] = getConfigClassesJSON();
-    return config.dump(2);
-  }
-
-  std::string json(bool huge, std::string path) {
-    nl::json config = getConfig();
-    config["classes"] = getClassesJSON(huge,path);
+  std::string json(std::string filename="") const {
+    nl::json config = {
+      {"version", __version__},
+      {"addressSize", addressSize},
+      {"verbose", verbose},
+      {"indexes", indexes},
+      {"ignoreZero", ignoreZero},
+      {"completeAddressing", completeAddressing},
+      {"classificationMethod", ClassificationMethods::json(classificationMethod)},
+      {"base", base},
+      {"returnConfidence", returnConfidence},
+      {"returnActivationDegree", returnActivationDegree},
+      {"returnClassesDegrees", returnClassesDegrees}
+    };
+    nl::json c;
+    bool isSave = filename.size() > 0;
+    for(auto& d : discriminators){
+      c[d.first] = d.second.getJson(isSave);
+    }
+    config["classes"] = c;
+    if(isSave){
+      std::string outfile = filename + config_sufix;
+      std::ofstream dataFile;
+      dataFile.open(outfile, std::ios::app);
+      dataFile << config.dump();
+      dataFile.close();
+      return filename;
+    }
     return config.dump();
   }
-  std::string json(bool huge) {
-    return json(huge,"");
-  }
-  std::string json() {
-    return json(false,"");
-  }
-
 
 protected:
   template<typename T>
@@ -177,39 +180,6 @@ protected:
       allvotes[i->first] = i->second.classify(image);
     }
     return classificationMethod->run(allvotes);
-  }
-
-  nl::json getClassesJSON(bool huge, std::string path){
-    nl::json c;
-    for(std::map<std::string, Discriminator>::iterator d=discriminators.begin(); d!=discriminators.end(); ++d){
-      c[d->first] = d->second.getJSON(huge,path+(d->first)+"__");
-    }
-    return c;
-  }
-
-  nl::json getConfigClassesJSON(){
-    nl::json c;
-    for(std::map<std::string, Discriminator>::iterator d=discriminators.begin(); d!=discriminators.end(); ++d){
-      c[d->first] = d->second.getConfigJSON();
-    }
-    return c;
-  }
-
-  nl::json getConfig(){
-    nl::json config = {
-      {"version", __version__},
-      {"addressSize", addressSize},
-      {"verbose", verbose},
-      {"indexes", indexes},
-      {"ignoreZero", ignoreZero},
-      {"completeAddressing", completeAddressing},
-      {"classificationMethod", ClassificationMethods::json(classificationMethod)},
-      {"base", base},
-      {"returnConfidence", returnConfidence},
-      {"returnActivationDegree", returnActivationDegree},
-      {"returnClassesDegrees", returnClassesDegrees}
-    };
-    return config;
   }
 
   void makeDiscriminator(std::string label, int entrySize){

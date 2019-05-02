@@ -1,7 +1,6 @@
 class Model {
 public:
-    Model(std::string);
-    Model(nl::json);
+    // Model(std::string);
 
     virtual void train(const DataSet& dataset);
     virtual double score(const DataSet& dataset) const;
