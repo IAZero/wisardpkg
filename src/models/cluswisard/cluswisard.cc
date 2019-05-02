@@ -1,5 +1,5 @@
 
-class ClusWisard{
+class ClusWisard: public ClassificationModel{
 public:
   ClusWisard(int addressSize, float minScore, int threshold, int discriminatorsLimit):
     ClusWisard(addressSize, minScore, threshold, discriminatorsLimit, {})
@@ -74,16 +74,6 @@ public:
       }
   }
 
-  void train(const std::vector<std::vector<int>>& images, const std::vector<std::string>& labels){
-    checkInputSizes(images.size(), labels.size());
-
-    for(unsigned int i=0; i<images.size(); i++){
-      if(verbose) std::cout << "\rtraining " << i+1 << " of " << images.size();
-      train(images[i],labels[i]);
-    }
-    if(verbose) std::cout << "\r" << std::endl;
-  }
-
   void train(const DataSet& images){
     int j=1;
     for(int i: images.getLabelIndices()){
@@ -97,52 +87,11 @@ public:
     }
   }
 
-  void train(const std::vector<std::vector<int>>& images, std::map<int, std::string>& labels){
-    checkInputLabels(images.size(), labels);
-
-    unsigned int size = images.size()-labels.size();
-    std::vector<int> labelless = std::vector<int>(size);
-    unsigned int j=0;
-    for(unsigned int i=0; i<images.size(); i++){
-      if(verbose) std::cout << "\rtraining supervised " << i+1 << " of " << images.size();
-      if(labels.find(i) == labels.end()){
-        if((labelless.size()-1) < j){
-          labelless.push_back(j++);
-        }
-        else{
-          labelless[j++] = i;
-        }
-      }
-      else{
-        train(images[i], labels[i]);
-      }
-    }
-    if(verbose) std::cout << "\r" << std::endl;
-
-    checkLabellessSize(images.size(), labelless.size());
-
-    for(unsigned int i=0; i<labelless.size(); i++){
-      if(verbose) std::cout << "\rtraining unsupervised " << i+1 << " of " << labelless.size();
-      train(images[i]);
-    }
-    if(verbose) std::cout << "\r" << std::endl;
-
-  }
-
   void trainUnsupervised(const DataSet& images){
     if((int)clusters.size()==0){
       unsupervisedCluster = Cluster(images[0].size(), addressSize, minScore, threshold, discriminatorsLimit, completeAddressing, ignoreZero);
     }
     for(int i: images.getUnlabelIndices()){
-      unsupervisedCluster.train(images[i]);
-    }
-  }
-
-  void trainUnsupervised(const std::vector<std::vector<int>>& images){
-    if((int)clusters.size()==0){
-      unsupervisedCluster = Cluster(images[0].size(), addressSize, minScore, threshold, discriminatorsLimit, completeAddressing, ignoreZero);
-    }
-    for(unsigned int i=0; i<images.size(); i++){
       unsupervisedCluster.train(images[i]);
     }
   }
@@ -167,10 +116,6 @@ public:
     return classifyUnsupervised<DataSet>(images);
   }
 
-  std::vector<std::string> classifyUnsupervised(const std::vector<std::vector<int>>& images){
-    return classifyUnsupervised<std::vector<std::vector<int>>>(images);
-  }
-
   std::vector<std::vector<int>> getMentalImage(std::string label){
     return clusters[label].getMentalImages();
   }
@@ -183,27 +128,42 @@ public:
     return mentalImages;
   }
 
-  std::string jsonConfig(){
-    nl::json config = getConfig();
-    return config.dump(2);
-  }
+  std::string json(std::string filename="") {
+    nl::json config = {
+      {"version", __version__},
+      {"addressSize", addressSize},
+      {"minScore", minScore},
+      {"threshold", threshold},
+      {"discriminatorsLimit", discriminatorsLimit},
+      {"verbose", verbose},
+      {"classificationMethod", ClassificationMethods::json(classificationMethod)},
+      {"ignoreZero", ignoreZero},
+      {"completeAddressing", completeAddressing},
+      {"base", base},
+      {"returnConfidence", returnConfidence},
+      {"returnActivationDegree", returnActivationDegree},
+      {"returnClassesDegrees", returnClassesDegrees}
+    };
 
-  std::string json(bool huge, std::string path) {
-    nl::json config = getConfig();
+    bool isSave = filename.size() > 0;
+
     if(clusters.size()>0){
-      config["clusters"] = getClustersJson(huge,path);
+      config["clusters"] = getClustersJson(isSave);
     }
     if(unsupervisedCluster.getSize()>0){
-      config["unsupervisedCluster"] = unsupervisedCluster.getJson(huge,path+"unsupervised_cluster__");
+      config["unsupervisedCluster"] = unsupervisedCluster.getJson(isSave);
     }
-    return config.dump();
-  }
 
-  std::string json(bool huge) {
-    return json(huge,"");
-  }
-  std::string json() {
-    return json(false,"");
+    if(isSave){
+      std::string outfile = filename + config_sufix;
+      std::ofstream dataFile;
+      dataFile.open(outfile, std::ios::app);
+      dataFile << config.dump();
+      dataFile.close();
+      return outfile;
+    }
+
+    return config.dump();
   }
 
   long getsizeof(){
@@ -342,30 +302,11 @@ protected:
     clusters[label] = Cluster(entrySize, addressSize, minScore, threshold, discriminatorsLimit, completeAddressing, ignoreZero, base);
   }
 
-  nl::json getClustersJson(bool huge, std::string path){
+  nl::json getClustersJson(bool isSave) const {
     nl::json config;
-    for(std::map<std::string,Cluster>::iterator i=clusters.begin(); i!=clusters.end(); ++i){
-      config[i->first] = i->second.getJson(huge,path+(i->first)+"__");
+    for(auto& i: clusters){
+      config[i.first] = i.second.getJson(isSave);
     }
-    return config;
-  }
-
-  nl::json getConfig(){
-    nl::json config = {
-      {"version", __version__},
-      {"addressSize", addressSize},
-      {"minScore", minScore},
-      {"threshold", threshold},
-      {"discriminatorsLimit", discriminatorsLimit},
-      {"verbose", verbose},
-      {"classificationMethod", ClassificationMethods::json(classificationMethod)},
-      {"ignoreZero", ignoreZero},
-      {"completeAddressing", completeAddressing},
-      {"base", base},
-      {"returnConfidence", returnConfidence},
-      {"returnActivationDegree", returnActivationDegree},
-      {"returnClassesDegrees", returnClassesDegrees}
-    };
     return config;
   }
 

@@ -61,16 +61,8 @@ public:
     return sum/(max*votes.size());
   }
 
-  void train(const std::vector<int>& image){
-    train<std::vector<int>>(image);
-  }
-
   void train(const BinInput& image){
     train<BinInput>(image);
-  }
-
-  std::vector<std::vector<int>> classify(const std::vector<int>& image){
-    return classify<std::vector<int>>(image);
   }
 
   std::vector<std::vector<int>> classify(const BinInput& image){
@@ -89,10 +81,10 @@ public:
     return images;
   }
 
-  nl::json getJson(bool huge, std::string path){
+  nl::json getJson(bool isSave) const {
     nl::json discriminatorsConfig;
-    for(std::map<int, Discriminator*>::iterator d=discriminators.begin(); d!=discriminators.end(); ++d){
-      discriminatorsConfig[d->first] = d->second->getJSON(huge, path+std::to_string(d->first)+"__");
+    for(auto& d :discriminators){
+      discriminatorsConfig[d.first] = d.second->getJson(isSave);
     }
 
     nl::json config = {
