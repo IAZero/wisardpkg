@@ -1,4 +1,4 @@
-from unittest import TestCase
+from unittest import TestCase, main
 import wisardpkg as wp
 import json
 
@@ -69,3 +69,6 @@ class DiscriminatorTestCase(TestCase):
             self.assertSequenceEqual(json.loads(d.json())["mapping"], mapping)
         except RuntimeError and TypeError:
             self.fail("mapping test fail!")
+
+if __name__ == '__main__':
+    main(verbosity=2)

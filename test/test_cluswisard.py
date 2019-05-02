@@ -1,4 +1,4 @@
-from unittest import TestCase
+from unittest import TestCase, main
 import wisardpkg as wp
 import json
 
@@ -116,3 +116,6 @@ class ClusWisardTestCase(TestCase):
             self.assertSequenceEqual(clus.classifyUnsupervised(self.X),clus2.classifyUnsupervised(self.X))
         except RuntimeError and TypeError:
             self.fail("unsupervised json test fail!")
+
+if __name__ == '__main__':
+    main(verbosity=2)

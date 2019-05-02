@@ -1,4 +1,4 @@
-from unittest import TestCase
+from unittest import TestCase, main
 import wisardpkg as wp
 from random import random
 
@@ -31,3 +31,6 @@ class KernelCanvasTestCase(TestCase):
 
         except RuntimeError and TypeError:
             self.fail("kernel canvas transform fail!")
+
+if __name__ == '__main__':
+    main(verbosity=2)
