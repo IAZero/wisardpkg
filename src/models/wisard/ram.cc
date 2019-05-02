@@ -20,7 +20,7 @@ public:
     checkLimitAddressSize(indexes.size(), base);
   }
 
-  int getVote(const BinInput& image){
+  int getVote(const BinInput& image) const {
     addr_t index = getIndex(image);
     if(ignoreZero && index == 0)
       return 0;

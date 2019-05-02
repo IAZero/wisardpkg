@@ -75,30 +75,38 @@ public:
   void train(const DataSet& dataset) {
     for(size_t i=0; i<dataset.size(); i++){
       if(verbose) std::cout << "\rtraining " << i+1 << " of " << dataset.size();
-      train<BinInput>(dataset[i], dataset.getLabel(i));
+        auto d = discriminators.find(dataset.getLabel(i));
+        if(d == discriminators.end()){
+          makeDiscriminator(dataset.getLabel(i), dataset[i].size());
+        }
+        d->second.train(dataset[i]);
     }
   }
 
   std::vector<std::string> classify(const DataSet& images){
-    return _classify<DataSet>(images);
+    std::vector<std::string> labels(images.size());
+
+    for(unsigned int i=0; i<images.size(); i++){
+      if(verbose) std::cout << "\rclassifying " << i+1 << " of " << images.size();
+      std::map<std::string,int> candidates = _classify(images[i]);
+      labels[i] = classificationMethod->getBiggestCandidate(candidates);
+    }
+    if(verbose) std::cout << "\r" << std::endl;
+    return labels;
   }
 
   std::string classify(const BinInput& input){
-    return "";
+      std::map<std::string,int> candidates = _classify(input);
+      return classificationMethod->getBiggestCandidate(candidates);
   }
 
-  void leaveOneOut(const std::vector<int>& image, const std::string& label){
-    auto d = discriminators.find(label);
-    if(d != discriminators.end()){
-      d->second.untrain(image);
-    }
-  }
-
-  void leaveMoreOut(const std::vector<std::vector<int>>& images, const std::vector<std::string>& labels){
-    checkInputSizes(images.size(), labels.size());
+  void untrain(const DataSet& images){
     for(unsigned int i=0; i<images.size(); i++){
       if(verbose) std::cout << "\runtraining " << i+1 << " of " << images.size();
-      leaveOneOut(images[i], labels[i]);
+        auto d = discriminators.find(images.getLabel(i));
+        if(d != discriminators.end()){
+          d->second.untrain(images[i]);
+        }
     }
     if(verbose) std::cout << "\r" << std::endl;
   }
@@ -143,41 +151,11 @@ public:
   }
 
 protected:
-  template<typename T>
-  void train(const T& image, const std::string& label){
-    if(discriminators.find(label) == discriminators.end()){
-      makeDiscriminator(label, image.size());
-    }
-    discriminators[label].train(image);
-  }
-
-  template<typename T>
-  std::vector<std::string> _classify(const T& images){
-    std::vector<std::string> labels(images.size());
-
-    for(unsigned int i=0; i<images.size(); i++){
-      if(verbose) std::cout << "\rclassifying " << i+1 << " of " << images.size();
-      std::map<std::string,int> candidates = classify(images[i]);
-      labels[i] = classificationMethod->getBiggestCandidate(candidates);
-    }
-    if(verbose) std::cout << "\r" << std::endl;
-    return labels;
-  }
-
-  std::map<std::string, int> classify(const std::vector<int>& image){
-    return __classify<std::vector<int>>(image);
-  }
-
-  std::map<std::string, int> classify(const BinInput& image){
-    return __classify<BinInput>(image);
-  }
-
-  template<typename T>
-  std::map<std::string, int> __classify(const T& image, bool searchBestConfidence=false){
+  std::map<std::string, int> _classify(const BinInput& image) const{
     std::map<std::string,std::vector<int>> allvotes;
 
-    for(std::map<std::string,Discriminator>::iterator i=discriminators.begin(); i!=discriminators.end(); ++i){
-      allvotes[i->first] = i->second.classify(image);
+    for(auto& i: discriminators){
+      allvotes[i.first] = i.second.classify(image);
     }
     return classificationMethod->run(allvotes);
   }
