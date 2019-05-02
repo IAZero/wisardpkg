@@ -28,6 +28,10 @@ includes = [
     'binarization/meanthresholding.cc',
     'binarization/thermometer.cc',
 
+    'models/base/model.cc',
+    'models/base/classificationmodel.cc',
+    'models/base/regressionmodel.cc',
+
     'models/wisard/ramdatahandle.cc',
     'models/wisard/ram.cc',
     'models/wisard/discriminator.cc',
