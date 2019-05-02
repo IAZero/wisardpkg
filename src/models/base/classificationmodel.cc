@@ -1,7 +1,7 @@
 class ClassificationModel: public Model {
 public:
-    virtual std::vector<std::string> classify(const DataSet& dataset) const;
-    virtual std::string classify(const BinInput& bininput) const;
+    virtual std::vector<std::string> classify(const DataSet& dataset) const = 0;
+    virtual std::string classify(const BinInput& bininput) const = 0;
 
     double score(const DataSet& dataset) const {
         double out = 0.0;
