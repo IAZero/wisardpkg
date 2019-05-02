@@ -3,8 +3,8 @@ public:
     Model(std::string);
     Model(nl::json);
 
-    virtual void train(DataSet& dataset);
-    virtual double score(DataSet& dataset);
-    virtual long getsizeof();
-    virtual std::string json(std::string filename="");
+    virtual void train(const DataSet& dataset);
+    virtual double score(const DataSet& dataset) const;
+    virtual long getsizeof() const;
+    virtual std::string json(const std::string filename="") const;
 };

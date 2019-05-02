@@ -1,5 +1,5 @@
 class RegressionModel: public Model {
 public:
-    virtual std::vector<double> predict(DataSet& dataset);
-    virtual double predict(BinInput& input);
+    virtual std::vector<double> predict(const DataSet& dataset) const;
+    virtual double predict(const BinInput& input) const;
 };
