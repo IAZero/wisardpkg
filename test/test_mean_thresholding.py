@@ -19,8 +19,8 @@ class MeanThresholdingTestCase(TestCase):
 
             out = mthresh.transform(data)
             expectedOut = wp.BinInput(expected)
-            a = [out[i] for i in range(out.size())]
-            b = [expectedOut[i] for i in range(expectedOut.size())]
+            a = [out[i] for i in range(len(out))]
+            b = [expectedOut[i] for i in range(len(expectedOut))]
             self.assertSequenceEqual(a, b)
         except RuntimeError and TypeError:
             self.fail("mean thresholding transform fail!")

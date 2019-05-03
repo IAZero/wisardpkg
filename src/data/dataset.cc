@@ -1,6 +1,7 @@
 class DataSet {
 public:
   DataSet(){}
+
   DataSet(std::string filename){
     int s = dataset_sufix.size();
     if(filename.substr(filename.size()-s,s).compare(dataset_sufix) != 0){
@@ -23,6 +24,34 @@ public:
     }
   }
 
+  DataSet(const std::vector<std::vector<short>>& data, const std::vector<std::string> labels){
+    add(data, labels);
+  }
+
+  DataSet(const std::vector<std::vector<short>>& data){
+    add(data);
+  }
+
+  DataSet(const std::vector<std::string>& data, const std::vector<std::string> labels){
+    add(data, labels);
+  }
+
+  DataSet(const std::vector<std::string>& data){
+    add(data);
+  }
+
+  ~DataSet(){
+    clear();
+  }
+
+  void add(const std::string& input){
+    add(BinInput(input),"");
+  }
+
+  void add(const std::string& input, const std::string& label){
+    add(BinInput(input), label);
+  }
+
   void add(const BinInput& input){
     add(input,"");
   }
@@ -40,16 +69,67 @@ public:
     data.push_back(BinInput(input));
   }
 
-  const BinInput& operator[](int index) const {
+  void add(const std::vector<std::vector<short>>& data, const std::vector<std::string> labels){
+    if (data.size() != labels.size()) {
+      throw Exception("The size of data is not the same of the size of labels!");
+    }
+    
+    for(size_t i = 0; i < data.size(); i++){
+      add(data[i], labels[i]);
+    }
+  }
+
+  void add(const std::vector<std::vector<short>>& data){
+    for(size_t i = 0; i < data.size(); i++){
+      add(data[i], "");
+    }
+  }
+
+  void add(const std::vector<std::string>& data, const std::vector<std::string> labels){
+    if (data.size() != labels.size()) {
+      throw Exception("The size of data is not the same of the size of labels!");
+    }
+    
+    for(size_t i = 0; i < data.size(); i++){
+      add(data[i], labels[i]);
+    }
+  }
+
+  void add(const std::vector<std::string>& data){
+    for(size_t i = 0; i < data.size(); i++){
+      add(data[i], "");
+    }
+  }
+
+  const BinInput& operator[](index_size_t index) const {
     return get(index);
   }
 
-  const BinInput& get(int index) const {
+  void set(index_size_t index, const BinInput& value){
+    if(index >= size()) {
+      throw Exception("Index out of range!");
+    }
+    data[index] = value;
+  }
+
+  const BinInput& get(index_size_t index) const {
     return data[index];
   }
 
-  const std::string& getLabel(int index) const {
+  const std::string& getLabel(index_size_t index) const {
     return labels.at(index);
+  }
+
+  const std::tuple<BinInput,std::string> at(index_size_t index) const {
+    return {get(index), getLabel(index)};
+  }
+
+  const std::vector<BinInput> getData() const {
+    return data;
+  }
+
+  const std::unordered_map<int,std::string>& getLabels() const {
+    return labels;
   }
 
   const std::vector<int>& getUnlabelIndices() const {
@@ -88,6 +168,17 @@ public:
     dataFile.close();
   }
 
+  // TODO: sample method
+
+  // TODO: addLabel/changeLabel at ith position
+
+  void clear(){
+    unlabelIndices.clear();
+    labelIndices.clear();
+    data.clear();
+    labels.clear();
+  }
+
 private:
   std::vector<int> unlabelIndices;
   std::vector<int> labelIndices;
@@ -104,3 +195,5 @@ private:
     }
   }
 };
+
+// TODO: concatenate funcion

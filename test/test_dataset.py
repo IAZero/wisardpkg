@@ -31,7 +31,7 @@ class DataSetTestCase(TestCase):
         try:
             ds = wp.DataSet()
             ds.add(wp.BinInput(self.X[0]))
-            self.assertEqual(1,ds.size())
+            self.assertEqual(1,len(ds))
         except RuntimeError and TypeError:
             self.fail("DataSet just add with bin test failed!")
 
@@ -39,7 +39,7 @@ class DataSetTestCase(TestCase):
         try:
             ds = wp.DataSet()
             ds.add(self.X[0])
-            self.assertEqual(1,ds.size())
+            self.assertEqual(1,len(ds))
         except RuntimeError and TypeError:
             self.fail("DataSet just add with vector test failed!")
 
@@ -47,7 +47,7 @@ class DataSetTestCase(TestCase):
         try:
             ds = wp.DataSet()
             ds.add(wp.BinInput(self.X[0]),self.y[0])
-            self.assertEqual(1,ds.size())
+            self.assertEqual(1,len(ds))
         except RuntimeError and TypeError:
             self.fail("DataSet just add with bin str test failed!")
 
@@ -55,7 +55,7 @@ class DataSetTestCase(TestCase):
         try:
             ds = wp.DataSet()
             ds.add(self.X[0],self.y[0])
-            self.assertEqual(1,ds.size())
+            self.assertEqual(1,len(ds))
         except RuntimeError and TypeError:
             self.fail("DataSet just add with vector str test failed!")
 
@@ -63,8 +63,8 @@ class DataSetTestCase(TestCase):
         try:
             ds = wp.DataSet()
             ds.add(wp.BinInput(self.X[0]))
-            bin = ds.get(0)
-            self.assertSequenceEqual(self.X[0],[bin[i] for i in range(bin.size())])
+            bin = ds[0]
+            self.assertSequenceEqual(self.X[0],[bin[i] for i in range(len(bin))])
         except RuntimeError and TypeError:
             self.fail("DataSet add with bin test failed!")
 
@@ -72,8 +72,8 @@ class DataSetTestCase(TestCase):
         try:
             ds = wp.DataSet()
             ds.add(self.X[0])
-            bin = ds.get(0)
-            self.assertSequenceEqual(self.X[0],[bin[i] for i in range(bin.size())])
+            bin = ds[0]
+            self.assertSequenceEqual(self.X[0],[bin[i] for i in range(len(bin))])
         except RuntimeError and TypeError:
             self.fail("DataSet add with vector test failed!")
 
@@ -81,8 +81,8 @@ class DataSetTestCase(TestCase):
         try:
             ds = wp.DataSet()
             ds.add(wp.BinInput(self.X[0]),self.y[0])
-            bin = ds.get(0)
-            self.assertSequenceEqual(self.X[0],[bin[i] for i in range(bin.size())])
+            bin = ds[0]
+            self.assertSequenceEqual(self.X[0],[bin[i] for i in range(len(bin))])
         except RuntimeError and TypeError:
             self.fail("DataSet add with bin str test failed!")
 
@@ -90,8 +90,8 @@ class DataSetTestCase(TestCase):
         try:
             ds = wp.DataSet()
             ds.add(self.X[0],self.y[0])
-            bin = ds.get(0)
-            self.assertSequenceEqual(self.X[0],[bin[i] for i in range(bin.size())])
+            bin = ds[0]
+            self.assertSequenceEqual(self.X[0],[bin[i] for i in range(len(bin))])
         except RuntimeError and TypeError:
             self.fail("DataSet add with vector str test failed!")
 
@@ -119,7 +119,7 @@ class DataSetTestCase(TestCase):
             ds = wp.DataSet()
             for x in self.X:
                 ds.add(x)
-            self.assertEqual(len(self.X),ds.size())
+            self.assertEqual(len(self.X),len(ds))
         except RuntimeError and TypeError:
             self.fail("DataSet size test failed!")
 
@@ -152,8 +152,8 @@ class DataSetTestCase(TestCase):
                 os.remove(out)
             for i,x in enumerate(self.X):
                 with self.subTest(i=i,type="bin"):
-                    bin = ds2.get(i)
-                    self.assertSequenceEqual(x,[bin[j] for j in range(bin.size())])
+                    bin = ds2[i]
+                    self.assertSequenceEqual(x,[bin[j] for j in range(len(bin))])
                 with self.subTest(i=i,type="label"):
                     label = ds2.getLabel(i)
                     self.assertEqual(label,self.y[i])

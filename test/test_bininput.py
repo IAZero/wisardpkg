@@ -23,7 +23,7 @@ class BinInputTestCase(TestCase):
     def test_get(self):
         try:
             bin = wp.BinInput(self.v)
-            self.assertSequenceEqual(self.v,[bin.get(i) for i in range(bin.size())])
+            self.assertSequenceEqual(self.v,[bin[i] for i in range(len(bin))])
         except RuntimeError and TypeError:
             self.fail("BinInput get test failed!")
 
@@ -31,9 +31,9 @@ class BinInputTestCase(TestCase):
         try:
             size = 10
             bin = wp.BinInput(size)
-            for i in range(bin.size()):
-                bin.set(i,1)
-            self.assertSequenceEqual([1]*size,[bin[i] for i in range(bin.size())])
+            for i in range(len(bin)):
+                bin[i] = 1
+            self.assertSequenceEqual([1]*size,[bin[i] for i in range(len(bin))])
         except RuntimeError and TypeError:
             self.fail("BinInput set test failed!")
 
@@ -48,7 +48,7 @@ class BinInputTestCase(TestCase):
     def test_build_with_data(self):
         try:
             bin = wp.BinInput(self.v_data)
-            self.assertSequenceEqual(self.v,[bin[i] for i in range(bin.size())])
+            self.assertSequenceEqual(self.v,[bin[i] for i in range(len(bin))])
         except RuntimeError and TypeError:
             self.fail("BinInput buil test with data failed!")
 
