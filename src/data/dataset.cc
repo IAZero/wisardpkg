@@ -23,6 +23,14 @@ public:
     }
   }
 
+  void add(const std::string& input){
+    add(BinInput(input),"");
+  }
+
+  void add(const std::string& input, const std::string& label){
+    add(BinInput(input), label);
+  }
+
   void add(const BinInput& input){
     add(input,"");
   }
@@ -38,6 +46,38 @@ public:
   void add(const std::vector<short>& input, const std::string& label){
     addLabel(label);
     data.push_back(BinInput(input));
+  }
+
+  void add(const std::vector<std::vector<short>>& data, const std::vector<std::string> labels){
+    if (data.size() != labels.size()) {
+      throw Exception("The size of data is not the same of the size of labels!");
+    }
+    
+    for(size_t i = 0; i < data.size(); i++){
+      add(data[i], labels[i]);
+    }
+  }
+
+  void add(const std::vector<std::vector<short>>& data){
+    for(size_t i = 0; i < data.size(); i++){
+      add(data[i], "");
+    }
+  }
+
+  void add(const std::vector<std::string>& data, const std::vector<std::string> labels){
+    if (data.size() != labels.size()) {
+      throw Exception("The size of data is not the same of the size of labels!");
+    }
+    
+    for(size_t i = 0; i < data.size(); i++){
+      add(data[i], labels[i]);
+    }
+  }
+
+  void add(const std::vector<std::string>& data){
+    for(size_t i = 0; i < data.size(); i++){
+      add(data[i], "");
+    }
   }
 
   const BinInput& operator[](int index) const {
