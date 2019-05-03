@@ -11,9 +11,8 @@ PYBIND11_MODULE(wisardpkg, m){
       .def(py::init<const std::vector<short>&>())
       .def(py::init<const std::string&>())
       .def("__getitem__", &BinInput::get)
-      .def("get", &BinInput::get)
-      .def("set", &BinInput::set)
-      .def("size", &BinInput::size)
+      .def("__setitem__", &BinInput::set)
+      .def("__len__", &BinInput::size)
       .def("data", &BinInput::data)
     ;
 
@@ -24,9 +23,10 @@ PYBIND11_MODULE(wisardpkg, m){
       .def("add", (void (DataSet::*)(const BinInput&,const std::string&)) &DataSet::add)
       .def("add", (void (DataSet::*)(const std::vector<short>&)) &DataSet::add)
       .def("add", (void (DataSet::*)(const std::vector<short>&,const std::string&)) &DataSet::add)
-      .def("get", &DataSet::get)
       .def("getLabel", &DataSet::getLabel)
-      .def("size", &DataSet::size)
+      .def("__getitem__", &DataSet::get)
+      .def("__setitem__", &DataSet::set)
+      .def("__len__", &DataSet::size)
       .def("save", &DataSet::save)
     ;
 

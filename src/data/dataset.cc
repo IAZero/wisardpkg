@@ -101,19 +101,26 @@ public:
     }
   }
 
-  const BinInput& operator[](int index) const {
+  const BinInput& operator[](index_size_t index) const {
     return get(index);
   }
 
-  const BinInput& get(int index) const {
+  void set(index_size_t index, const BinInput& value){
+    if(index >= size()) {
+      throw Exception("Index out of range!");
+    }
+    data[index] = value;
+  }
+
+  const BinInput& get(index_size_t index) const {
     return data[index];
   }
 
-  const std::string& getLabel(int index) const {
+  const std::string& getLabel(index_size_t index) const {
     return labels.at(index);
   }
 
-  const std::tuple<BinInput,std::string> at(int index) const {
+  const std::tuple<BinInput,std::string> at(index_size_t index) const {
     return {get(index), getLabel(index)};
   }
 
