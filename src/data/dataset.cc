@@ -40,6 +40,10 @@ public:
     add(data);
   }
 
+  ~DataSet(){
+    clear();
+  }
+
   void add(const std::string& input){
     add(BinInput(input),"");
   }
@@ -109,6 +113,18 @@ public:
     return labels.at(index);
   }
 
+  const std::tuple<BinInput,std::string> at(int index) const {
+    return {get(index), getLabel(index)};
+  }
+
+  const std::vector<BinInput> getData() const {
+    return data;
+  }
+
+  const std::unordered_map<int,std::string>& getLabels() const {
+    return labels;
+  }
+
   const std::vector<int>& getUnlabelIndices() const {
     return unlabelIndices;
   }
@@ -145,6 +161,17 @@ public:
     dataFile.close();
   }
 
+  // TODO: sample method
+
+  // TODO: addLabel/changeLabel at ith position
+
+  void clear(){
+    unlabelIndices.clear();
+    labelIndices.clear();
+    data.clear();
+    labels.clear();
+  }
+
 private:
   std::vector<int> unlabelIndices;
   std::vector<int> labelIndices;
@@ -161,3 +188,5 @@ private:
     }
   }
 };
+
+// TODO: concatenate funcion
