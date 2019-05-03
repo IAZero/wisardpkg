@@ -76,13 +76,15 @@ PYBIND11_MODULE(wisardpkg, m){
       .def("train", (void (DiscriminatorWrapper::*)(const BinInput&)) &DiscriminatorWrapper::train)
       .def("train", (void (DiscriminatorWrapper::*)(const DataSet&)) &DiscriminatorWrapper::train)
       .def("classify", &DiscriminatorWrapper::classify)
-      .def("json", &DiscriminatorWrapper::json)
+      .def("json", (std::string (DiscriminatorWrapper::*)() const) &DiscriminatorWrapper::json)
+      .def("json", (std::string (DiscriminatorWrapper::*)(std::string) const) &DiscriminatorWrapper::json)
       .def("getsizeof", &DiscriminatorWrapper::getsizeof)
     ;
 
     py::class_<Model>(m, "Model", py::module_local())
       .def("train", &Model::train)
-      .def("json", &Model::json)
+      .def("json", (std::string (Model::*)() const) &Model::json)
+      .def("json", (std::string (Model::*)(std::string) const) &Model::json)
       .def("score", &Model::score)
       .def("getsizeof", &Model::getsizeof)
     ;

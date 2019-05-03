@@ -112,7 +112,11 @@ public:
     return mentalImage;
   }
 
-  std::string json(std::string filename="") const {
+  std::string json() const {
+    return json("");
+  }
+
+  std::string json(std::string filename) const {
     nl::json config = getConfig();
     if(!rams.empty()){
       config.merge_patch(rams[0].getJson());
