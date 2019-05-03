@@ -1,4 +1,4 @@
-from unittest import TestCase
+from unittest import TestCase, main
 import wisardpkg as wp
 
 class DataSetTestCase(TestCase):
@@ -159,3 +159,6 @@ class DataSetTestCase(TestCase):
                     self.assertEqual(label,self.y[i])
         except RuntimeError and TypeError:
             self.fail("DataSet load test failed!")
+
+if __name__ == '__main__':
+    main(verbosity=2)

@@ -1,4 +1,4 @@
-from unittest import TestCase
+from unittest import TestCase, main
 import wisardpkg as wp
 
 class SynthesizerTestCase(TestCase):
@@ -27,3 +27,6 @@ class SynthesizerTestCase(TestCase):
 
         except RuntimeError and TypeError:
             self.fail("Synthesizer make test failed!")
+
+if __name__ == '__main__':
+    main(verbosity=2)

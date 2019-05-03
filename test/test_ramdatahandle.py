@@ -1,4 +1,4 @@
-from unittest import TestCase
+from unittest import TestCase, main
 import wisardpkg as wp
 
 class RAMDataHandleTestCase(TestCase):
@@ -60,3 +60,6 @@ AgAAAAAAAAABAAAAAwAAAAAAAAABAAAA"
                 self.assertDictEqual(bin2.get(0),d2[0])
         except RuntimeError and TypeError:
             self.fail("data test failed!")
+
+if __name__ == '__main__':
+    main(verbosity=2)

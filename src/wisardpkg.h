@@ -35,6 +35,9 @@ namespace nl = nlohmann;
 #include "binarization/thermometer.cc"
 
 //wisard model
+#include "models/base/model.cc"
+#include "models/base/classificationmodel.cc"
+#include "models/base/regressionmodel.cc"
 #include "models/wisard/ramdatahandle.cc"
 #include "models/wisard/ram.cc"
 #include "models/wisard/discriminator.cc"

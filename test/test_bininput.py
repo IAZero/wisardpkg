@@ -1,4 +1,4 @@
-from unittest import TestCase
+from unittest import TestCase, main
 import wisardpkg as wp
 
 class BinInputTestCase(TestCase):
@@ -51,3 +51,6 @@ class BinInputTestCase(TestCase):
             self.assertSequenceEqual(self.v,[bin[i] for i in range(bin.size())])
         except RuntimeError and TypeError:
             self.fail("BinInput buil test with data failed!")
+
+if __name__ == '__main__':
+    main(verbosity=2)

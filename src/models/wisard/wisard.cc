@@ -1,5 +1,5 @@
 
-class Wisard{
+class Wisard: public ClassificationModel {
 public:
   Wisard(int addressSize): Wisard(addressSize, {}){}
   Wisard(int addressSize, nl::json c): addressSize(addressSize){
@@ -58,11 +58,11 @@ public:
     }
   }
 
-  long getsizeof(){
+  long getsizeof() const{
     long size = sizeof(Wisard);
     size += sizeof(int)*indexes.size();
-    for(std::map<std::string, Discriminator>::iterator d=discriminators.begin(); d!=discriminators.end(); ++d){
-      size += d->first.size() + d->second.getsizeof();
+    for(auto& d: discriminators){
+      size += d.first.size() + d.second.getsizeof();
     }
     return size;
   }
@@ -75,39 +75,36 @@ public:
   void train(const DataSet& dataset) {
     for(size_t i=0; i<dataset.size(); i++){
       if(verbose) std::cout << "\rtraining " << i+1 << " of " << dataset.size();
-      train<BinInput>(dataset[i], dataset.getLabel(i));
+      if(discriminators.find(dataset.getLabel(i)) == discriminators.end()){
+        makeDiscriminator(dataset.getLabel(i), dataset[i].size());
+      }
+      discriminators[dataset.getLabel(i)].train(dataset[i]);
     }
   }
 
-  void train(const std::vector<std::vector<int>>& images, const std::vector<std::string>& labels){
-    checkInputSizes(images.size(), labels.size());
+  std::vector<std::string> classify(const DataSet& images) const{
+    std::vector<std::string> labels(images.size());
+
     for(unsigned int i=0; i<images.size(); i++){
-      if(verbose) std::cout << "\rtraining " << i+1 << " of " << images.size();
-      train<std::vector<int>>(images[i], labels[i]);
+      if(verbose) std::cout << "\rclassifying " << i+1 << " of " << images.size();
+      labels[i] = classify(images[i]);
     }
     if(verbose) std::cout << "\r" << std::endl;
+    return labels;
   }
 
-  std::vector<std::string> classify(const std::vector<std::vector<int>>& images){
-    return _classify<std::vector<std::vector<int>>>(images);
+  std::string classify(const BinInput& input) const {
+      std::map<std::string,int> candidates = _classify(input);
+      return classificationMethod->getBiggestCandidate(candidates);
   }
 
-  std::vector<std::string> classify(const DataSet& images){
-    return _classify<DataSet>(images);
-  }
-
-  void leaveOneOut(const std::vector<int>& image, const std::string& label){
-    auto d = discriminators.find(label);
-    if(d != discriminators.end()){
-      d->second.untrain(image);
-    }
-  }
-
-  void leaveMoreOut(const std::vector<std::vector<int>>& images, const std::vector<std::string>& labels){
-    checkInputSizes(images.size(), labels.size());
+  void untrain(const DataSet& images){
     for(unsigned int i=0; i<images.size(); i++){
       if(verbose) std::cout << "\runtraining " << i+1 << " of " << images.size();
-      leaveOneOut(images[i], labels[i]);
+        auto d = discriminators.find(images.getLabel(i));
+        if(d != discriminators.end()){
+          d->second.untrain(images[i]);
+        }
     }
     if(verbose) std::cout << "\r" << std::endl;
   }
@@ -120,82 +117,7 @@ public:
     return images;
   }
 
-  std::string jsonConfig(){
-    nl::json config = getConfig();
-    config["classes"] = getConfigClassesJSON();
-    return config.dump(2);
-  }
-
-  std::string json(bool huge, std::string path) {
-    nl::json config = getConfig();
-    config["classes"] = getClassesJSON(huge,path);
-    return config.dump();
-  }
-  std::string json(bool huge) {
-    return json(huge,"");
-  }
-  std::string json() {
-    return json(false,"");
-  }
-
-
-protected:
-  template<typename T>
-  void train(const T& image, const std::string& label){
-    if(discriminators.find(label) == discriminators.end()){
-      makeDiscriminator(label, image.size());
-    }
-    discriminators[label].train(image);
-  }
-
-  template<typename T>
-  std::vector<std::string> _classify(const T& images){
-    std::vector<std::string> labels(images.size());
-
-    for(unsigned int i=0; i<images.size(); i++){
-      if(verbose) std::cout << "\rclassifying " << i+1 << " of " << images.size();
-      std::map<std::string,int> candidates = classify(images[i]);
-      labels[i] = classificationMethod->getBiggestCandidate(candidates);
-    }
-    if(verbose) std::cout << "\r" << std::endl;
-    return labels;
-  }
-
-  std::map<std::string, int> classify(const std::vector<int>& image){
-    return __classify<std::vector<int>>(image);
-  }
-
-  std::map<std::string, int> classify(const BinInput& image){
-    return __classify<BinInput>(image);
-  }
-
-  template<typename T>
-  std::map<std::string, int> __classify(const T& image, bool searchBestConfidence=false){
-    std::map<std::string,std::vector<int>> allvotes;
-
-    for(std::map<std::string,Discriminator>::iterator i=discriminators.begin(); i!=discriminators.end(); ++i){
-      allvotes[i->first] = i->second.classify(image);
-    }
-    return classificationMethod->run(allvotes);
-  }
-
-  nl::json getClassesJSON(bool huge, std::string path){
-    nl::json c;
-    for(std::map<std::string, Discriminator>::iterator d=discriminators.begin(); d!=discriminators.end(); ++d){
-      c[d->first] = d->second.getJSON(huge,path+(d->first)+"__");
-    }
-    return c;
-  }
-
-  nl::json getConfigClassesJSON(){
-    nl::json c;
-    for(std::map<std::string, Discriminator>::iterator d=discriminators.begin(); d!=discriminators.end(); ++d){
-      c[d->first] = d->second.getConfigJSON();
-    }
-    return c;
-  }
-
-  nl::json getConfig(){
+  std::string json(std::string filename="") const {
     nl::json config = {
       {"version", __version__},
       {"addressSize", addressSize},
@@ -209,7 +131,31 @@ protected:
       {"returnActivationDegree", returnActivationDegree},
       {"returnClassesDegrees", returnClassesDegrees}
     };
-    return config;
+    nl::json c;
+    bool isSave = filename.size() > 0;
+    for(auto& d : discriminators){
+      c[d.first] = d.second.getJson(isSave);
+    }
+    config["classes"] = c;
+    if(isSave){
+      std::string outfile = filename + config_sufix;
+      std::ofstream dataFile;
+      dataFile.open(outfile, std::ios::app);
+      dataFile << config.dump();
+      dataFile.close();
+      return filename;
+    }
+    return config.dump();
+  }
+
+protected:
+  std::map<std::string, int> _classify(const BinInput& image) const{
+    std::map<std::string,std::vector<int>> allvotes;
+
+    for(auto& i: discriminators){
+      allvotes[i.first] = i.second.classify(image);
+    }
+    return classificationMethod->run(allvotes);
   }
 
   void makeDiscriminator(std::string label, int entrySize){

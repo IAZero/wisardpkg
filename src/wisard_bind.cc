@@ -73,16 +73,30 @@ PYBIND11_MODULE(wisardpkg, m){
     py::class_<DiscriminatorWrapper>(m, "Discriminator", py::module_local())
       .def(py::init<std::string>())
       .def(py::init<int,int,py::kwargs>())
-      .def("train", (void (DiscriminatorWrapper::*)(const std::vector<int>&)) &DiscriminatorWrapper::train)
       .def("train", (void (DiscriminatorWrapper::*)(const BinInput&)) &DiscriminatorWrapper::train)
-      .def("train", (void (DiscriminatorWrapper::*)(const std::vector<std::vector<int>>&)) &DiscriminatorWrapper::train)
-      .def("classify", (std::vector<int> (DiscriminatorWrapper::*)(const std::vector<int>&)) &DiscriminatorWrapper::classify)
-      .def("classify", (std::vector<int> (DiscriminatorWrapper::*)(const BinInput&)) &DiscriminatorWrapper::classify)
-      .def("jsonConfig",(std::string (DiscriminatorWrapper::*)())  &DiscriminatorWrapper::jsonConfig)
-      .def("json", (std::string (DiscriminatorWrapper::*)()) &DiscriminatorWrapper::json)
-      .def("json", (std::string (DiscriminatorWrapper::*)(bool)) &DiscriminatorWrapper::json)
-      .def("json", (std::string (DiscriminatorWrapper::*)(bool,std::string)) &DiscriminatorWrapper::json)
+      .def("train", (void (DiscriminatorWrapper::*)(const DataSet&)) &DiscriminatorWrapper::train)
+      .def("classify", &DiscriminatorWrapper::classify)
+      .def("json", (std::string (DiscriminatorWrapper::*)() const) &DiscriminatorWrapper::json)
+      .def("json", (std::string (DiscriminatorWrapper::*)(std::string) const) &DiscriminatorWrapper::json)
       .def("getsizeof", &DiscriminatorWrapper::getsizeof)
+    ;
+
+    py::class_<Model>(m, "Model", py::module_local())
+      .def("train", &Model::train)
+      .def("json", (std::string (Model::*)() const) &Model::json)
+      .def("json", (std::string (Model::*)(std::string) const) &Model::json)
+      .def("score", &Model::score)
+      .def("getsizeof", &Model::getsizeof)
+    ;
+
+    py::class_<ClassificationModel, Model>(m, "ClassificationModel", py::module_local())
+      .def("classify", (std::vector<std::string> (ClassificationModel::*)(const DataSet&) const) &ClassificationModel::classify)
+      .def("classify", (std::string (ClassificationModel::*)(const BinInput&) const) &ClassificationModel::classify)
+    ;
+
+    py::class_<RegressionModel, Model>(m, "RegressionModel", py::module_local())
+      .def("predict", (std::vector<double> (RegressionModel::*)(const DataSet&) const) &RegressionModel::predict)
+      .def("predict", (double (RegressionModel::*)(const BinInput&) const) &RegressionModel::predict)
     ;
 
     // classification methods
@@ -97,44 +111,21 @@ PYBIND11_MODULE(wisardpkg, m){
     ;
 
     // models
-    py::class_<WisardWrapper>(m, "Wisard", py::module_local())
+    py::class_<WisardWrapper, ClassificationModel>(m, "Wisard", py::module_local())
       .def(py::init<std::string>())
       .def(py::init<int,py::kwargs>())
-      .def("train", (void (WisardWrapper::*)(const std::vector<std::vector<int>>&, const std::vector<std::string>&)) &WisardWrapper::train)
-      .def("train", (void (WisardWrapper::*)(const DataSet&)) &WisardWrapper::train)
-      .def("classify", (py::list (WisardWrapper::*)(const std::vector<std::vector<int>>&)) &WisardWrapper::pyClassify)
-      .def("classify", (py::list (WisardWrapper::*)(const DataSet&)) &WisardWrapper::pyClassify)
-      .def("score", (double (WisardWrapper::*)(const DataSet&)) &WisardWrapper::score)
       .def("getMentalImages", &WisardWrapper::getMentalImages)
-      .def("leaveOneOut", (void (WisardWrapper::*)(const std::vector<int>&, const std::string&)) &WisardWrapper::leaveOneOut)
-      .def("leaveMoreOut", (void (WisardWrapper::*)(const std::vector<std::vector<int>>&, const std::vector<std::string>&)) &WisardWrapper::leaveMoreOut)
-      .def("jsonConfig", &WisardWrapper::jsonConfig)
-      .def("json", (std::string (WisardWrapper::*)()) &WisardWrapper::json)
-      .def("json", (std::string (WisardWrapper::*)(bool)) &WisardWrapper::json)
-      .def("json", (std::string (WisardWrapper::*)(bool,std::string)) &WisardWrapper::json)
-      .def("getsizeof", &WisardWrapper::getsizeof)
+      .def("untrain", &WisardWrapper::untrain)
     ;
 
-    py::class_<ClusWisardWrapper>(m, "ClusWisard", py::module_local())
+    py::class_<ClusWisardWrapper, ClassificationModel>(m, "ClusWisard", py::module_local())
       .def(py::init<std::string>())
       .def(py::init<int, float, int, int, py::kwargs>())
-      .def("train", (void (ClusWisardWrapper::*)(const std::vector<std::vector<int>>&, const std::vector<std::string>&)) &ClusWisardWrapper::train)
-      .def("train", (void (ClusWisardWrapper::*)(const std::vector<std::vector<int>>&, std::map<int, std::string>&)) &ClusWisardWrapper::train)
-      .def("train", (void (ClusWisardWrapper::*)(const DataSet&)) &ClusWisardWrapper::train)
-      .def("trainUnsupervised", (void (ClusWisardWrapper::*)(const std::vector<std::vector<int>>&)) &ClusWisardWrapper::trainUnsupervised)
       .def("trainUnsupervised", (void (ClusWisardWrapper::*)(const DataSet&)) &ClusWisardWrapper::trainUnsupervised)
-      .def("classify", (py::list (ClusWisardWrapper::*)(const std::vector<std::vector<int>>&)) &ClusWisardWrapper::pyClassify)
-      .def("classify", (py::list (ClusWisardWrapper::*)(const DataSet&)) &ClusWisardWrapper::pyClassify)
-      .def("classifyUnsupervised", (py::list (ClusWisardWrapper::*)(const std::vector<std::vector<int>>&)) &ClusWisardWrapper::pyClassifyUnsupervised)
-      .def("classifyUnsupervised", (py::list (ClusWisardWrapper::*)(const DataSet&)) &ClusWisardWrapper::pyClassifyUnsupervised)
-      .def("score", (double (ClusWisardWrapper::*)(const DataSet&)) &ClusWisardWrapper::score)
+      .def("classifyUnsupervised", (std::vector<std::string> (ClusWisardWrapper::*)(const DataSet&) const) &ClusWisardWrapper::classifyUnsupervised)
+      .def("classifyUnsupervised", (std::string (ClusWisardWrapper::*)(const BinInput&) const) &ClusWisardWrapper::classifyUnsupervised)
       .def("getMentalImage", &ClusWisardWrapper::getMentalImage)
       .def("getMentalImages", &ClusWisardWrapper::getMentalImages)
-      .def("jsonConfig", &ClusWisardWrapper::jsonConfig)
-      .def("json", (std::string (ClusWisardWrapper::*)()) &ClusWisardWrapper::json)
-      .def("json", (std::string (ClusWisardWrapper::*)(bool)) &ClusWisardWrapper::json)
-      .def("json", (std::string (ClusWisardWrapper::*)(bool,std::string)) &ClusWisardWrapper::json)
-      .def("getsizeof", &ClusWisardWrapper::getsizeof)
     ;
 
 }

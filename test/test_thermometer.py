@@ -1,4 +1,4 @@
-from unittest import TestCase
+from unittest import TestCase, main
 import wisardpkg as wp
 
 class ThermometerTestCase(TestCase):
@@ -27,3 +27,6 @@ class ThermometerTestCase(TestCase):
                 
         except RuntimeError and TypeError:
             self.fail("thresthermometerholding transform fail!")
+
+if __name__ == '__main__':
+    main(verbosity=2)

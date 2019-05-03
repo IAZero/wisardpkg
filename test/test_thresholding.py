@@ -1,4 +1,4 @@
-from unittest import TestCase
+from unittest import TestCase, main
 import wisardpkg as wp
 
 class ThresholdingTestCase(TestCase):
@@ -25,3 +25,6 @@ class ThresholdingTestCase(TestCase):
             self.assertSequenceEqual(a, b)
         except RuntimeError and TypeError:
             self.fail("thresholding transform fail!")
+
+if __name__ == '__main__':
+    main(verbosity=2)

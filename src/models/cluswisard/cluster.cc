@@ -61,80 +61,7 @@ public:
     return sum/(max*votes.size());
   }
 
-  void train(const std::vector<int>& image){
-    train<std::vector<int>>(image);
-  }
-
   void train(const BinInput& image){
-    train<BinInput>(image);
-  }
-
-  std::vector<std::vector<int>> classify(const std::vector<int>& image){
-    return classify<std::vector<int>>(image);
-  }
-
-  std::vector<std::vector<int>> classify(const BinInput& image){
-    return classify<BinInput>(image);
-  }
-
-  unsigned int getNumberOfDiscriminators(){
-    return discriminators.size();
-  }
-
-  std::vector<std::vector<int>> getMentalImages(){
-    std::vector<std::vector<int>> images(discriminators.size());
-    for(std::map<int, Discriminator*>::iterator d=discriminators.begin(); d!=discriminators.end(); ++d){
-      images[d->first] = d->second->getMentalImage();
-    }
-    return images;
-  }
-
-  nl::json getJson(bool huge, std::string path){
-    nl::json discriminatorsConfig;
-    for(std::map<int, Discriminator*>::iterator d=discriminators.begin(); d!=discriminators.end(); ++d){
-      discriminatorsConfig[d->first] = d->second->getJSON(huge, path+std::to_string(d->first)+"__");
-    }
-
-    nl::json config = {
-      {"entrySize", entrySize},
-      {"discriminators", discriminatorsConfig}
-    };
-    return config;
-  }
-
-  int getSize(){
-    return discriminators.size();
-  }
-
-  long getsizeof(){
-    long size = sizeof(Cluster);
-    for(std::map<int, Discriminator*>::iterator d=discriminators.begin(); d!=discriminators.end(); ++d){
-      size += sizeof(int) + d->second->getsizeof();
-    }
-    return size;
-  }
-
-  ~Cluster(){
-    discriminators.clear();
-  }
-
-private:
-  std::map<int,Discriminator*> discriminators;
-  unsigned int addressSize;
-  unsigned int entrySize;
-  float minScore;
-  unsigned int threshold;
-  int discriminatorsLimit;
-  bool completeAddressing;
-  bool ignoreZero;
-  int base;
-
-  void makeDiscriminator(const int index){
-    discriminators[index] = new Discriminator(addressSize, entrySize, ignoreZero, completeAddressing, base);
-  }
-
-  template<typename T>
-  void train(const T& image){
     if(discriminators.size()==0){
       makeDiscriminator(0);
       discriminators[0]->train(image);
@@ -176,12 +103,68 @@ private:
     }
   }
 
-  template<typename T>
-  std::vector<std::vector<int>> classify(const T& image){
+  std::vector<std::vector<int>> classify(const BinInput& image) const{
     std::vector<std::vector<int>> output(discriminators.size());
     for(unsigned int i=0; i<discriminators.size(); i++){
-      output[i] = discriminators[i]->classify(image);
+      auto d = discriminators.at(i);
+      output[i] = d->classify(image);
     }
     return output;
+  }
+
+  unsigned int getNumberOfDiscriminators(){
+    return discriminators.size();
+  }
+
+  std::vector<std::vector<int>> getMentalImages(){
+    std::vector<std::vector<int>> images(discriminators.size());
+    for(std::map<int, Discriminator*>::iterator d=discriminators.begin(); d!=discriminators.end(); ++d){
+      images[d->first] = d->second->getMentalImage();
+    }
+    return images;
+  }
+
+  nl::json getJson(bool isSave) const {
+    nl::json discriminatorsConfig;
+    for(auto& d :discriminators){
+      discriminatorsConfig[d.first] = d.second->getJson(isSave);
+    }
+
+    nl::json config = {
+      {"entrySize", entrySize},
+      {"discriminators", discriminatorsConfig}
+    };
+    return config;
+  }
+
+  int getSize() const{
+    return discriminators.size();
+  }
+
+  long getsizeof() const{
+    long size = sizeof(Cluster);
+    for(auto& d: discriminators){
+      size += sizeof(int) + d.second->getsizeof();
+    }
+    return size;
+  }
+
+  ~Cluster(){
+    discriminators.clear();
+  }
+
+private:
+  std::map<int,Discriminator*> discriminators;
+  unsigned int addressSize;
+  unsigned int entrySize;
+  float minScore;
+  unsigned int threshold;
+  int discriminatorsLimit;
+  bool completeAddressing;
+  bool ignoreZero;
+  int base;
+
+  void makeDiscriminator(const int index){
+    discriminators[index] = new Discriminator(addressSize, entrySize, ignoreZero, completeAddressing, base);
   }
 };

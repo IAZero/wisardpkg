@@ -61,29 +61,30 @@ public:
     setRAMByMapping(mapping, ignoreZero, base);
   }
 
-  std::vector<int> classify(const std::vector<int>& image) {
-    return _classify<std::vector<int>>(image);
-  }
-
-  std::vector<int> classify(const BinInput& image) {
-    return _classify<BinInput>(image);
-  }
-
-  void train(const std::vector<int>& image){
-    train<std::vector<int>>(image);
+  std::vector<int> classify(const BinInput& image) const {
+    checkEntrySize(image.size());
+    std::vector<int> votes(rams.size());
+    for(unsigned int i=0; i<rams.size(); i++){
+      votes[i] = rams[i].getVote(image);
+    }
+    return votes;
   }
 
   void train(const BinInput& image) {
-    train<BinInput>(image);
+    checkEntrySize(image.size());
+    count++;
+    for(unsigned int i=0; i<rams.size(); i++){
+      rams[i].train(image);
+    }
   }
 
-  void train(const std::vector<std::vector<int>>& image){
+  void train(const DataSet& image){
     for(unsigned int i=0; i<image.size(); i++){
       train(image[i]);
     }
   }
 
-  void untrain(const std::vector<int>& image){
+  void untrain(const BinInput& image){
       checkEntrySize(image.size());
       count--;
       for(unsigned int i=0; i<rams.size(); i++){
@@ -111,48 +112,37 @@ public:
     return mentalImage;
   }
 
-  std::string jsonConfig(){
-    nl::json config = getConfig(false);
-    if(!rams.empty()){
-      config.merge_patch(rams[0].getConfig());
-    }
-    // config["rams"] = getRAMSJSON(false);
-    config["version"] = __version__;
-    return config.dump(2);
+  std::string json() const {
+    return json("");
   }
 
-  std::string json(bool huge, std::string path){
+  std::string json(std::string filename) const {
     nl::json config = getConfig();
     if(!rams.empty()){
-      config.merge_patch(rams[0].getConfig());
+      config.merge_patch(rams[0].getJson());
     }
-    // config["rams"] = getRAMSJSON();
-    config["data"] = getRAMsData(huge,path);
+    bool isSave = filename.size()>0;
+    config["data"] = getRAMsData(isSave);
     config["version"] = __version__;
+
+    if(isSave){
+      std::string outfile = filename + config_sufix;
+      std::ofstream dataFile;
+      dataFile.open(outfile, std::ios::app);
+      dataFile << config.dump();
+      dataFile.close();
+      return outfile;
+    }
     return config.dump();
   }
-  std::string json(bool huge){
-    return json(huge,"");
-  }
-  std::string json(){
-    return json(false,"");
-  }
 
-
-  nl::json getConfigJSON(){
-    nl::json config = getConfig(false);
-    // config["rams"] = getRAMSJSON(false);
-    return config;
-  }
-
-  nl::json getJSON(bool huge, std::string prefix){
+  nl::json getJson(bool isSave) const {
     nl::json config = getConfig();
-    // config["rams"] = getRAMSJSON();
-    config["data"] = getRAMsData(huge, prefix);
+    config["data"] = getRAMsData(isSave);
     return config;
   }
 
-  long getsizeof(){
+  long getsizeof() const{
     long size = sizeof(Discriminator);
     for(unsigned int i=0; i<rams.size(); i++){
       size += rams[i].getsizeof();
@@ -257,10 +247,10 @@ protected:
     }
   }
 
-  std::string getRAMsData(bool huge=false, std::string prefix=""){
+  std::string getRAMsData(bool isSave=false) const {
     std::string data;
-    if(huge){
-      std::string filename = prefix + getRandomString(10) + ramdata_sufix;
+    if(isSave){
+      std::string filename = getRandomString(10) + ramdata_sufix;
       std::ofstream dataFile;
       dataFile.open(filename, std::ios::app);
 
@@ -280,43 +270,18 @@ protected:
     return data;
   }
 
-  template<typename T>
-  std::vector<int> _classify(const T& image) {
-    checkEntrySize(image.size());
-    std::vector<int> votes(rams.size());
-    for(unsigned int i=0; i<rams.size(); i++){
-      votes[i] = rams[i].getVote(image);
-    }
-    return votes;
-  }
-
-  void setMapping(std::vector<std::vector<int>>& mapping){
+  nl::json getConfig() const {
+    std::vector<std::vector<int>> mapping(rams.size());
     int size = rams.size();
     for(int i=0; i<size; i++){
       rams[i].setMapping(mapping, i);
     }
-  }
-
-  nl::json getConfig(bool all=true){
-    std::vector<std::vector<int>> mapping(rams.size());
-    setMapping(mapping);
     nl::json config = {
       {"entrySize", entrySize},
-      {"mapping", mapping}
+      {"mapping", mapping},
+      {"count", count}
     };
-    if(all){
-      config["count"] = count;
-    }
     return config;
-  }
-
-  template<typename T>
-  void train(const T& image) {
-    checkEntrySize(image.size());
-    count++;
-    for(unsigned int i=0; i<rams.size(); i++){
-      rams[i].train(image);
-    }
   }
 
 private:
