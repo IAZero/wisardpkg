@@ -75,11 +75,10 @@ public:
   void train(const DataSet& dataset) {
     for(size_t i=0; i<dataset.size(); i++){
       if(verbose) std::cout << "\rtraining " << i+1 << " of " << dataset.size();
-      auto d = discriminators.find(dataset.getLabel(i));
-      if(d == discriminators.end()){
+      if(discriminators.find(dataset.getLabel(i)) == discriminators.end()){
         makeDiscriminator(dataset.getLabel(i), dataset[i].size());
       }
-      d->second.train(dataset[i]);
+      discriminators[dataset.getLabel(i)].train(dataset[i]);
     }
   }
 
