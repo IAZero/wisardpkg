@@ -3,6 +3,7 @@
 PYBIND11_MODULE(wisardpkg, m){
     m.attr("__version__") = __version__;
     m.attr("ramdata_sufix") = ramdata_sufix;
+    m.attr("config_sufix") = config_sufix;
     m.attr("dataset_sufix") = dataset_sufix;
 
     //data
@@ -19,6 +20,19 @@ PYBIND11_MODULE(wisardpkg, m){
     py::class_<DataSet>(m, "DataSet", py::module_local())
       .def(py::init())
       .def(py::init<std::string>())
+      
+      // unsupervised
+      .def(py::init<const std::vector<std::vector<short>>&>())
+      .def(py::init<const std::vector<std::string>&>())
+
+      // labels
+      .def(py::init<const std::vector<std::vector<short>>&, const std::vector<std::string>&>())
+      .def(py::init<const std::vector<std::string>&, const std::vector<std::string>&>())
+
+      // y's
+      .def(py::init<const std::vector<std::vector<short>>&, const std::vector<double>&>())
+      .def(py::init<const std::vector<std::string>&, const std::vector<double>&>())
+
       .def("add", (void (DataSet::*)(const BinInput&)) &DataSet::add)
       .def("add", (void (DataSet::*)(const BinInput&,const std::string&)) &DataSet::add)
       .def("add", (void (DataSet::*)(const BinInput&,double)) &DataSet::add)
@@ -27,6 +41,7 @@ PYBIND11_MODULE(wisardpkg, m){
       .def("add", (void (DataSet::*)(const std::vector<short>&,double)) &DataSet::add)
       .def("get", &DataSet::get)
       .def("getLabel", &DataSet::getLabel)
+      .def("getY", &DataSet::getY)
       .def("__getitem__", &DataSet::get)
       .def("__setitem__", &DataSet::set)
       .def("__len__", &DataSet::size)

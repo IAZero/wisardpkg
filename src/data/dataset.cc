@@ -44,20 +44,20 @@ public:
   }
 
   // labels constructors
-  DataSet(const std::vector<std::vector<short>>& data, const std::vector<std::string> labels){
+  DataSet(const std::vector<std::vector<short>>& data, const std::vector<std::string>& labels){
     add(data, labels);
   }
 
-  DataSet(const std::vector<std::string>& data, const std::vector<std::string> labels){
+  DataSet(const std::vector<std::string>& data, const std::vector<std::string>& labels){
     add(data, labels);
   }
 
   // y constructors
-  DataSet(const std::vector<std::vector<short>>& data, const std::vector<double> Y){
+  DataSet(const std::vector<std::vector<short>>& data, const std::vector<double>& Y){
     add(data, Y);
   }
 
-  DataSet(const std::vector<std::string>& data, const std::vector<double> Y){
+  DataSet(const std::vector<std::string>& data, const std::vector<double>& Y){
     add(data, Y);
   }
 
@@ -130,7 +130,7 @@ public:
 
 
   // label multi
-  void add(const std::vector<std::vector<short>>& data, const std::vector<std::string> labels){
+  void add(const std::vector<std::vector<short>>& data, const std::vector<std::string>& labels){
     if (data.size() != labels.size()) {
       throw Exception("The size of data is not the same of the size of labels!");
     }
@@ -140,7 +140,7 @@ public:
     }
   }
 
-  void add(const std::vector<std::string>& data, const std::vector<std::string> labels){
+  void add(const std::vector<std::string>& data, const std::vector<std::string>& labels){
     if (data.size() != labels.size()) {
       throw Exception("The size of data is not the same of the size of labels!");
     }
@@ -152,7 +152,7 @@ public:
 
 
   // y multi
-  void add(const std::vector<std::vector<short>>& data, const std::vector<double> Y){
+  void add(const std::vector<std::vector<short>>& data, const std::vector<double>& Y){
     if (data.size() != Y.size()) {
       throw Exception("The size of data is not the same of the size of labels!");
     }
@@ -162,7 +162,7 @@ public:
     }
   }
 
-  void add(const std::vector<std::string>& data, const std::vector<double> Y){
+  void add(const std::vector<std::string>& data, const std::vector<double>& Y){
     if (data.size() != Y.size()) {
       throw Exception("The size of data is not the same of the size of labels!");
     }
@@ -195,7 +195,7 @@ public:
     return labels.at(index);
   }
 
-  const double& getY(int index) const {
+  double getY(int index) const {
     return Y.at(index);
   }
 

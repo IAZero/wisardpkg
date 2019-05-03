@@ -122,8 +122,23 @@ class DataSetTestCase(TestCase):
             self.assertEqual(len(self.X),len(ds))
         except RuntimeError and TypeError:
             self.fail("DataSet size test failed!")
+    
+    def test_save_y(self):
+        try:
+            filename = "test-dataset845"
+            ds = wp.DataSet(self.X,[
+                0.1, 0.2, 0.3, 0.7, 0.8
+            ])
+            ds.save(filename)
+            import os
+            out = filename+wp.dataset_sufix
+            self.assertTrue(os.path.exists(out))
+            if os.path.exists(out):
+                os.remove(out)
+        except RuntimeError and TypeError:
+            self.fail("DataSet save test failed!")
 
-    def test_save(self):
+    def test_save_label(self):
         try:
             filename = "test-dataset845"
             ds = wp.DataSet()
@@ -138,7 +153,7 @@ class DataSetTestCase(TestCase):
         except RuntimeError and TypeError:
             self.fail("DataSet save test failed!")
 
-    def test_load(self):
+    def test_load_label(self):
         try:
             filename = "test-dataset983"
             ds = wp.DataSet()
@@ -157,6 +172,27 @@ class DataSetTestCase(TestCase):
                 with self.subTest(i=i,type="label"):
                     label = ds2.getLabel(i)
                     self.assertEqual(label,self.y[i])
+        except RuntimeError and TypeError:
+            self.fail("DataSet load test failed!")
+
+    def test_load_y(self):
+        try:
+            filename = "test-dataset983"
+            y2 = [0.1, 0.2, 0.3, 0.7, 0.8]
+            ds = wp.DataSet(self.X,y2)
+            ds.save(filename)
+            import os
+            out = filename+wp.dataset_sufix
+            ds2 = wp.DataSet(out)
+            if os.path.exists(out):
+                os.remove(out)
+            for i,x in enumerate(self.X):
+                with self.subTest(i=i,type="bin"):
+                    bin = ds2[i]
+                    self.assertSequenceEqual(x,[bin[j] for j in range(len(bin))])
+                with self.subTest(i=i,type="y"):
+                    y = ds2.getY(i)
+                    self.assertEqual(y,y2[i])
         except RuntimeError and TypeError:
             self.fail("DataSet load test failed!")
 
