@@ -1,6 +1,7 @@
 class DataSet {
 public:
   DataSet(){}
+
   DataSet(std::string filename){
     int s = dataset_sufix.size();
     if(filename.substr(filename.size()-s,s).compare(dataset_sufix) != 0){
@@ -21,6 +22,22 @@ public:
       }
       dataFile.close();
     }
+  }
+
+  DataSet(const std::vector<std::vector<short>>& data, const std::vector<std::string> labels){
+    add(data, labels);
+  }
+
+  DataSet(const std::vector<std::vector<short>>& data){
+    add(data);
+  }
+
+  DataSet(const std::vector<std::string>& data, const std::vector<std::string> labels){
+    add(data, labels);
+  }
+
+  DataSet(const std::vector<std::string>& data){
+    add(data);
   }
 
   void add(const std::string& input){
