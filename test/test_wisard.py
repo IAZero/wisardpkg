@@ -3,29 +3,37 @@ import wisardpkg as wp
 import json
 
 class WisardTestCase(TestCase):
-    X = [
-        [1,1,1,0,0,0,0,0,0],
-        [1,1,1,1,0,0,1,0,0],
-        [1,1,1,0,0,0,1,0,0],
-        [1,1,1,1,0,0,0,0,0],
-        [1,0,1,0,1,0,1,0,1],
-        [0,0,0,0,1,1,1,1,1],
-        [0,0,1,0,0,1,1,1,1],
-        [0,0,1,0,1,1,1,1,1],
-        [0,0,0,0,0,1,1,1,1]
-    ]
+    y = None
+    X = None
+    size = None
 
-    y = [
-        "cold",
-        "cold",
-        "cold",
-        "cold",
-        "cold",
-        "hot",
-        "hot",
-        "hot",
-        "hot"
-    ]
+    def setUp(self):
+        self.X = wp.DataSet()
+        data = [
+            [1,1,1,0,0,0,0,0,0],
+            [1,1,1,1,0,0,1,0,0],
+            [1,1,1,0,0,0,1,0,0],
+            [1,1,1,1,0,0,0,0,0],
+            [1,0,1,0,1,0,1,0,1],
+            [0,0,0,0,1,1,1,1,1],
+            [0,0,1,0,0,1,1,1,1],
+            [0,0,1,0,1,1,1,1,1],
+            [0,0,0,0,0,1,1,1,1]
+        ]
+        self.y = [
+            "cold",
+            "cold",
+            "cold",
+            "cold",
+            "cold",
+            "hot",
+            "hot",
+            "hot",
+            "hot"
+        ]
+        self.size = len(data[0])
+        for i,x in enumerate(data):
+            self.X.add(x,self.y[i])
 
     def test_build(self):
         try:
@@ -37,14 +45,14 @@ class WisardTestCase(TestCase):
     def test_train(self):
         try:
             wsd = wp.Wisard(3)
-            wsd.train(self.X,self.y)
+            wsd.train(self.X)
         except RuntimeError and TypeError:
             self.fail("train test fail")
 
     def test_classify(self):
         try:
             wsd = wp.Wisard(3)
-            wsd.train(self.X,self.y)
+            wsd.train(self.X)
             out = wsd.classify(self.X)
             self.assertSequenceEqual(self.y,out)
         except RuntimeError and TypeError:
@@ -53,7 +61,7 @@ class WisardTestCase(TestCase):
     def test_json(self):
         try:
             wsd = wp.Wisard(3)
-            wsd.train(self.X,self.y)
+            wsd.train(self.X)
             ojsonout = wsd.json()
 
             import sys
@@ -77,19 +85,16 @@ class WisardTestCase(TestCase):
     def test_sizeof(self):
         try:
             wsd = wp.Wisard(20)
-            X = []
-            y = []
+            X = wp.DataSet()
             from random import randint as ri
             for i in range(300):
                 l = [ ri(0,1) if j < 51 else 0 for j in range(100) ]
-                X.append(l)
-                y.append("cold")
+                X.add(l,"cold")
 
             for i in range(300):
                 l = [ ri(0,1) if j > 50 else 0 for j in range(100) ]
-                X.append(l)
-                y.append("hot")
-            wsd.train(X,y)
+                X.add(l,"hot")
+            wsd.train(X)
 
             self.assertLess(wsd.getsizeof(),len(wsd.json()))
         except RuntimeError and TypeError:
@@ -98,14 +103,17 @@ class WisardTestCase(TestCase):
     def test_mental_image(self):
         try:
             wsd = wp.Wisard(3)
-            X = [
+            data = [
                 [1,1,1,1,1,0,0,0,0],
                 [1,1,1,1,0,0,0,0,0],
                 [0,0,0,0,1,1,1,1,1],
                 [0,0,0,0,0,1,1,1,1]
             ]
+            X = wp.DataSet()
             y = ["cold","cold","hot","hot"]
-            wsd.train(X,y)
+            for i,x in enumerate(data):
+                X.add(x,y[i])
+            wsd.train(X)
             m = {
                 "cold":[2,2,2,2,1,0,0,0,0],
                 "hot":[0,0,0,0,1,2,2,2,2]
@@ -122,14 +130,17 @@ class WisardTestCase(TestCase):
             mapping = {"cold": [[0, 8], [1, 8], [2, 7], [3, 6], [4, 5]],
                        "hot": [[8, 7], [6, 5], [4, 3], [2, 1], [0, 3]]}
             wsd = wp.Wisard(2,mapping=mapping)
-            X = [
+            data = [
                 [1,1,1,1,1,0,0,0,0],
                 [1,1,1,1,0,0,0,0,0],
                 [0,0,0,0,1,1,1,1,1],
                 [0,0,0,0,0,1,1,1,1]
             ]
             y = ["cold","cold","hot","hot"]
-            wsd.train(X,y)
+            X = wp.DataSet()
+            for i,x in enumerate(data):
+                X.add(x,y[i])
+            wsd.train(X)
             str_json = wsd.json()
             import json
             dict_json = json.loads(str_json)
