@@ -47,6 +47,9 @@ namespace nl = nlohmann;
 #include "models/cluswisard/cluster.cc"
 #include "models/cluswisard/cluswisard.cc"
 
+//regression wisard model
+#include "models/regressionwisard/meanfunctions.cc"
+
 //wrappers
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>

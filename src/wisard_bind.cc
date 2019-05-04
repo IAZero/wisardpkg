@@ -70,6 +70,15 @@ PYBIND11_MODULE(wisardpkg, m){
       .def(py::init<std::vector<int>, std::vector<double>>())
     ;
 
+    // regression mean functions
+    py::class_<Mean>(m, "Mean", py::module_local());
+    py::class_<PowerMean, Mean>(m, "PowerMean", py::module_local()).def(py::init<int>());
+    py::class_<Median, Mean>(m, "Median", py::module_local()).def(py::init());
+    py::class_<HarmonicMean, Mean>(m, "HarmonicMean", py::module_local()).def(py::init());
+    py::class_<HarmonicPowerMean, Mean>(m, "HarmonicPowerMean", py::module_local()).def(py::init<int>());
+    py::class_<GeometricMean, Mean>(m, "GeometricMean", py::module_local()).def(py::init());
+    py::class_<ExponentialMean, Mean>(m, "ExponentialMean", py::module_local()).def(py::init());
+
     //sythesizer
     py::class_<Synthesizer>(m, "Synthesizer", py::module_local())
       .def(py::init<std::vector<int>>())
