@@ -34,10 +34,12 @@ namespace nl = nlohmann;
 #include "binarization/meanthresholding.cc"
 #include "binarization/thermometer.cc"
 
-//wisard model
+//models
 #include "models/base/model.cc"
 #include "models/base/classificationmodel.cc"
 #include "models/base/regressionmodel.cc"
+
+//wisard model
 #include "models/wisard/ramdatahandle.cc"
 #include "models/wisard/ram.cc"
 #include "models/wisard/discriminator.cc"
@@ -49,6 +51,7 @@ namespace nl = nlohmann;
 
 //regression wisard model
 #include "models/regressionwisard/meanfunctions.cc"
+#include "models/regressionwisard/regressionram.cc"
 
 //wrappers
 #include <pybind11/pybind11.h>

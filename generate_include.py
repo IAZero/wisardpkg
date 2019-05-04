@@ -41,6 +41,7 @@ includes = [
     'models/cluswisard/cluswisard.cc',
 
     'models/regressionwisard/meanfunctions.cc',
+    'models/regressionwisard/regressionram.cc',
 ]
 
 if __name__ == "__main__":
