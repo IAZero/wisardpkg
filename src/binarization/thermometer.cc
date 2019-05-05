@@ -1,43 +1,76 @@
-class Thermometer : public BinBase {
-protected:
-  std::vector<int> sizes;
-  std::vector<double> maximum;
-  int outputSize;
+class SimpleThermometer : public BinBase {
 public:
-  Thermometer(const std::vector<int>& sizes, const std::vector<double>& maximum) : sizes(sizes), maximum(maximum){
-    if(sizes.size() != maximum.size()){
-      throw Exception("the sizes of 'sizes' and 'maximum' differ!");
-    }
-    outputSize = math::sum(sizes);
-  }
-
-  static std::vector<short> toBinary(const double value, const int size, const double max){
-    std::vector<short> code(size, 0);
-    double counter = 0.0;
-
-    for(int i = 0; i < size; i++){
-      code[i] = value >= counter ? 1 : 0;
-      counter += max/size;
-    }
-    return code;
+  SimpleThermometer(const int thermometerSize=2, const double minimum=0.0, const double maximum=0.0) : thermometerSize(thermometerSize){
+    valueRanges = math::arange(minimum, maximum, (minimum + maximum)/thermometerSize);
   }
 
   BinInput transform(const std::vector<double>& data){
-    if(sizes.size() != data.size()){
-      throw Exception("data size is not valid!");
-    }
-    BinInput out(outputSize);
-    int j = 0;
-    for(size_t i = 0; i < data.size(); i++)
-    {
-      std::vector<short> code = toBinary(data[i], sizes[i], maximum[i]);
-      for(short& p : code)
-      {
-        out.set(j, p);
-        j++;
+    BinInput out(data.size()*thermometerSize);
+    int k = 0;
+    for(size_t i = 0; i < data.size(); i++){
+      for (size_t j = 0; j < valueRanges.size(); j++){
+        if (data[i] > valueRanges[j]){
+          out.set(k, 1);
+        } else {
+          out.set(k, 0);
+        }
+        k++;
       }
-      
     }
     return out;
   }
+
+  int getSize() const{
+    return thermometerSize;
+  }
+  
+protected:
+  int thermometerSize;
+  std::vector<double> valueRanges;
 };
+
+
+class DynamicThermometer : public BinBase {
+public:
+  DynamicThermometer(const std::vector<int>& thermometerSizes, const std::vector<double>& minimum=std::vector<double>(), const std::vector<double>& maximum=std::vector<double>()) : thermometerSize(0){
+    if (minimum.size() != 0 || minimum.size() != thermometerSizes.size()){
+      throw Exception("The size of thermometerSizes is not the same of the size of minimum!");
+    }
+    if (maximum.size() != 0 || maximum.size() != thermometerSizes.size()){
+      throw Exception("The size of thermometerSizes is not the same of the size of maximum!");
+    }
+    
+    valueRanges.resize(thermometerSizes.size());
+    for (size_t i = 0; i < valueRanges.size(); i++){
+      double min = minimum.size() > 0 ? minimum[i] : 0.0;
+      double max = maximum.size() > 0 ? maximum[i] : 1.0;
+      valueRanges[i] = math::arange(min, max, (min + max)/thermometerSizes[i]);
+      thermometerSize += thermometerSizes[i];
+    }
+  }
+
+  BinInput transform(const std::vector<double>& data){
+    BinInput out(data.size()*thermometerSize);
+    int k = 0;
+    for(size_t i = 0; i < data.size(); i++){
+      for (size_t j = 0; j < valueRanges[i].size(); j++){
+        if (data[i] > valueRanges[i][j]){
+          out.set(k, 1);
+        } else {
+          out.set(k, 0);
+        }
+        k++;
+      }
+    }
+    return out;
+  }
+
+  int getSize() const{
+    return thermometerSize;
+  }
+
+protected:
+  int thermometerSize;
+  std::vector<std::vector<double>> valueRanges;
+};
+
