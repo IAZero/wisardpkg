@@ -41,7 +41,7 @@ public:
     }
   }
 
-  double predict(const BinInput& input) const{
+  double predict(const BinInput& input) const {
     checkEntrySize(input.size());
     std::vector<regression_content_t> outputRams(rams.size());
     for (size_t i = 0; i < rams.size(); i++){
@@ -50,7 +50,7 @@ public:
     return mean->calculate(outputRams);
   }
 
-  std::vector<double> predict(const DataSet& dataset) const{
+  std::vector<double> predict(const DataSet& dataset) const {
     std::vector<double> output(dataset.size());
 
     for (size_t i = 0; i < dataset.size(); i++){
@@ -59,13 +59,12 @@ public:
 
     return output;
   }
-
-  std::vector<int> getVotes(const BinInput& input){
+  
+  std::vector<double> getVotes(const BinInput& input) const {
     checkEntrySize(input.size());
-    std::vector<int> output(rams.size());
+    std::vector<double> output(rams.size());
     for (size_t i = 0; i < rams.size(); i++){
-      auto w = rams[i].getVote(input);
-      output[i] = w[0];
+      output[i] = rams[i].getVote(input)[0];
     }
     return output;
   }

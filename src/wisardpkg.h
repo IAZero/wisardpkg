@@ -45,14 +45,17 @@ namespace nl = nlohmann;
 #include "models/wisard/discriminator.cc"
 #include "models/wisard/wisard.cc"
 
-//cluswisard wisard_model
+//cluswisard model
 #include "models/cluswisard/cluster.cc"
 #include "models/cluswisard/cluswisard.cc"
 
-//regression wisard model
+//regressionwisard model
 #include "models/regressionwisard/meanfunctions.cc"
 #include "models/regressionwisard/regressionram.cc"
 #include "models/regressionwisard/regressionwisard.cc"
+
+//clusregressionwisard model
+#include "models/clusregressionwisard/clusregressionwisard.cc"
 
 //wrappers
 #include <pybind11/pybind11.h>
@@ -64,3 +67,4 @@ namespace py = pybind11;
 #include "wrappers/cluswisardwrapper.cc"
 #include "wrappers/kernelcanvaswrapper.cc"
 #include "wrappers/regressionwisardwrapper.cc"
+#include "wrappers/clusregressionwisardwrapper.cc"

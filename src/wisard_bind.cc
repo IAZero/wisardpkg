@@ -160,4 +160,7 @@ PYBIND11_MODULE(wisardpkg, m){
       .def(py::init<int, py::kwargs>())
     ;
 
+     py::class_<ClusRegressionWisardWrapper>(m, "ClusRegressionWisard", py::module_local())
+      .def(py::init<int, double, int, int, py::kwargs>())
+    ;
 }
