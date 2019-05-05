@@ -52,6 +52,7 @@ namespace nl = nlohmann;
 //regression wisard model
 #include "models/regressionwisard/meanfunctions.cc"
 #include "models/regressionwisard/regressionram.cc"
+#include "models/regressionwisard/regressionwisard.cc"
 
 //wrappers
 #include <pybind11/pybind11.h>
@@ -62,3 +63,4 @@ namespace py = pybind11;
 #include "wrappers/wisardwrapper.cc"
 #include "wrappers/cluswisardwrapper.cc"
 #include "wrappers/kernelcanvaswrapper.cc"
+#include "wrappers/regressionwisardwrapper.cc"

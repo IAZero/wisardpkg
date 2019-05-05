@@ -112,16 +112,17 @@ PYBIND11_MODULE(wisardpkg, m){
       .def("train", &Model::train)
       .def("json", (std::string (Model::*)() const) &Model::json)
       .def("json", (std::string (Model::*)(std::string) const) &Model::json)
-      .def("score", &Model::score)
       .def("getsizeof", &Model::getsizeof)
     ;
 
     py::class_<ClassificationModel, Model>(m, "ClassificationModel", py::module_local())
       .def("classify", (std::vector<std::string> (ClassificationModel::*)(const DataSet&) const) &ClassificationModel::classify)
       .def("classify", (std::string (ClassificationModel::*)(const BinInput&) const) &ClassificationModel::classify)
+      .def("score", &ClassificationModel::score)
     ;
 
     py::class_<RegressionModel, Model>(m, "RegressionModel", py::module_local())
+      .def("train", (void (RegressionModel::*)(const BinInput&, const double)) &RegressionModel::train)
       .def("predict", (std::vector<double> (RegressionModel::*)(const DataSet&) const) &RegressionModel::predict)
       .def("predict", (double (RegressionModel::*)(const BinInput&) const) &RegressionModel::predict)
     ;
@@ -153,6 +154,10 @@ PYBIND11_MODULE(wisardpkg, m){
       .def("classifyUnsupervised", (std::string (ClusWisardWrapper::*)(const BinInput&) const) &ClusWisardWrapper::classifyUnsupervised)
       .def("getMentalImage", &ClusWisardWrapper::getMentalImage)
       .def("getMentalImages", &ClusWisardWrapper::getMentalImages)
+    ;
+
+    py::class_<RegressionWisardWrapper>(m, "RegressionWisard", py::module_local())
+      .def(py::init<int, py::kwargs>())
     ;
 
 }

@@ -1,19 +1,16 @@
 class RegressionRAM{
 public:
-  RegressionRAM(){}
+  RegressionRAM() {}
 
   RegressionRAM(const std::vector<int> indexes, const int minZero = 0, const int minOne = 0) : addresses(indexes), minZero(minZero), minOne(minOne){}
 
-  ~RegressionRAM(){
+  ~RegressionRAM() {
     addresses.clear();
     memory.clear();
   }
 
-  void train(const BinInput& image, const double y){
-    addr_t index = getIndex(image);
-    // if (NO_ADDRESS){
-    //   return;
-    // }
+  void train(const BinInput& image, const double y) {
+    addr_t index = std::get<0>(getIndex(image));
 
     auto it = memory.find(index);
     if (it == memory.end())
@@ -24,11 +21,12 @@ public:
     }
   }
 
-  regression_content_t getVote(const BinInput& image){
-    addr_t index = getIndex(image);
-    if (NO_ADDRESS){
+  regression_content_t getVote(const BinInput& image) const {
+    std::tuple<addr_t, bool> result = getIndex(image);
+    if (std::get<1>(result)){
       return {0, 0};
     }
+    addr_t index = std::get<0>(result);
 
     auto it = memory.find(index);
     if (it == memory.end())
@@ -37,27 +35,37 @@ public:
       return {it->second[0], it->second[1]};
   }
 
-  void calculateFit(const BinInput& image, const double yFit)
-  {
-    addr_t index = getIndex(image);
-    if (NO_ADDRESS){
-      return;
-    }
+  void calculateFit(const BinInput& image, const double yFit) {
+    addr_t index = std::get<0>(getIndex(image));
 
     auto it = memory.find(index);
     it->second[2] += yFit;
   }
 
-  void applyFit(){
+  void applyFit() {
     for (auto it = memory.begin(); it != memory.end(); ++it){
       it->second[1] += it->second[2] / it->second[0];
       it->second[2] = 0;
     }
   }
 
+  void setMinZero(const int value){
+    minZero = value;
+  }
+
+  void setMinOne(const int value){
+    minOne = value;
+  }
+
+  long getsizeof() const{
+    long size = sizeof(RegressionRAM);
+    size += addresses.size()*sizeof(addr_t);
+    size += memory.size()*(sizeof(addr_t)+sizeof(regression_content_t));
+    return size;
+  }
+
 protected:
-  addr_t getIndex(const BinInput& image){
-    NO_ADDRESS = false;
+  std::tuple<addr_t, bool> getIndex(const BinInput& image) const {
     addr_t index = 0;
     addr_t p = 1;
     int countOne = 0;
@@ -68,10 +76,10 @@ protected:
       p *= 2;
     }
     if ((countOne < minOne) || (((int)addresses.size() - countOne) < minZero)){
-      NO_ADDRESS = true;
+      return {index, true};
     }
 
-    return index;
+    return {index, false};
   }
 
 private:
@@ -79,5 +87,4 @@ private:
   regression_ram_t memory;
   int minZero;
   int minOne;
-  bool NO_ADDRESS;
 };
