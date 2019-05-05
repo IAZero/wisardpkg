@@ -72,6 +72,7 @@ PYBIND11_MODULE(wisardpkg, m){
 
     // regression mean functions
     py::class_<Mean>(m, "Mean", py::module_local());
+    py::class_<SimpleMean, Mean>(m, "SimpleMean", py::module_local()).def(py::init());
     py::class_<PowerMean, Mean>(m, "PowerMean", py::module_local()).def(py::init<int>());
     py::class_<Median, Mean>(m, "Median", py::module_local()).def(py::init());
     py::class_<HarmonicMean, Mean>(m, "HarmonicMean", py::module_local()).def(py::init());
