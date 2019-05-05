@@ -11,6 +11,7 @@ from test_dataset import DataSetTestCase
 from test_ramdatahandle import RAMDataHandleTestCase
 from test_synthesizer import SynthesizerTestCase
 from test_regressionwisard import RegressionWisardTestCase
+from test_clusregressionwisard import ClusRegressionWisardTestCase
 
 if __name__ == '__main__':
     main(verbosity=2)

@@ -163,5 +163,7 @@ PYBIND11_MODULE(wisardpkg, m){
 
      py::class_<ClusRegressionWisardWrapper, RegressionModel>(m, "ClusRegressionWisard", py::module_local())
       .def(py::init<int, double, int, int, py::kwargs>())
+      .def("train", (void (ClusRegressionWisardWrapper::*)(const BinInput&, const double)) &ClusRegressionWisardWrapper::train)
+      .def("train", (void (ClusRegressionWisardWrapper::*)(const DataSet&)) &ClusRegressionWisardWrapper::train)
     ;
 }
