@@ -109,7 +109,7 @@ PYBIND11_MODULE(wisardpkg, m){
     ;
 
     py::class_<Model>(m, "Model", py::module_local())
-      .def("train", &Model::train)
+      .def("train", (void (Model::*)(const DataSet&)) &Model::train)
       .def("json", (std::string (Model::*)() const) &Model::json)
       .def("json", (std::string (Model::*)(std::string) const) &Model::json)
       .def("getsizeof", &Model::getsizeof)
@@ -122,7 +122,6 @@ PYBIND11_MODULE(wisardpkg, m){
     ;
 
     py::class_<RegressionModel, Model>(m, "RegressionModel", py::module_local())
-      .def("train", (void (RegressionModel::*)(const BinInput&, const double)) &RegressionModel::train)
       .def("predict", (std::vector<double> (RegressionModel::*)(const DataSet&) const) &RegressionModel::predict)
       .def("predict", (double (RegressionModel::*)(const BinInput&) const) &RegressionModel::predict)
     ;
@@ -156,11 +155,13 @@ PYBIND11_MODULE(wisardpkg, m){
       .def("getMentalImages", &ClusWisardWrapper::getMentalImages)
     ;
 
-    py::class_<RegressionWisardWrapper>(m, "RegressionWisard", py::module_local())
+    py::class_<RegressionWisardWrapper, RegressionModel>(m, "RegressionWisard", py::module_local())
       .def(py::init<int, py::kwargs>())
+      .def("train", (void (RegressionWisardWrapper::*)(const BinInput&, const double)) &RegressionWisardWrapper::train)
+      .def("train", (void (RegressionWisardWrapper::*)(const DataSet&)) &RegressionWisardWrapper::train)
     ;
 
-     py::class_<ClusRegressionWisardWrapper>(m, "ClusRegressionWisard", py::module_local())
+     py::class_<ClusRegressionWisardWrapper, RegressionModel>(m, "ClusRegressionWisard", py::module_local())
       .def(py::init<int, double, int, int, py::kwargs>())
     ;
 }

@@ -10,6 +10,7 @@ from test_bininput import BinInputTestCase
 from test_dataset import DataSetTestCase
 from test_ramdatahandle import RAMDataHandleTestCase
 from test_synthesizer import SynthesizerTestCase
+from test_regressionwisard import RegressionWisardTestCase
 
 if __name__ == '__main__':
     main(verbosity=2)
