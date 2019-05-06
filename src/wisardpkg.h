@@ -51,6 +51,7 @@ namespace nl = nlohmann;
 
 //regressionwisard model
 #include "models/regressionwisard/meanfunctions.cc"
+#include "models/regressionwisard/regressionramdatahandle.cc"
 #include "models/regressionwisard/regressionram.cc"
 #include "models/regressionwisard/regressionwisard.cc"
 

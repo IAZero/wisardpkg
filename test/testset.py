@@ -10,6 +10,7 @@ from test_bininput import BinInputTestCase
 from test_dataset import DataSetTestCase
 from test_ramdatahandle import RAMDataHandleTestCase
 from test_synthesizer import SynthesizerTestCase
+from test_regressionramdatahandle import RegressionRAMDataHandleTestCase
 from test_regressionwisard import RegressionWisardTestCase
 from test_clusregressionwisard import ClusRegressionWisardTestCase
 

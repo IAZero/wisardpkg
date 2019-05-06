@@ -97,6 +97,20 @@ PYBIND11_MODULE(wisardpkg, m){
       .def("compare", &RAMDataHandle::compare)
     ;
 
+    py::class_<RegressionRAMDataHandle>(m, "RegressionRAMDataHandle", py::module_local())
+      .def(py::init<>())
+      .def(py::init<std::string>())
+      .def(py::init<regression_ram_t>())
+      .def(py::init<std::vector<regression_ram_t>>())
+      .def("set", (void (RegressionRAMDataHandle::*)(int,int,regression_content_t)) &RegressionRAMDataHandle::set)
+      .def("set", (void (RegressionRAMDataHandle::*)(int,regression_ram_t)) &RegressionRAMDataHandle::set)
+      .def("get", (regression_content_t (RegressionRAMDataHandle::*)(int,int)) &RegressionRAMDataHandle::get)
+      .def("get", (regression_ram_t (RegressionRAMDataHandle::*)(int)) &RegressionRAMDataHandle::get)
+      .def("data", (std::string (RegressionRAMDataHandle::*)()) &RegressionRAMDataHandle::data)
+      .def("data", (std::string (RegressionRAMDataHandle::*)(int)) &RegressionRAMDataHandle::data)
+      // .def("compare", &RegressionRAMDataHandle::compare)
+    ;
+
     //base to models
     py::class_<DiscriminatorWrapper>(m, "Discriminator", py::module_local())
       .def(py::init<std::string>())
