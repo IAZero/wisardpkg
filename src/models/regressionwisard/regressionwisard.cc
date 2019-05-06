@@ -7,31 +7,28 @@ public:
     nl::json value;
 
     value = c["addressSize"];
-    addressSize = value.is_null() ? false : value.get<int>();
+    addressSize = value.is_null() ? 3 : value.get<int>();
 
     value = c["completeAddressing"];
-    completeAddressing = value.is_null() ? false : value.get<bool>();
+    completeAddressing = value.is_null() ? true : value.get<bool>();
 
     value = c["orderedMapping"];
-    orderedMapping = value.is_null() ? true : value.get<bool>();
+    orderedMapping = value.is_null() ? false : value.get<bool>();
 
     value = c["minZero"];
-    minZero = value.is_null() ? true : value.get<int>();
+    minZero = value.is_null() ? 0 : value.get<int>();
 
     value = c["minOne"];
-    minOne = value.is_null() ? true : value.get<int>();
-
-    value = c["minOne"];
-    minOne = value.is_null() ? true : value.get<int>();
+    minOne = value.is_null() ? 0 : value.get<int>();
 
     value = c["steps"];
-    steps = value.is_null() ? true : value.get<int>();
+    steps = value.is_null() ? 0 : value.get<int>();
 
     value = c["numberOfTrainings"];
-    numberOfTrainings = value.is_null() ? true : value.get<int>();
+    numberOfTrainings = value.is_null() ? 0 : value.get<int>();
 
     value = c["entrySize"];
-    entrySize = value.is_null() ? true : value.get<int>();
+    entrySize = value.is_null() ? 0 : value.get<int>();
 
     // TODO: Get mean from JSON file
     mean = new SimpleMean();
