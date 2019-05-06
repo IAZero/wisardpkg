@@ -172,13 +172,13 @@ PYBIND11_MODULE(wisardpkg, m){
 
     py::class_<RegressionWisardWrapper, RegressionModel>(m, "RegressionWisard", py::module_local())
       .def(py::init<std::string>())
-      .def(py::init<int, py::kwargs>())
+      .def(py::init<int, py::kwargs>(), py::arg("addressSize"))
       .def("train", (void (RegressionWisardWrapper::*)(const BinInput&, const double)) &RegressionWisardWrapper::train)
       .def("train", (void (RegressionWisardWrapper::*)(const DataSet&)) &RegressionWisardWrapper::train)
     ;
 
      py::class_<ClusRegressionWisardWrapper, RegressionModel>(m, "ClusRegressionWisard", py::module_local())
-      .def(py::init<int, double, int, int, py::kwargs>())
+      .def(py::init<int, double, int, int, py::kwargs>(), py::arg("addressSize"), py::arg("minScore"), py::arg("threshold"), py::arg("limit"))
       .def("train", (void (ClusRegressionWisardWrapper::*)(const BinInput&, const double)) &ClusRegressionWisardWrapper::train)
       .def("train", (void (ClusRegressionWisardWrapper::*)(const DataSet&)) &ClusRegressionWisardWrapper::train)
     ;
