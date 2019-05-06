@@ -171,6 +171,7 @@ PYBIND11_MODULE(wisardpkg, m){
     ;
 
     py::class_<RegressionWisardWrapper, RegressionModel>(m, "RegressionWisard", py::module_local())
+      .def(py::init<std::string>())
       .def(py::init<int, py::kwargs>())
       .def("train", (void (RegressionWisardWrapper::*)(const BinInput&, const double)) &RegressionWisardWrapper::train)
       .def("train", (void (RegressionWisardWrapper::*)(const DataSet&)) &RegressionWisardWrapper::train)

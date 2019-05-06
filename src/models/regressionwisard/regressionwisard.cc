@@ -1,5 +1,49 @@
 class RegressionWisard: public RegressionModel {
 public:
+  RegressionWisard(){}
+
+  RegressionWisard(nl::json c){
+    srand(randint(0,1000000));
+    nl::json value;
+
+    value = c["addressSize"];
+    addressSize = value.is_null() ? false : value.get<int>();
+
+    value = c["completeAddressing"];
+    completeAddressing = value.is_null() ? false : value.get<bool>();
+
+    value = c["orderedMapping"];
+    orderedMapping = value.is_null() ? true : value.get<bool>();
+
+    value = c["minZero"];
+    minZero = value.is_null() ? true : value.get<int>();
+
+    value = c["minOne"];
+    minOne = value.is_null() ? true : value.get<int>();
+
+    value = c["minOne"];
+    minOne = value.is_null() ? true : value.get<int>();
+
+    value = c["steps"];
+    steps = value.is_null() ? true : value.get<int>();
+
+    value = c["numberOfTrainings"];
+    numberOfTrainings = value.is_null() ? true : value.get<int>();
+
+    value = c["entrySize"];
+    entrySize = value.is_null() ? true : value.get<int>();
+
+    // TODO: Get mean from JSON file
+    mean = new SimpleMean();
+
+    value = c["data"];
+    std::vector<std::string> data = value.is_null() ? std::vector<std::string>() : value.get<std::vector<std::string>>();
+
+    for (size_t i = 0; i < data.size(); i++){
+      rams.push_back(RegressionRAM(data[i]));
+    }
+  }
+
   RegressionWisard(int addressSize) : addressSize(addressSize) {}
 
   RegressionWisard(int addressSize, bool completeAddressing, bool orderedMapping,
@@ -94,8 +138,45 @@ public:
     return size;
   }
 
+  std::string json() const {
+    return json("");
+  }
+
   std::string json(std::string filename) const {
-    return "";
+    nl::json config = getJSON();
+
+    if(filename.size() > 0){
+      std::string outfile = filename + config_sufix;
+      std::ofstream dataFile;
+      dataFile.open(outfile, std::ios::app);
+      dataFile << config.dump();
+      dataFile.close();
+      return outfile;
+    }
+
+    return config.dump();
+  }
+
+  nl::json getJSON() const {
+    std::vector<std::string> data;
+
+    for (size_t i = 0; i < rams.size(); i++){
+      data.push_back(rams[i].getJSON().dump());
+    }
+
+    nl::json config = {
+      {"addressSize", addressSize},
+      {"completeAddressing", completeAddressing},
+      {"orderedMapping", orderedMapping},
+      {"minZero", minZero},
+      {"minOne", minOne},
+      {"steps", steps},
+      {"numberOfTrainings", numberOfTrainings},
+      {"entrySize", entrySize},
+      {"data", data},
+      {"version", __version__}
+    };
+    return config;
   }
 
 protected:
@@ -123,8 +204,8 @@ protected:
     if(!orderedMapping)
       random_shuffle(indexes.begin(), indexes.end());
 
-    for (size_t i=0; i<rams.size(); i++){
-      std::vector<int> subIndexes(indexes.begin() + (i*addressSize), indexes.begin() + ((i+1)*addressSize));
+    for (size_t i = 0; i < rams.size(); i++){
+      std::vector<int> subIndexes(indexes.begin() + (((int)i)*addressSize), indexes.begin() + ((((int)i)+1)*addressSize));
       rams[i] = RegressionRAM(subIndexes, minZero, minOne);
     }
   }

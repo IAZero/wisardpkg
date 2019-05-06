@@ -32,19 +32,19 @@ public:
     ramdata[r] = value;
   }
 
-  // bool compare (RegressionRAMDataHandle& other){
-  //   if(ramdata.size() != other.ramdata.size()) return false;
-  //   for(std::unordered_map<int,regression_ram_t>::iterator it = ramdata.begin(); it != ramdata.end(); ++it){
-  //     std::unordered_map<int,regression_ram_t>::iterator ito = other.ramdata.find(it->first);
-  //     if(ito == other.ramdata.end() || it->second.size() != ito->second.size()) return false;
+  bool compare (RegressionRAMDataHandle& other){
+    if(ramdata.size() != other.ramdata.size()) return false;
+    for(std::unordered_map<int,regression_ram_t>::iterator it = ramdata.begin(); it != ramdata.end(); ++it){
+      std::unordered_map<int,regression_ram_t>::iterator ito = other.ramdata.find(it->first);
+      if(ito == other.ramdata.end() || it->second.size() != ito->second.size()) return false;
 
-  //     for(regression_ram_t::iterator itram = it->second.begin(); itram != it->second.end(); ++itram){
-  //       regression_ram_t::iterator itramo = ito->second.find(itram->first);
-  //       if(itramo == ito->second.end() || itram->second != itramo->second) return false;
-  //     }
-  //   }
-  //   return true;
-  // }
+      for(regression_ram_t::iterator itram = it->second.begin(); itram != it->second.end(); ++itram){
+        regression_ram_t::iterator itramo = ito->second.find(itram->first);
+        if(itramo == ito->second.end() || itram->second != itramo->second) return false;
+      }
+    }
+    return true;
+  }
 
   std::string data(){
     std::string out;
@@ -110,6 +110,7 @@ private:
     }
   }
 
+  // TODO: Generic number of dimensions for RegressionRAM
   regression_ram_t dataToRam(const std::string& inputdata){
     regression_ram_t ramout;
     std::string decodedData = Base64::decode(inputdata);

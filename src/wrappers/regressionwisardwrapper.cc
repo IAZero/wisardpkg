@@ -1,7 +1,8 @@
 class RegressionWisardWrapper : public RegressionWisard{
   public:
-    RegressionWisardWrapper(int addressSize, py::kwargs kwargs) : RegressionWisard(addressSize)
-    {
+    RegressionWisardWrapper(std::string config) : RegressionWisard(nl::json::parse(config)) {}
+
+    RegressionWisardWrapper(int addressSize, py::kwargs kwargs) : RegressionWisard(addressSize){
         completeAddressing = true;
         orderedMapping = false;
         minZero = 0;
