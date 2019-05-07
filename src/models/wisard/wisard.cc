@@ -94,7 +94,7 @@ public:
   }
 
   std::string classify(const BinInput& input) const {
-      std::map<std::string,int> candidates = _classify(input);
+      std::map<std::string,int> candidates = rank(input);
       return classificationMethod->getBiggestCandidate(candidates);
   }
 
@@ -148,8 +148,7 @@ public:
     return config.dump();
   }
 
-protected:
-  std::map<std::string, int> _classify(const BinInput& image) const{
+  std::map<std::string, int> rank(const BinInput& image) const{
     std::map<std::string,std::vector<int>> allvotes;
 
     for(auto& i: discriminators){
@@ -158,6 +157,7 @@ protected:
     return classificationMethod->run(allvotes);
   }
 
+protected:
   void makeDiscriminator(std::string label, int entrySize){
     auto it = mapping.find(label);
     if (it != mapping.end())
