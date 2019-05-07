@@ -41,6 +41,7 @@ includes = [
     'models/cluswisard/cluswisard.cc',
 
     'models/regressionwisard/meanfunctions.cc',
+    'models/regressionwisard/regressionramdatahandle.cc',
     'models/regressionwisard/regressionram.cc',
     'models/regressionwisard/regressionwisard.cc',
 

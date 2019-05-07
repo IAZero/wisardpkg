@@ -1,7 +1,7 @@
 /*
 
 wisardpkg for c++11
-version 2.0.0a1
+version 2.0.0a2
 https://github.com/IAZero/wisardpkg
 */
 
@@ -17304,7 +17304,7 @@ inline nlohmann::json::json_pointer operator "" _json_pointer(const char* s, std
 
 namespace wisardpkg {
 
-const std::string  __version__ = "2.0.0a1"; 
+const std::string  __version__ = "2.0.0a2"; 
 
 
 
@@ -17314,10 +17314,18 @@ namespace nl = nlohmann;
 typedef unsigned long long addr_t;
 typedef unsigned long long index_size_t;
 typedef char bin_t;
+
+// Classification
 typedef int content_t;
 typedef std::unordered_map<addr_t, content_t> ram_t;
 
+// Regression
+typedef std::vector<double> regression_content_t;
+typedef std::unordered_map<addr_t, regression_content_t> regression_ram_t;
+
+// Sufix
 const std::string ramdata_sufix = ".wdpkg";
+const std::string config_sufix = ".json";
 const std::string dataset_sufix = ".wpkds";
 class Exception: public std::exception{
     public:
@@ -17524,6 +17532,14 @@ namespace math
         normalized[i] = (v[i]-mmp.min) / diff;
     }
     return normalized;
+  }
+
+  template<typename T>
+  std::vector<T> arange(T start, T stop, T step = 1) {
+    std::vector<T> values;
+    for (T value = start; value < stop; value += step)
+      values.push_back(value);
+    return values;
   }
 
 } // math
@@ -17734,6 +17750,7 @@ private:
 class DataSet {
 public:
   DataSet(){}
+
   DataSet(std::string filename){
     int s = dataset_sufix.size();
     if(filename.substr(filename.size()-s,s).compare(dataset_sufix) != 0){
@@ -17742,6 +17759,10 @@ public:
     std::ifstream dataFile;
     dataFile.open(filename);
     if(dataFile.is_open()){
+      std::string filetype="";
+      std::getline(dataFile,filetype,'$');
+      bool isReg = filetype[0] == 'R';
+
       while(true){
         if(dataFile.eof()) break;
 
@@ -17750,14 +17771,69 @@ public:
         int sharp = input.find("#");
         std::string label = Base64::decode(input.substr(0,sharp));
 
-        add(BinInput(input.substr(sharp+1,input.size()-(sharp+1))),label);
+        if(label.size()>0&&isReg){
+          double y = convertToValue<double>(label);
+          add(BinInput(input.substr(sharp + 1, input.size() - (sharp + 1))), y);
+        }
+        else{
+          add(BinInput(input.substr(sharp + 1, input.size() - (sharp + 1))), label);
+        }
       }
       dataFile.close();
     }
   }
 
+  // unsupervised constructors
+  DataSet(const std::vector<std::vector<short>>& data){
+    add(data);
+  }
+
+  DataSet(const std::vector<std::string>& data){
+    add(data);
+  }
+
+  // labels constructors
+  DataSet(const std::vector<std::vector<short>>& data, const std::vector<std::string>& labels){
+    add(data, labels);
+  }
+
+  DataSet(const std::vector<std::string>& data, const std::vector<std::string>& labels){
+    add(data, labels);
+  }
+
+  // y constructors
+  DataSet(const std::vector<std::vector<short>>& data, const std::vector<double>& Y){
+    add(data, Y);
+  }
+
+  DataSet(const std::vector<std::string>& data, const std::vector<double>& Y){
+    add(data, Y);
+  }
+
+  
+  // destructor
+  ~DataSet(){
+    clear();
+  }
+
+
+  // unsupervise single
+  void add(const std::string& input){
+    add(BinInput(input),"");
+  }
+
   void add(const BinInput& input){
     add(input,"");
+  }
+
+  void add(const std::vector<short>& input){
+    add(input,"");
+  }
+
+
+  // label single
+  void add(const std::string& input, const std::string& label){
+    add(BinInput(input), label);
   }
 
   void add(const BinInput& input, const std::string& label){
@@ -17765,16 +17841,99 @@ public:
     data.push_back(input);
   }
 
-  void add(const std::vector<short>& input){
-    add(input,"");
-  }
   void add(const std::vector<short>& input, const std::string& label){
     addLabel(label);
     data.push_back(BinInput(input));
   }
 
+
+  // y single
+  void add(const BinInput& input, double y){
+    addY(y);
+    data.push_back(input);
+  }
+
+  void add(const std::string& input, double y){
+    addY(y);
+    data.push_back(BinInput(input));
+  }
+
+  void add(const std::vector<short>& input, double y){
+    addY(y);
+    data.push_back(BinInput(input));
+  }
+
+
+  // unsupervised multi
+  void add(const std::vector<std::vector<short>>& data){
+    for(size_t i = 0; i < data.size(); i++){
+      add(data[i], "");
+    }
+  }
+
+  void add(const std::vector<std::string>& data){
+    for(size_t i = 0; i < data.size(); i++){
+      add(data[i], "");
+    }
+  }
+
+
+  // label multi
+  void add(const std::vector<std::vector<short>>& data, const std::vector<std::string>& labels){
+    if (data.size() != labels.size()) {
+      throw Exception("The size of data is not the same of the size of labels!");
+    }
+    
+    for(size_t i = 0; i < data.size(); i++){
+      add(data[i], labels[i]);
+    }
+  }
+
+  void add(const std::vector<std::string>& data, const std::vector<std::string>& labels){
+    if (data.size() != labels.size()) {
+      throw Exception("The size of data is not the same of the size of labels!");
+    }
+    
+    for(size_t i = 0; i < data.size(); i++){
+      add(data[i], labels[i]);
+    }
+  }
+
+
+  // y multi
+  void add(const std::vector<std::vector<short>>& data, const std::vector<double>& Y){
+    if (data.size() != Y.size()) {
+      throw Exception("The size of data is not the same of the size of labels!");
+    }
+    
+    for(size_t i = 0; i < data.size(); i++){
+      add(data[i], Y[i]);
+    }
+  }
+
+  void add(const std::vector<std::string>& data, const std::vector<double>& Y){
+    if (data.size() != Y.size()) {
+      throw Exception("The size of data is not the same of the size of labels!");
+    }
+    
+    for(size_t i = 0; i < data.size(); i++){
+      add(data[i], Y[i]);
+    }
+  }
+
+  
+
+  
+  // gets and sets
   const BinInput& operator[](int index) const {
     return get(index);
+  }
+
+  void set(int index, const BinInput& value){
+    if((size_t)index >= size()) {
+      throw Exception("Index out of range!");
+    }
+    data[index] = value;
   }
 
   const BinInput& get(int index) const {
@@ -17785,6 +17944,14 @@ public:
     return labels.at(index);
   }
 
+  double getY(int index) const {
+    return Y.at(index);
+  }
+
+  const std::unordered_map<int,std::string>& getLabels() const {
+    return labels;
+  }
+
   const std::vector<int>& getUnlabelIndices() const {
     return unlabelIndices;
   }
@@ -17793,18 +17960,28 @@ public:
     return labelIndices;
   }
 
+  // verifications
   bool isSupervised() const {
-    return data.size() == labels.size();
+    return data.size() == (labels.size()+Y.size());
   }
 
   bool isUnsupervised() const {
-    return labels.size() == 0;
+    return labels.size() == 0 && Y.size() == 0;
   }
 
   bool isSemiSupervised() const {
-    return data.size() > labels.size() && !isUnsupervised();
+    return data.size() > (labels.size()+Y.size()) && !isUnsupervised();
   }
 
+  bool isRegression() const {
+    return Y.size() > 0 && labels.size() == 0;
+  }
+
+  bool isClassification() const {
+    return labels.size() > 0 && Y.size() == 0;
+  }
+
+  // output data
   size_t size() const {
     return data.size();
   }
@@ -17813,19 +17990,51 @@ public:
     std::string filename = prefix + dataset_sufix;
     std::ofstream dataFile;
     dataFile.open(filename, std::ios::app);
+    bool isReg = false;
+    if(isRegression()){
+      dataFile << "R"; // regression
+      isReg = true;
+    }
+    else if (isClassification()){
+      dataFile << "C"; // classification
+    }
+    else {
+      dataFile << "U"; // unsupervised
+    }
+
+    dataFile << "$";
 
     for(unsigned int i=0; i<data.size(); i++){
-      dataFile << (i != 0 ? "." : "") + Base64::encode(labels[i]) + "#" + data[i].data();
+      dataFile << (i != 0 ? "." : "") + Base64::encode( isReg ? convertToBytes(Y[i]) : labels[i]) + "#" + data[i].data();
     }
 
     dataFile.close();
   }
 
+  // TODO: sample method
+
+  // TODO: addLabel/changeLabel at ith position
+
+  void clear(){
+    unlabelIndices.clear();
+    labelIndices.clear();
+    data.clear();
+    labels.clear();
+    Y.clear();
+  }
+
 private:
   std::vector<int> unlabelIndices;
   std::vector<int> labelIndices;
+
   std::vector<BinInput> data;
   std::unordered_map<int,std::string> labels;
+  std::unordered_map<int, double> Y;
+
+  void addY(double y){
+    Y[data.size()]=y;
+    labelIndices.push_back(data.size());
+  }
 
   void addLabel(std::string label){
     if(label.size()>0) {
@@ -17838,6 +18047,7 @@ private:
   }
 };
 
+// TODO: concatenate funcion
 
 class Synthesizer{
 public:
@@ -18151,50 +18361,113 @@ public:
     return BinInput(out);
   }
 };
-class Thermometer : public BinBase {
-protected:
-  std::vector<int> sizes;
-  std::vector<double> maximum;
-  int outputSize;
+class SimpleThermometer : public BinBase {
 public:
-  Thermometer(const std::vector<int>& sizes, const std::vector<double>& maximum) : sizes(sizes), maximum(maximum){
-    if(sizes.size() != maximum.size()){
-      throw Exception("the sizes of 'sizes' and 'maximum' differ!");
-    }
-    outputSize = math::sum(sizes);
-  }
-
-  static std::vector<short> toBinary(const double value, const int size, const double max){
-    std::vector<short> code(size, 0);
-    double counter = 0.0;
-
-    for(int i = 0; i < size; i++){
-      code[i] = value >= counter ? 1 : 0;
-      counter += max/size;
-    }
-    return code;
+  SimpleThermometer(const int thermometerSize=2, const double minimum=0.0, const double maximum=0.0) : thermometerSize(thermometerSize){
+    valueRanges = math::arange(minimum, maximum, (minimum + maximum)/thermometerSize);
   }
 
   BinInput transform(const std::vector<double>& data){
-    if(sizes.size() != data.size()){
-      throw Exception("data size is not valid!");
-    }
-    BinInput out(outputSize);
-    int j = 0;
-    for(size_t i = 0; i < data.size(); i++)
-    {
-      std::vector<short> code = toBinary(data[i], sizes[i], maximum[i]);
-      for(short& p : code)
-      {
-        out.set(j, p);
-        j++;
+    BinInput out(data.size()*thermometerSize);
+    int k = 0;
+    for(size_t i = 0; i < data.size(); i++){
+      for (size_t j = 0; j < valueRanges.size(); j++){
+        if (data[i] > valueRanges[j]){
+          out.set(k, 1);
+        } else {
+          out.set(k, 0);
+        }
+        k++;
       }
-      
     }
     return out;
   }
+
+  int getSize() const{
+    return thermometerSize;
+  }
+  
+protected:
+  int thermometerSize;
+  std::vector<double> valueRanges;
 };
-class RAMDataHandle {
+
+
+class DynamicThermometer : public BinBase {
+public:
+  DynamicThermometer(const std::vector<int>& thermometerSizes, const std::vector<double>& minimum=std::vector<double>(), const std::vector<double>& maximum=std::vector<double>()) : thermometerSize(0){
+    if (minimum.size() != 0 && minimum.size() != thermometerSizes.size()){
+      throw Exception("The size of thermometerSizes is not the same of the size of minimum!");
+    }
+    if (maximum.size() != 0 && maximum.size() != thermometerSizes.size()){
+      throw Exception("The size of thermometerSizes is not the same of the size of maximum!");
+    }
+    
+    valueRanges.resize(thermometerSizes.size());
+    for (size_t i = 0; i < valueRanges.size(); i++){
+      double min = minimum.size() > 0 ? minimum[i] : 0.0;
+      double max = maximum.size() > 0 ? maximum[i] : 1.0;
+      valueRanges[i] = math::arange(min, max, (min + max)/thermometerSizes[i]);
+      thermometerSize += thermometerSizes[i];
+    }
+  }
+
+  BinInput transform(const std::vector<double>& data){
+    BinInput out(thermometerSize);
+    int k = 0;
+    for(size_t i = 0; i < data.size(); i++){
+      for (size_t j = 0; j < valueRanges[i].size(); j++){
+        if (data[i] > valueRanges[i][j]){
+          out.set(k, 1);
+        } else {
+          out.set(k, 0);
+        }
+        k++;
+      }
+    }
+    return out;
+  }
+
+  int getSize() const{
+    return thermometerSize;
+  }
+
+protected:
+  int thermometerSize;
+  std::vector<std::vector<double>> valueRanges;
+};
+
+class Model {
+public:
+    // Model(std::string);
+
+    virtual void train(const DataSet& dataset) = 0;
+    virtual long getsizeof() const = 0;
+    virtual std::string json(std::string filename) const = 0;
+
+    std::string json() const {
+        return json("");
+    }
+};class ClassificationModel: public Model {
+public:
+    virtual std::vector<std::string> classify(const DataSet& dataset) const = 0;
+    virtual std::string classify(const BinInput& bininput) const = 0;
+    virtual std::map<std::string, int> rank(const BinInput& bininput) const = 0;
+
+    double score(const DataSet& dataset) const {
+        double out = 0.0;
+        for(size_t i=0; i<dataset.size(); i++){
+            out += classify(dataset[i]) == dataset.getLabel(i) ? 1.0 : 0.0;
+        }
+        return out/dataset.size();
+    }
+};class RegressionModel: public Model {
+public:
+    virtual void train(const BinInput& input, const double y) = 0;
+
+    virtual std::vector<double> predict(const DataSet& dataset) const = 0;
+    virtual double predict(const BinInput& input) const = 0;
+};class RAMDataHandle {
 public:
   RAMDataHandle(std::string inputdata){
     setData(inputdata);
@@ -18400,23 +18673,31 @@ public:
     checkLimitAddressSize(indexes.size(), base);
   }
 
-  int getVote(const std::vector<int>& image){
-    return getVote<std::vector<int>>(image);
-  }
-
-  int getVote(const BinInput& image){
-    return getVote<BinInput>(image);
-  }
-
-  void train(const std::vector<int>& image){
-    train<std::vector<int>>(image);
+  int getVote(const BinInput& image) const {
+    addr_t index = getIndex(image);
+    if(ignoreZero && index == 0)
+      return 0;
+    auto it = positions.find(index);
+    if(it == positions.end()){
+      return 0;
+    }
+    else{
+      return it->second;
+    }
   }
 
   void train(const BinInput& image){
-    train<BinInput>(image);
+    addr_t index = getIndex(image);
+    auto it = positions.find(index);
+    if(it == positions.end()){
+      positions.insert(it,std::pair<addr_t,content_t>(index, 1));
+    }
+    else{
+      it->second++;
+    }
   }
 
-  void untrain(const std::vector<int>& image){
+  void untrain(const BinInput& image){
       addr_t index = getIndex(image);
       auto it = positions.find(index);
       if(it != positions.end()){
@@ -18449,7 +18730,7 @@ public:
     return mentalPiece;
   }
 
-  nl::json getConfig(){
+  nl::json getJson() const{
     nl::json config = {
       {"ignoreZero", ignoreZero},
       {"base", base}
@@ -18457,12 +18738,12 @@ public:
     return config;
   }
 
-  std::string getData(){
+  std::string getData() const {
     RAMDataHandle handle(positions);
     return handle.data(0);
   }
 
-  void setMapping(std::vector<std::vector<int>>& mapping, int i){
+  void setMapping(std::vector<std::vector<int>>& mapping, int i) const {
     int size = addresses.size();
     mapping[i].resize(size);
     for(int j=0; j<size; j++) {
@@ -18474,7 +18755,7 @@ public:
     return addresses.size();
   }
 
-  long getsizeof(){
+  long getsizeof() const{
     long size = sizeof(RAM);
     size += addresses.size()*sizeof(addr_t);
     size += positions.size()*(sizeof(addr_t)+sizeof(content_t));
@@ -18487,8 +18768,7 @@ public:
   }
 
 protected:
-  template<typename T>
-  addr_t getIndex(const T& image) const{
+  addr_t getIndex(const BinInput& image) const{
     addr_t index = 0;
     addr_t p = 1;
     for(unsigned int i=0; i<addresses.size(); i++){
@@ -18498,32 +18778,6 @@ protected:
       p *= base;
     }
     return index;
-  }
-
-  template<typename T>
-  void train(const T& image){
-    addr_t index = getIndex<T>(image);
-    auto it = positions.find(index);
-    if(it == positions.end()){
-      positions.insert(it,std::pair<addr_t,content_t>(index, 1));
-    }
-    else{
-      it->second++;
-    }
-  }
-
-  template<typename T>
-  int getVote(const T& image){
-    addr_t index = getIndex<T>(image);
-    if(ignoreZero && index == 0)
-      return 0;
-    auto it = positions.find(index);
-    if(it == positions.end()){
-      return 0;
-    }
-    else{
-      return it->second;
-    }
   }
 
 
@@ -18626,29 +18880,30 @@ public:
     setRAMByMapping(mapping, ignoreZero, base);
   }
 
-  std::vector<int> classify(const std::vector<int>& image) {
-    return _classify<std::vector<int>>(image);
-  }
-
-  std::vector<int> classify(const BinInput& image) {
-    return _classify<BinInput>(image);
-  }
-
-  void train(const std::vector<int>& image){
-    train<std::vector<int>>(image);
+  std::vector<int> classify(const BinInput& image) const {
+    checkEntrySize(image.size());
+    std::vector<int> votes(rams.size());
+    for(unsigned int i=0; i<rams.size(); i++){
+      votes[i] = rams[i].getVote(image);
+    }
+    return votes;
   }
 
   void train(const BinInput& image) {
-    train<BinInput>(image);
+    checkEntrySize(image.size());
+    count++;
+    for(unsigned int i=0; i<rams.size(); i++){
+      rams[i].train(image);
+    }
   }
 
-  void train(const std::vector<std::vector<int>>& image){
+  void train(const DataSet& image){
     for(unsigned int i=0; i<image.size(); i++){
       train(image[i]);
     }
   }
 
-  void untrain(const std::vector<int>& image){
+  void untrain(const BinInput& image){
       checkEntrySize(image.size());
       count--;
       for(unsigned int i=0; i<rams.size(); i++){
@@ -18676,48 +18931,37 @@ public:
     return mentalImage;
   }
 
-  std::string jsonConfig(){
-    nl::json config = getConfig(false);
-    if(!rams.empty()){
-      config.merge_patch(rams[0].getConfig());
-    }
-    // config["rams"] = getRAMSJSON(false);
-    config["version"] = __version__;
-    return config.dump(2);
+  std::string json() const {
+    return json("");
   }
 
-  std::string json(bool huge, std::string path){
+  std::string json(std::string filename) const {
     nl::json config = getConfig();
     if(!rams.empty()){
-      config.merge_patch(rams[0].getConfig());
+      config.merge_patch(rams[0].getJson());
     }
-    // config["rams"] = getRAMSJSON();
-    config["data"] = getRAMsData(huge,path);
+    bool isSave = filename.size()>0;
+    config["data"] = getRAMsData(isSave);
     config["version"] = __version__;
+
+    if(isSave){
+      std::string outfile = filename + config_sufix;
+      std::ofstream dataFile;
+      dataFile.open(outfile, std::ios::app);
+      dataFile << config.dump();
+      dataFile.close();
+      return outfile;
+    }
     return config.dump();
   }
-  std::string json(bool huge){
-    return json(huge,"");
-  }
-  std::string json(){
-    return json(false,"");
-  }
 
-
-  nl::json getConfigJSON(){
-    nl::json config = getConfig(false);
-    // config["rams"] = getRAMSJSON(false);
-    return config;
-  }
-
-  nl::json getJSON(bool huge, std::string prefix){
+  nl::json getJson(bool isSave) const {
     nl::json config = getConfig();
-    // config["rams"] = getRAMSJSON();
-    config["data"] = getRAMsData(huge, prefix);
+    config["data"] = getRAMsData(isSave);
     return config;
   }
 
-  long getsizeof(){
+  long getsizeof() const{
     long size = sizeof(Discriminator);
     for(unsigned int i=0; i<rams.size(); i++){
       size += rams[i].getsizeof();
@@ -18822,10 +19066,10 @@ protected:
     }
   }
 
-  std::string getRAMsData(bool huge=false, std::string prefix=""){
+  std::string getRAMsData(bool isSave=false) const {
     std::string data;
-    if(huge){
-      std::string filename = prefix + getRandomString(10) + ramdata_sufix;
+    if(isSave){
+      std::string filename = getRandomString(10) + ramdata_sufix;
       std::ofstream dataFile;
       dataFile.open(filename, std::ios::app);
 
@@ -18845,43 +19089,18 @@ protected:
     return data;
   }
 
-  template<typename T>
-  std::vector<int> _classify(const T& image) {
-    checkEntrySize(image.size());
-    std::vector<int> votes(rams.size());
-    for(unsigned int i=0; i<rams.size(); i++){
-      votes[i] = rams[i].getVote(image);
-    }
-    return votes;
-  }
-
-  void setMapping(std::vector<std::vector<int>>& mapping){
+  nl::json getConfig() const {
+    std::vector<std::vector<int>> mapping(rams.size());
     int size = rams.size();
     for(int i=0; i<size; i++){
       rams[i].setMapping(mapping, i);
     }
-  }
-
-  nl::json getConfig(bool all=true){
-    std::vector<std::vector<int>> mapping(rams.size());
-    setMapping(mapping);
     nl::json config = {
       {"entrySize", entrySize},
-      {"mapping", mapping}
+      {"mapping", mapping},
+      {"count", count}
     };
-    if(all){
-      config["count"] = count;
-    }
     return config;
-  }
-
-  template<typename T>
-  void train(const T& image) {
-    checkEntrySize(image.size());
-    count++;
-    for(unsigned int i=0; i<rams.size(); i++){
-      rams[i].train(image);
-    }
   }
 
 private:
@@ -18934,7 +19153,7 @@ private:
   std::vector<RAM> rams;
 };
 
-class Wisard{
+class Wisard: public ClassificationModel {
 public:
   Wisard(int addressSize): Wisard(addressSize, {}){}
   Wisard(int addressSize, nl::json c): addressSize(addressSize){
@@ -18993,11 +19212,11 @@ public:
     }
   }
 
-  long getsizeof(){
+  long getsizeof() const{
     long size = sizeof(Wisard);
     size += sizeof(int)*indexes.size();
-    for(std::map<std::string, Discriminator>::iterator d=discriminators.begin(); d!=discriminators.end(); ++d){
-      size += d->first.size() + d->second.getsizeof();
+    for(auto& d: discriminators){
+      size += d.first.size() + d.second.getsizeof();
     }
     return size;
   }
@@ -19010,39 +19229,36 @@ public:
   void train(const DataSet& dataset) {
     for(size_t i=0; i<dataset.size(); i++){
       if(verbose) std::cout << "\rtraining " << i+1 << " of " << dataset.size();
-      train<BinInput>(dataset[i], dataset.getLabel(i));
+      if(discriminators.find(dataset.getLabel(i)) == discriminators.end()){
+        makeDiscriminator(dataset.getLabel(i), dataset[i].size());
+      }
+      discriminators[dataset.getLabel(i)].train(dataset[i]);
     }
   }
 
-  void train(const std::vector<std::vector<int>>& images, const std::vector<std::string>& labels){
-    checkInputSizes(images.size(), labels.size());
+  std::vector<std::string> classify(const DataSet& images) const{
+    std::vector<std::string> labels(images.size());
+
     for(unsigned int i=0; i<images.size(); i++){
-      if(verbose) std::cout << "\rtraining " << i+1 << " of " << images.size();
-      train<std::vector<int>>(images[i], labels[i]);
+      if(verbose) std::cout << "\rclassifying " << i+1 << " of " << images.size();
+      labels[i] = classify(images[i]);
     }
     if(verbose) std::cout << "\r" << std::endl;
+    return labels;
   }
 
-  std::vector<std::string> classify(const std::vector<std::vector<int>>& images){
-    return _classify<std::vector<std::vector<int>>>(images);
+  std::string classify(const BinInput& input) const {
+      std::map<std::string,int> candidates = rank(input);
+      return classificationMethod->getBiggestCandidate(candidates);
   }
 
-  std::vector<std::string> classify(const DataSet& images){
-    return _classify<DataSet>(images);
-  }
-
-  void leaveOneOut(const std::vector<int>& image, const std::string& label){
-    auto d = discriminators.find(label);
-    if(d != discriminators.end()){
-      d->second.untrain(image);
-    }
-  }
-
-  void leaveMoreOut(const std::vector<std::vector<int>>& images, const std::vector<std::string>& labels){
-    checkInputSizes(images.size(), labels.size());
+  void untrain(const DataSet& images){
     for(unsigned int i=0; i<images.size(); i++){
       if(verbose) std::cout << "\runtraining " << i+1 << " of " << images.size();
-      leaveOneOut(images[i], labels[i]);
+        auto d = discriminators.find(images.getLabel(i));
+        if(d != discriminators.end()){
+          d->second.untrain(images[i]);
+        }
     }
     if(verbose) std::cout << "\r" << std::endl;
   }
@@ -19055,82 +19271,7 @@ public:
     return images;
   }
 
-  std::string jsonConfig(){
-    nl::json config = getConfig();
-    config["classes"] = getConfigClassesJSON();
-    return config.dump(2);
-  }
-
-  std::string json(bool huge, std::string path) {
-    nl::json config = getConfig();
-    config["classes"] = getClassesJSON(huge,path);
-    return config.dump();
-  }
-  std::string json(bool huge) {
-    return json(huge,"");
-  }
-  std::string json() {
-    return json(false,"");
-  }
-
-
-protected:
-  template<typename T>
-  void train(const T& image, const std::string& label){
-    if(discriminators.find(label) == discriminators.end()){
-      makeDiscriminator(label, image.size());
-    }
-    discriminators[label].train(image);
-  }
-
-  template<typename T>
-  std::vector<std::string> _classify(const T& images){
-    std::vector<std::string> labels(images.size());
-
-    for(unsigned int i=0; i<images.size(); i++){
-      if(verbose) std::cout << "\rclassifying " << i+1 << " of " << images.size();
-      std::map<std::string,int> candidates = classify(images[i]);
-      labels[i] = classificationMethod->getBiggestCandidate(candidates);
-    }
-    if(verbose) std::cout << "\r" << std::endl;
-    return labels;
-  }
-
-  std::map<std::string, int> classify(const std::vector<int>& image){
-    return __classify<std::vector<int>>(image);
-  }
-
-  std::map<std::string, int> classify(const BinInput& image){
-    return __classify<BinInput>(image);
-  }
-
-  template<typename T>
-  std::map<std::string, int> __classify(const T& image, bool searchBestConfidence=false){
-    std::map<std::string,std::vector<int>> allvotes;
-
-    for(std::map<std::string,Discriminator>::iterator i=discriminators.begin(); i!=discriminators.end(); ++i){
-      allvotes[i->first] = i->second.classify(image);
-    }
-    return classificationMethod->run(allvotes);
-  }
-
-  nl::json getClassesJSON(bool huge, std::string path){
-    nl::json c;
-    for(std::map<std::string, Discriminator>::iterator d=discriminators.begin(); d!=discriminators.end(); ++d){
-      c[d->first] = d->second.getJSON(huge,path+(d->first)+"__");
-    }
-    return c;
-  }
-
-  nl::json getConfigClassesJSON(){
-    nl::json c;
-    for(std::map<std::string, Discriminator>::iterator d=discriminators.begin(); d!=discriminators.end(); ++d){
-      c[d->first] = d->second.getConfigJSON();
-    }
-    return c;
-  }
-
-  nl::json getConfig(){
+  std::string json(std::string filename="") const {
     nl::json config = {
       {"version", __version__},
       {"addressSize", addressSize},
@@ -19144,9 +19285,42 @@ protected:
       {"returnActivationDegree", returnActivationDegree},
       {"returnClassesDegrees", returnClassesDegrees}
     };
-    return config;
+    nl::json c;
+    bool isSave = filename.size() > 0;
+    for(auto& d : discriminators){
+      c[d.first] = d.second.getJson(isSave);
+    }
+    config["classes"] = c;
+    if(isSave){
+      std::string outfile = filename + config_sufix;
+      std::ofstream dataFile;
+      dataFile.open(outfile, std::ios::app);
+      dataFile << config.dump();
+      dataFile.close();
+      return filename;
+    }
+    return config.dump();
   }
 
+  std::map<std::string, int> rank(const BinInput& image) const{
+    std::map<std::string,std::vector<int>> allvotes;
+
+    for(auto& i: discriminators){
+      allvotes[i.first] = i.second.classify(image);
+    }
+    return classificationMethod->run(allvotes);
+  }
+
+  std::vector<std::map<std::string, int>> rank(const DataSet& images) const{
+    std::vector<std::map<std::string, int>> out(images.size());
+
+    for(unsigned int i=0; i<images.size(); i++){
+        out[i] = rank(images[i]);
+    }
+    return out;
+  }
+
+protected:
   void makeDiscriminator(std::string label, int entrySize){
     auto it = mapping.find(label);
     if (it != mapping.end())
@@ -19245,80 +19419,7 @@ public:
     return sum/(max*votes.size());
   }
 
-  void train(const std::vector<int>& image){
-    train<std::vector<int>>(image);
-  }
-
   void train(const BinInput& image){
-    train<BinInput>(image);
-  }
-
-  std::vector<std::vector<int>> classify(const std::vector<int>& image){
-    return classify<std::vector<int>>(image);
-  }
-
-  std::vector<std::vector<int>> classify(const BinInput& image){
-    return classify<BinInput>(image);
-  }
-
-  unsigned int getNumberOfDiscriminators(){
-    return discriminators.size();
-  }
-
-  std::vector<std::vector<int>> getMentalImages(){
-    std::vector<std::vector<int>> images(discriminators.size());
-    for(std::map<int, Discriminator*>::iterator d=discriminators.begin(); d!=discriminators.end(); ++d){
-      images[d->first] = d->second->getMentalImage();
-    }
-    return images;
-  }
-
-  nl::json getJson(bool huge, std::string path){
-    nl::json discriminatorsConfig;
-    for(std::map<int, Discriminator*>::iterator d=discriminators.begin(); d!=discriminators.end(); ++d){
-      discriminatorsConfig[d->first] = d->second->getJSON(huge, path+std::to_string(d->first)+"__");
-    }
-
-    nl::json config = {
-      {"entrySize", entrySize},
-      {"discriminators", discriminatorsConfig}
-    };
-    return config;
-  }
-
-  int getSize(){
-    return discriminators.size();
-  }
-
-  long getsizeof(){
-    long size = sizeof(Cluster);
-    for(std::map<int, Discriminator*>::iterator d=discriminators.begin(); d!=discriminators.end(); ++d){
-      size += sizeof(int) + d->second->getsizeof();
-    }
-    return size;
-  }
-
-  ~Cluster(){
-    discriminators.clear();
-  }
-
-private:
-  std::map<int,Discriminator*> discriminators;
-  unsigned int addressSize;
-  unsigned int entrySize;
-  float minScore;
-  unsigned int threshold;
-  int discriminatorsLimit;
-  bool completeAddressing;
-  bool ignoreZero;
-  int base;
-
-  void makeDiscriminator(const int index){
-    discriminators[index] = new Discriminator(addressSize, entrySize, ignoreZero, completeAddressing, base);
-  }
-
-  template<typename T>
-  void train(const T& image){
     if(discriminators.size()==0){
       makeDiscriminator(0);
       discriminators[0]->train(image);
@@ -19360,17 +19461,73 @@ private:
     }
   }
 
-  template<typename T>
-  std::vector<std::vector<int>> classify(const T& image){
+  std::vector<std::vector<int>> classify(const BinInput& image) const{
     std::vector<std::vector<int>> output(discriminators.size());
     for(unsigned int i=0; i<discriminators.size(); i++){
-      output[i] = discriminators[i]->classify(image);
+      auto d = discriminators.at(i);
+      output[i] = d->classify(image);
     }
     return output;
   }
+
+  unsigned int getNumberOfDiscriminators(){
+    return discriminators.size();
+  }
+
+  std::vector<std::vector<int>> getMentalImages(){
+    std::vector<std::vector<int>> images(discriminators.size());
+    for(std::map<int, Discriminator*>::iterator d=discriminators.begin(); d!=discriminators.end(); ++d){
+      images[d->first] = d->second->getMentalImage();
+    }
+    return images;
+  }
+
+  nl::json getJson(bool isSave) const {
+    nl::json discriminatorsConfig;
+    for(auto& d :discriminators){
+      discriminatorsConfig[d.first] = d.second->getJson(isSave);
+    }
+
+    nl::json config = {
+      {"entrySize", entrySize},
+      {"discriminators", discriminatorsConfig}
+    };
+    return config;
+  }
+
+  int getSize() const{
+    return discriminators.size();
+  }
+
+  long getsizeof() const{
+    long size = sizeof(Cluster);
+    for(auto& d: discriminators){
+      size += sizeof(int) + d.second->getsizeof();
+    }
+    return size;
+  }
+
+  ~Cluster(){
+    discriminators.clear();
+  }
+
+private:
+  std::map<int,Discriminator*> discriminators;
+  unsigned int addressSize;
+  unsigned int entrySize;
+  float minScore;
+  unsigned int threshold;
+  int discriminatorsLimit;
+  bool completeAddressing;
+  bool ignoreZero;
+  int base;
+
+  void makeDiscriminator(const int index){
+    discriminators[index] = new Discriminator(addressSize, entrySize, ignoreZero, completeAddressing, base);
+  }
 };
 
-class ClusWisard{
+class ClusWisard: public ClassificationModel{
 public:
   ClusWisard(int addressSize, float minScore, int threshold, int discriminatorsLimit):
     ClusWisard(addressSize, minScore, threshold, discriminatorsLimit, {})
@@ -19445,16 +19602,6 @@ public:
       }
   }
 
-  void train(const std::vector<std::vector<int>>& images, const std::vector<std::string>& labels){
-    checkInputSizes(images.size(), labels.size());
-
-    for(unsigned int i=0; i<images.size(); i++){
-      if(verbose) std::cout << "\rtraining " << i+1 << " of " << images.size();
-      train(images[i],labels[i]);
-    }
-    if(verbose) std::cout << "\r" << std::endl;
-  }
-
   void train(const DataSet& images){
     int j=1;
     for(int i: images.getLabelIndices()){
@@ -19468,38 +19615,6 @@ public:
     }
   }
 
-  void train(const std::vector<std::vector<int>>& images, std::map<int, std::string>& labels){
-    checkInputLabels(images.size(), labels);
-
-    unsigned int size = images.size()-labels.size();
-    std::vector<int> labelless = std::vector<int>(size);
-    unsigned int j=0;
-    for(unsigned int i=0; i<images.size(); i++){
-      if(verbose) std::cout << "\rtraining supervised " << i+1 << " of " << images.size();
-      if(labels.find(i) == labels.end()){
-        if((labelless.size()-1) < j){
-          labelless.push_back(j++);
-        }
-        else{
-          labelless[j++] = i;
-        }
-      }
-      else{
-        train(images[i], labels[i]);
-      }
-    }
-    if(verbose) std::cout << "\r" << std::endl;
-
-    checkLabellessSize(images.size(), labelless.size());
-
-    for(unsigned int i=0; i<labelless.size(); i++){
-      if(verbose) std::cout << "\rtraining unsupervised " << i+1 << " of " << labelless.size();
-      train(images[i]);
-    }
-    if(verbose) std::cout << "\r" << std::endl;
-
-  }
-
   void trainUnsupervised(const DataSet& images){
     if((int)clusters.size()==0){
       unsupervisedCluster = Cluster(images[0].size(), addressSize, minScore, threshold, discriminatorsLimit, completeAddressing, ignoreZero);
@@ -19509,37 +19624,37 @@ public:
     }
   }
 
-  void trainUnsupervised(const std::vector<std::vector<int>>& images){
-    if((int)clusters.size()==0){
-      unsupervisedCluster = Cluster(images[0].size(), addressSize, minScore, threshold, discriminatorsLimit, completeAddressing, ignoreZero);
-    }
-    for(unsigned int i=0; i<images.size(); i++){
-      unsupervisedCluster.train(images[i]);
-    }
+  std::string classify(const BinInput& image) const {
+    std::map<std::string,int> candidates = rank(image);
+    return classificationMethod->getBiggestCandidate(candidates);
   }
 
-  std::vector<std::string> classify(const std::vector<std::vector<int>>& images){;
+  std::vector<std::string> classify(const DataSet& images) const{;
 
     std::vector<std::string> labels(images.size());
     for(unsigned int i=0; i<images.size(); i++){
       if(verbose) std::cout << "\rclassifying " << i+1 << " of " << images.size();
-      std::map<std::string,int> candidates = classify(images[i]);
-      std::string label = classificationMethod->getBiggestCandidate(candidates);
+      std::string label = classify(images[i]);
       labels[i] = label.substr(0,label.find("::"));
-
-      candidates.clear();
-      std::map<std::string,int>().swap(candidates);
     }
     if(verbose) std::cout << "\r" << std::endl;
     return labels;
   }
 
-  std::vector<std::string> classifyUnsupervised(const DataSet& images){
-    return classifyUnsupervised<DataSet>(images);
+  std::string classifyUnsupervised(const BinInput& image) const {
+    std::map<std::string,int> candidates = rankUnsupervised(image);
+    return classificationMethod->getBiggestCandidate(candidates);
   }
 
-  std::vector<std::string> classifyUnsupervised(const std::vector<std::vector<int>>& images){
-    return classifyUnsupervised<std::vector<std::vector<int>>>(images);
+  std::vector<std::string> classifyUnsupervised(const DataSet& images) const{
+    std::vector<std::string> labels(images.size());
+    for(unsigned int i=0; i<images.size(); i++){
+      if(verbose) std::cout << "\rclassifying unsupervised " << i+1 << " of " << images.size();
+      std::string label = classifyUnsupervised(images[i]);
+      labels[i] = label.substr(0,label.find("::"));
+    }
+    if(verbose) std::cout << "\r" << std::endl;
+    return labels;
   }
 
   std::vector<std::vector<int>> getMentalImage(std::string label){
@@ -19554,34 +19669,49 @@ public:
     return mentalImages;
   }
 
-  std::string jsonConfig(){
-    nl::json config = getConfig();
-    return config.dump(2);
-  }
+  std::string json(std::string filename="") const {
+    nl::json config = {
+      {"version", __version__},
+      {"addressSize", addressSize},
+      {"minScore", minScore},
+      {"threshold", threshold},
+      {"discriminatorsLimit", discriminatorsLimit},
+      {"verbose", verbose},
+      {"classificationMethod", ClassificationMethods::json(classificationMethod)},
+      {"ignoreZero", ignoreZero},
+      {"completeAddressing", completeAddressing},
+      {"base", base},
+      {"returnConfidence", returnConfidence},
+      {"returnActivationDegree", returnActivationDegree},
+      {"returnClassesDegrees", returnClassesDegrees}
+    };
 
-  std::string json(bool huge, std::string path) {
-    nl::json config = getConfig();
+    bool isSave = filename.size() > 0;
+
     if(clusters.size()>0){
-      config["clusters"] = getClustersJson(huge,path);
+      config["clusters"] = getClustersJson(isSave);
     }
     if(unsupervisedCluster.getSize()>0){
-      config["unsupervisedCluster"] = unsupervisedCluster.getJson(huge,path+"unsupervised_cluster__");
+      config["unsupervisedCluster"] = unsupervisedCluster.getJson(isSave);
     }
+
+    if(isSave){
+      std::string outfile = filename + config_sufix;
+      std::ofstream dataFile;
+      dataFile.open(outfile, std::ios::app);
+      dataFile << config.dump();
+      dataFile.close();
+      return outfile;
+    }
+
     return config.dump();
   }
 
-  std::string json(bool huge) {
-    return json(huge,"");
-  }
-  std::string json() {
-    return json(false,"");
-  }
-
-  long getsizeof(){
+  long getsizeof() const {
     long size = sizeof(ClusWisard);
     size += unsupervisedCluster.getsizeof();
-    for(std::map<std::string,Cluster>::iterator i=clusters.begin(); i!=clusters.end(); ++i){
-      size += i->first.size() + i->second.getsizeof();
+    for(auto& i: clusters){
+      size += i.first.size() + i.second.getsizeof();
     }
     return size;
   }
@@ -19590,93 +19720,59 @@ public:
     clusters.clear();
   }
 
-protected:
-  template<typename T>
-  std::vector<std::string> classifyUnsupervised(const T& images){
-    std::vector<std::string> labels(images.size());
-    for(unsigned int i=0; i<images.size(); i++){
-      if(verbose) std::cout << "\rclassifying unsupervised " << i+1 << " of " << images.size();
-      std::map<std::string,int> candidates = classifyUnsupervised(images[i]);
-      std::string label = classificationMethod->getBiggestCandidate(candidates);
-      labels[i] = label.substr(0,label.find("::"));
-
-      candidates.clear();
-      std::map<std::string,int>().swap(candidates);
-    }
-    if(verbose) std::cout << "\r" << std::endl;
-    return labels;
-  }
-
-  void train(const std::vector<int>& image, const std::string& label){
-    _train<std::vector<int>>(image,label);
-  }
-
-  void train(const BinInput& image, const std::string& label){
-    _train<BinInput>(image,label);
-  }
-
-  template<typename T>
-  void _train(const T& image, const std::string& label){
-    if(clusters.find(label) == clusters.end()){
-      makeClusters(label, image.size());
-    }
-    clusters[label].train(image);
-  }
-
-  void train(const std::vector<int>& image){
-    _train<std::vector<int>>(image);
-  }
-
-  void train(const BinInput& image){
-    _train<BinInput>(image);
-  }
-
-  template<typename T>
-  void _train(const T& image){
-    std::map<std::string,int> candidates = classify(image);
-    std::string label = classificationMethod->getBiggestCandidate(candidates);
-    label = label.substr(0,label.find("::"));
-    clusters[label].train(image);
-  }
-
-  std::map<std::string, int> classify(const std::vector<int>& image){
-    return _classify<std::vector<int>>(image);
-  }
-
-  std::map<std::string, int> classify(const BinInput& image){
-    return _classify<BinInput>(image);
-  }
-
-  template<typename T>
-  std::map<std::string, int> _classify(const T& image){
+  std::map<std::string, int> rank(const BinInput& image) const{
     std::map<std::string,std::vector<int>> allvotes;
 
-    for(std::map<std::string,Cluster>::iterator i=clusters.begin(); i!=clusters.end(); ++i){
-      std::vector<std::vector<int>> votes = i->second.classify(image);
+    for(auto& i: clusters){
+      std::vector<std::vector<int>> votes = i.second.classify(image);
       for(unsigned int j=0; j<votes.size(); j++){
-        allvotes[i->first+std::string("::")+std::to_string(j)] = votes[j];
+        allvotes[i.first+std::string("::")+std::to_string(j)] = votes[j];
       }
     }
 
     return classificationMethod->run(allvotes);
   }
 
-  std::map<std::string, int> classifyUnsupervised(const std::vector<int>& image){
-    return _classifyUnsupervised<std::vector<int>>(image);
+  std::vector<std::map<std::string, int>> rank(const DataSet& images) const{
+    std::vector<std::map<std::string, int>> out(images.size());
+
+    for(unsigned int i=0; i<images.size(); i++){
+        out[i] = rank(images[i]);
+    }
+    return out;
   }
 
-  std::map<std::string, int> classifyUnsupervised(const BinInput& image){
-    return _classifyUnsupervised<BinInput>(image);
-  }
-
-  template<typename T>
-  std::map<std::string, int> _classifyUnsupervised(const T& image){
+  std::map<std::string, int> rankUnsupervised(const BinInput& image) const{
     std::map<std::string,std::vector<int>> allvotes;
     std::vector<std::vector<int>> votes = unsupervisedCluster.classify(image);
     for(unsigned int i=0; i<votes.size(); ++i){
       allvotes[std::to_string(i)] = votes[i];
     }
     return classificationMethod->run(allvotes);
+  }
+
+  std::vector<std::map<std::string, int>> rankrankUnsupervised(const DataSet& images) const{
+    std::vector<std::map<std::string, int>> out(images.size());
+
+    for(unsigned int i=0; i<images.size(); i++){
+      out[i] = rankUnsupervised(images[i]);
+    }
+    return out;
+}
+
+protected:
+  void train(const BinInput& image, const std::string& label){
+    if(clusters.find(label) == clusters.end()){
+      makeClusters(label, image.size());
+    }
+    clusters[label].train(image);
+  }
+
+  void train(const BinInput& image){
+    std::map<std::string,int> candidates = rank(image);
+    std::string label = classificationMethod->getBiggestCandidate(candidates);
+    label = label.substr(0,label.find("::"));
+    clusters[label].train(image);
   }
 
   void checkInputLabels(const int numberOfInputs, std::map<int, std::string>& labels){
@@ -19713,30 +19809,11 @@ protected:
     clusters[label] = Cluster(entrySize, addressSize, minScore, threshold, discriminatorsLimit, completeAddressing, ignoreZero, base);
   }
 
-  nl::json getClustersJson(bool huge, std::string path){
+  nl::json getClustersJson(bool isSave) const {
     nl::json config;
-    for(std::map<std::string,Cluster>::iterator i=clusters.begin(); i!=clusters.end(); ++i){
-      config[i->first] = i->second.getJson(huge,path+(i->first)+"__");
+    for(auto& i: clusters){
+      config[i.first] = i.second.getJson(isSave);
     }
-    return config;
-  }
-
-  nl::json getConfig(){
-    nl::json config = {
-      {"version", __version__},
-      {"addressSize", addressSize},
-      {"minScore", minScore},
-      {"threshold", threshold},
-      {"discriminatorsLimit", discriminatorsLimit},
-      {"verbose", verbose},
-      {"classificationMethod", ClassificationMethods::json(classificationMethod)},
-      {"ignoreZero", ignoreZero},
-      {"completeAddressing", completeAddressing},
-      {"base", base},
-      {"returnConfidence", returnConfidence},
-      {"returnActivationDegree", returnActivationDegree},
-      {"returnClassesDegrees", returnClassesDegrees}
-    };
     return config;
   }
 
@@ -19755,6 +19832,1032 @@ protected:
   std::map<std::string, Cluster> clusters;
   Cluster unsupervisedCluster;
   ClassificationBase* classificationMethod;
+};
+class Mean {
+public:
+  virtual Mean* clone() const = 0;
+  virtual double calculate(const std::vector<std::vector<double>>& outputRams) = 0;
+
+  virtual nl::json getJSON() const = 0;
+};
+
+class SimpleMean: public Mean {
+public:
+  double calculate(const std::vector<std::vector<double>>& outputRams){
+    double sumCounters = 0;
+    double sumY = 0;
+    for(unsigned int i=0; i<outputRams.size(); i++){
+      sumCounters += outputRams[i][0];
+      sumY += outputRams[i][1];
+    }
+
+    if(sumCounters>0)
+      return sumY/sumCounters;
+
+    return 0;
+  }
+
+  Mean* clone() const{
+    return new SimpleMean();
+  }
+
+  std::string className() const{
+    return "SimpleMean";
+  }
+
+  nl::json getJSON() const{
+    nl::json config = {
+      {"type", className()}
+    };
+    return config;
+  }
+};
+
+class PowerMean: public Mean {
+private:
+  int power;
+public:
+  PowerMean(int n):power(n){}
+
+  double calculate(const std::vector<std::vector<double>>& outputRams){
+    double sumy = 0;
+    int counter = 0;
+    for(unsigned int i=0; i<outputRams.size(); i++){
+      if(outputRams[i][0]!=0){
+        sumy += pow(outputRams[i][1]/outputRams[i][0],power);
+        counter++;
+      }
+    }
+    if(counter>0)
+      return pow(sumy/counter,1.0/power);
+
+    return 0;
+  }
+
+  Mean* clone() const{
+    return new PowerMean(power);
+  }
+
+  std::string className() const{
+    return "PowerMean";
+  }
+
+  nl::json getJSON() const{
+    nl::json config = {
+      {"type", className()},
+      {"power", power}
+    };
+    return config;
+  }
+};
+
+class Median: public Mean {
+public:
+  double calculate(const std::vector<std::vector<double>>& outputRams){
+    std::vector<double> means(outputRams.size());
+    for(unsigned int i=0; i<outputRams.size(); i++){
+      means[i] = outputRams[i][1]/outputRams[i][0];
+    }
+    std::sort(means.begin(), means.end());
+    if(means.size() % 2 == 0){
+      int index = means.size()/2;
+      return (means[index]+means[index+1])/2.0;
+    }
+    else{
+      int index = (means.size()-1)/2 + 1;
+      return means[index];
+    }
+  }
+
+  Mean* clone() const{
+    return new Median();
+  }
+
+  std::string className() const{
+    return "Median";
+  }
+
+  nl::json getJSON() const{
+    nl::json config = {
+      {"type", className()}
+    };
+    return config;
+  }
+};
+
+class HarmonicMean: public Mean {
+public:
+  double calculate(const std::vector<std::vector<double>>& outputRams){
+    double hmean = 0;
+    int counter = 0;
+    for(unsigned int i=0; i<outputRams.size(); i++){
+      if(outputRams[i][0]!=0){
+        double amean = outputRams[i][1]/outputRams[i][0];
+        if(amean != 0){
+          hmean += 1.0/amean;
+          counter++;
+        }
+      }
+    }
+
+    if(counter>0)
+      return counter/hmean;
+
+    return 0;
+  }
+
+  Mean* clone() const{
+    return new HarmonicMean();
+  }
+
+  std::string className() const{
+    return "HarmonicMean";
+  }
+
+  nl::json getJSON() const{
+    nl::json config = {
+      {"type", className()}
+    };
+    return config;
+  }
+};
+
+class HarmonicPowerMean: public Mean {
+private:
+  int power;
+public:
+  HarmonicPowerMean(int n):power(n){}
+
+  double calculate(const std::vector<std::vector<double>>& outputRams){
+    double hmean = 0;
+    int counter = 0;
+    for(unsigned int i=0; i<outputRams.size(); i++){
+      if(outputRams[i][0]!=0){
+        double amean = outputRams[i][1]/outputRams[i][0];
+        if(amean != 0){
+          hmean += 1.0/pow(amean,power);
+          counter++;
+        }
+      }
+    }
+
+    if(counter>0)
+      return pow(counter/hmean,1.0/power);
+
+    return 0;
+  }
+
+  Mean* clone() const{
+    return new HarmonicPowerMean(power);
+  }
+
+  std::string className() const{
+    return "HarmonicPowerMean";
+  }
+
+  nl::json getJSON() const{
+    nl::json config = {
+      {"type", className()},
+      {"power", power}
+    };
+    return config;
+  }
+};
+
+class GeometricMean: public Mean {
+public:
+  double calculate(const std::vector<std::vector<double>>& outputRams){
+    double gmean = 1;
+    int counter = 0;
+    for(unsigned int i=0; i<outputRams.size(); i++){
+      if(outputRams[i][0]!=0){
+        double amean = outputRams[i][1]/outputRams[i][0];
+        if(amean != 0){
+          gmean *= amean;
+          counter++;
+        }
+      }
+    }
+
+    if(counter>0)
+      return pow(gmean, 1.0/counter);
+
+    return 0;
+  }
+
+  Mean* clone() const{
+    return new GeometricMean();
+  }
+
+  std::string className() const{
+    return "GeometricMean";
+  }
+
+  nl::json getJSON() const{
+    nl::json config = {
+      {"type", className()}
+    };
+    return config;
+  }
+};
+
+
+class ExponentialMean: public Mean {
+public:
+  double calculate(const std::vector<std::vector<double>>& outputRams){
+    double emean = 1;
+    int counter = 0;
+    for(unsigned int i=0; i<outputRams.size(); i++){
+      if(outputRams[i][0]!=0){
+        double amean = outputRams[i][1]/outputRams[i][0];
+        emean += exp(amean);
+        counter++;
+      }
+    }
+
+    if(counter>0)
+      return log(emean/counter);
+
+    return 0;
+  }
+
+  Mean* clone() const{
+    return new ExponentialMean();
+  }
+
+  std::string className() const{
+    return "ExponentialMean";
+  }
+
+  nl::json getJSON() const{
+    nl::json config = {
+      {"type", className()}
+    };
+    return config;
+  }
+};
+
+class MeanHelper{
+public:
+  static nl::json getJSON(Mean* obj){
+    return obj->getJSON();
+  }
+
+  static Mean* load(nl::json config){
+    nl::json value = config["type"];
+    std::string className = value.is_null() ? "" : value.get<std::string>();
+    Mean* obj;
+
+    if(className == "PowerMean"){
+      nl::json powerj = config["power"];
+      obj = new PowerMean(powerj.get<int>());
+    } else if(className == "HarmonicPowerMean"){
+      nl::json powerj = config["power"];
+      obj = new HarmonicPowerMean(powerj.get<int>());
+    } else if(className == "Median"){
+      obj = new Median();
+    } else if(className == "HarmonicMean"){
+      obj = new HarmonicMean();
+    } else if(className == "GeometricMean"){
+      obj = new GeometricMean();
+    } else if(className == "ExponentialMean"){
+      obj = new ExponentialMean();
+    } else{
+      obj = new SimpleMean();
+    }
+
+    return obj;
+  }
+};
+class RegressionRAMDataHandle {
+public:
+  RegressionRAMDataHandle(std::string inputdata){
+    setData(inputdata);
+  }
+
+  RegressionRAMDataHandle(regression_ram_t data){
+    ramdata[0] = data;
+  }
+
+  RegressionRAMDataHandle(std::vector<regression_ram_t> data){
+    for (size_t i = 0; i < data.size(); i++){
+      ramdata[i] = data[i];
+    }
+  }
+
+  RegressionRAMDataHandle(){}
+
+  regression_content_t get(int r, int addr){
+    return ramdata[r][addr];
+  }
+
+  regression_ram_t get(int r){
+    return ramdata[r];
+  }
+
+  void set(int r, int addr, regression_content_t value){
+    ramdata[r][addr] = value;
+  }
+
+  void set(int r, regression_ram_t value){
+    ramdata[r] = value;
+  }
+
+  bool compare (RegressionRAMDataHandle& other){
+    if(ramdata.size() != other.ramdata.size()) return false;
+    for(std::unordered_map<int,regression_ram_t>::iterator it = ramdata.begin(); it != ramdata.end(); ++it){
+      std::unordered_map<int,regression_ram_t>::iterator ito = other.ramdata.find(it->first);
+      if(ito == other.ramdata.end() || it->second.size() != ito->second.size()) return false;
+
+      for(regression_ram_t::iterator itram = it->second.begin(); itram != it->second.end(); ++itram){
+        regression_ram_t::iterator itramo = ito->second.find(itram->first);
+        if(itramo == ito->second.end() || itram->second != itramo->second) return false;
+      }
+    }
+    return true;
+  }
+
+  std::string data(){
+    std::string out;
+    for(unsigned int i=0; i<ramdata.size(); i++){
+      out += (i != 0 ? "." : "") + data(i);
+    }
+    return out;
+  }
+
+  std::string data(int r){
+    int blockSize = (sizeof(addr_t)+(3*sizeof(double)));
+    std::string out(ramdata[r].size()*blockSize,0);
+    int k=0;
+    for(auto j=ramdata[r].begin(); j!=ramdata[r].end(); ++j){
+      out.replace(k,sizeof(addr_t),convertToBytes(j->first));
+      for (size_t i = 0; i < j->second.size(); i++){
+        out.replace(k+sizeof(addr_t)+(i*sizeof(double)),sizeof(double),convertToBytes(j->second[i]));
+      }
+      k += blockSize;
+    }
+    return Base64::encode(out);
+  }
+
+  void save(std::string prefix){
+    std::string filename = prefix + ramdata_sufix;
+    std::ofstream dataFile;
+    dataFile.open(filename, std::ios::app);
+
+    for(unsigned int i=0; i<ramdata.size(); i++){
+      dataFile << (i != 0 ? "." : "") + data(i);
+    }
+
+    dataFile.close();
+  }
+
+private:
+  std::unordered_map<int,regression_ram_t> ramdata;
+
+  void setData(std::string inputdata){
+    int s = ramdata_sufix.size();
+    if(inputdata.substr(inputdata.size()-s,s).compare(ramdata_sufix) == 0){
+      std::ifstream dataFile;
+      dataFile.open(inputdata);
+      if(dataFile.is_open()){
+        while(true){
+          if(dataFile.eof()) break;
+
+          std::string rdata="";
+          std::getline(dataFile,rdata,'.');
+          ramdata[ramdata.size()] = dataToRam(rdata);
+        }
+        dataFile.close();
+      }
+    }
+    else{
+      int pos=0;
+      unsigned int found = 0;
+      while(found < inputdata.size()){
+        found = inputdata.find('.',pos);
+        ramdata[ramdata.size()] = dataToRam(inputdata.substr(pos,found-pos));
+        pos = found+1;
+      }
+    }
+  }
+
+  // TODO: Generic number of dimensions for RegressionRAM
+  regression_ram_t dataToRam(const std::string& inputdata){
+    regression_ram_t ramout;
+    std::string decodedData = Base64::decode(inputdata);
+    const int blockSize = (sizeof(addr_t)+(3*sizeof(double)));
+    if(decodedData.size()%blockSize != 0) return ramout;
+
+    for(unsigned long i=0; i<decodedData.size(); i+=blockSize){
+      addr_t address = convertToValue<addr_t>(decodedData.substr(i,sizeof(addr_t)));
+      regression_content_t content;
+      for (size_t j = 0; j < 3; j++){
+        double value = convertToValue<double>(decodedData.substr(i+sizeof(addr_t)+(j*sizeof(double)),sizeof(double)));
+        content.push_back(value);
+      }
+      ramout[address]=content;
+    }
+    return ramout;
+  }
+};
+class RegressionRAM{
+public:
+  RegressionRAM() {}
+
+  RegressionRAM(std::string config) : RegressionRAM(nl::json::parse(config)) {}
+
+  RegressionRAM(nl::json c){
+    nl::json value;
+
+    value = c["memory"];
+    std::string data = value.is_null() ? "" : value.get<std::string>();
+    if (data.size() > 0){
+      RegressionRAMDataHandle dh(data);
+      memory = dh.get(0);
+    }
+    
+    value = c["mapping"];
+    mapping = value.is_null() ? std::vector<int>() : value.get<std::vector<int>>();
+
+    value = c["minZero"];
+    minZero = value.is_null() ? 0 : value.get<int>();
+
+    value = c["minOne"];
+    minOne = value.is_null() ? 0 : value.get<int>();
+  }
+
+  RegressionRAM(const std::vector<int> mapping, const int minZero = 0, const int minOne = 0) : mapping(mapping), minZero(minZero), minOne(minOne){}
+  
+  RegressionRAM(const regression_ram_t memory, const std::vector<int> mapping, const int minZero = 0, const int minOne = 0) : memory(memory), mapping(mapping), minZero(minZero), minOne(minOne){}
+
+  ~RegressionRAM() {
+    mapping.clear();
+    memory.clear();
+  }
+
+  void train(const BinInput& image, const double y) {
+    addr_t index = std::get<0>(getIndex(image));
+
+    auto it = memory.find(index);
+    if (it == memory.end())
+      memory.insert(it, std::pair<addr_t, regression_content_t>(index, {1, y, 0}));
+    else{
+      it->second[0]++;
+      it->second[1] += y;
+    }
+  }
+
+  regression_content_t getVote(const BinInput& image) const {
+    std::tuple<addr_t, bool> result = getIndex(image);
+    if (std::get<1>(result)){
+      return {0, 0};
+    }
+    addr_t index = std::get<0>(result);
+
+    auto it = memory.find(index);
+    if (it == memory.end())
+      return {0, 0};
+    else
+      return {it->second[0], it->second[1]};
+  }
+
+  void calculateFit(const BinInput& image, const double yFit) {
+    addr_t index = std::get<0>(getIndex(image));
+
+    auto it = memory.find(index);
+    it->second[2] += yFit;
+  }
+
+  void applyFit() {
+    for (auto it = memory.begin(); it != memory.end(); ++it){
+      it->second[1] += it->second[2] / it->second[0];
+      it->second[2] = 0;
+    }
+  }
+
+  void setMinZero(const int value){
+    minZero = value;
+  }
+
+  void setMinOne(const int value){
+    minOne = value;
+  }
+
+  regression_ram_t getMemory() const{
+    return memory;
+  }
+
+  std::vector<int> getMapping() const{
+    return mapping;
+  }
+
+  nl::json getJSON() const{
+    RegressionRAMDataHandle dh(memory);
+    nl::json config = {
+      {"minZero", minZero},
+      {"minOne", minOne},
+      {"mapping", mapping},
+      {"memory", dh.data()}
+    };
+    return config;
+  }
+
+  long getsizeof() const{
+    long size = sizeof(RegressionRAM);
+    size += mapping.size()*sizeof(addr_t);
+    size += memory.size()*(sizeof(addr_t)+sizeof(regression_content_t));
+    return size;
+  }
+
+protected:
+  std::tuple<addr_t, bool> getIndex(const BinInput& image) const {
+    addr_t index = 0;
+    addr_t p = 1;
+    int countOne = 0;
+    for(unsigned int i=0; i<mapping.size(); i++){
+      int bin = image[mapping[i]];
+      countOne += bin;
+      index += bin*p;
+      p *= 2;
+    }
+    if ((countOne < minOne) || (((int)mapping.size() - countOne) < minZero)){
+      return {index, true};
+    }
+
+    return {index, false};
+  }
+
+private:
+  regression_ram_t memory;
+  std::vector<int> mapping;
+  int minZero;
+  int minOne;
+};
+class RegressionWisard: public RegressionModel {
+public:
+  RegressionWisard(){}
+
+  RegressionWisard(nl::json c){
+    srand(randint(0,1000000));
+    nl::json value;
+
+    value = c["addressSize"];
+    addressSize = value.is_null() ? 3 : value.get<int>();
+
+    value = c["completeAddressing"];
+    completeAddressing = value.is_null() ? true : value.get<bool>();
+
+    value = c["orderedMapping"];
+    orderedMapping = value.is_null() ? false : value.get<bool>();
+
+    value = c["minZero"];
+    minZero = value.is_null() ? 0 : value.get<int>();
+
+    value = c["minOne"];
+    minOne = value.is_null() ? 0 : value.get<int>();
+
+    value = c["steps"];
+    steps = value.is_null() ? 0 : value.get<int>();
+
+    value = c["numberOfTrainings"];
+    numberOfTrainings = value.is_null() ? 0 : value.get<int>();
+
+    value = c["entrySize"];
+    entrySize = value.is_null() ? 0 : value.get<int>();
+
+    value = c["mean"];
+    mean = MeanHelper::load(value);
+
+    value = c["data"];
+    std::vector<nl::json> data = value.is_null() ? std::vector<nl::json>() : value.get<std::vector<nl::json>>();
+
+    for (size_t i = 0; i < data.size(); i++){
+      rams.push_back(RegressionRAM(data[i]));
+    }
+  }
+
+  RegressionWisard(int addressSize) : addressSize(addressSize) {}
+
+  RegressionWisard(int addressSize, bool completeAddressing, bool orderedMapping,
+                  Mean* mean, int minZero=0, int minOne=0, int steps=0):
+                  addressSize(addressSize), completeAddressing(completeAddressing),
+                  orderedMapping(orderedMapping), mean(mean),
+                  minZero(minZero), minOne(minOne), steps(steps), numberOfTrainings(0){
+
+    srand(randint(0, 100000));
+
+    checkMinZeroOne(minZero, minOne);
+  }
+
+  ~RegressionWisard(){
+    rams.clear();
+  }
+
+  void train(const DataSet& dataset) {
+    for (size_t i = 0; i < dataset.size(); i++){
+      train(dataset[i], dataset.getY(i));
+    }
+
+    for (int j = 0; j < steps; j++){
+      for (size_t i = 0; i < dataset.size(); i++){
+        calculateFit(dataset[i], dataset.getY(i));
+      }
+      applyFit();
+    }
+  }
+
+  void train(const BinInput& input, const double y){
+    if (rams.empty()) setRAMShuffle(input.size());
+
+    checkEntrySize(input.size());
+    numberOfTrainings++;
+    
+    for (size_t i = 0; i < rams.size(); i++){
+      rams[i].train(input, y);
+    }
+  }
+
+  double predict(const BinInput& input) const {
+    checkEntrySize(input.size());
+    std::vector<regression_content_t> outputRams(rams.size());
+    for (size_t i = 0; i < rams.size(); i++){
+      outputRams[i] = rams[i].getVote(input);
+    }
+    return mean->calculate(outputRams);
+  }
+
+  std::vector<double> predict(const DataSet& dataset) const {
+    std::vector<double> output(dataset.size());
+
+    for (size_t i = 0; i < dataset.size(); i++){
+      output[i] = predict(dataset[i]);
+    }
+
+    return output;
+  }
+  
+  std::vector<double> getVotes(const BinInput& input) const {
+    checkEntrySize(input.size());
+    std::vector<double> output(rams.size());
+    for (size_t i = 0; i < rams.size(); i++){
+      output[i] = rams[i].getVote(input)[0];
+    }
+    return output;
+  }
+
+  void calculateFit(const BinInput& input, const double y){
+    double yPredicted = predict(input);
+    for (size_t i = 0; i < rams.size(); i++){
+      rams[i].calculateFit(input, (y - yPredicted));
+    }
+  }
+
+  void applyFit(){
+    for (size_t i = 0; i < rams.size(); i++){
+      rams[i].applyFit();
+    }
+  }
+
+  int getNumberOfTrainings(){
+    return numberOfTrainings;
+  }
+
+  long getsizeof() const{
+    long size = sizeof(RegressionWisard);
+    for(unsigned int i=0; i<rams.size(); i++){
+      size += rams[i].getsizeof();
+    }
+    return size;
+  }
+
+  std::string json() const {
+    return json("");
+  }
+
+  std::string json(std::string filename) const {
+    nl::json config = getJSON();
+
+    if(filename.size() > 0){
+      std::string outfile = filename + config_sufix;
+      std::ofstream dataFile;
+      dataFile.open(outfile, std::ios::app);
+      dataFile << config.dump();
+      dataFile.close();
+      return outfile;
+    }
+
+    return config.dump();
+  }
+
+  nl::json getJSON() const {
+    std::vector<nl::json> data;
+
+    for (size_t i = 0; i < rams.size(); i++){
+      data.push_back(rams[i].getJSON());
+    }
+
+    nl::json config = {
+      {"addressSize", addressSize},
+      {"completeAddressing", completeAddressing},
+      {"orderedMapping", orderedMapping},
+      {"mean", MeanHelper::getJSON(mean)},
+      {"minZero", minZero},
+      {"minOne", minOne},
+      {"steps", steps},
+      {"numberOfTrainings", numberOfTrainings},
+      {"entrySize", entrySize},
+      {"data", data},
+      {"version", __version__}
+    };
+    return config;
+  }
+
+protected:
+  void setRAMShuffle(int entrySize){
+    this->entrySize = entrySize;
+    checkAddressSize(entrySize, addressSize);
+    int numberOfRAMS = entrySize / addressSize;
+    int remain = entrySize % addressSize;
+    int indexesSize = entrySize;
+    if(completeAddressing && remain > 0) {
+      numberOfRAMS++;
+      indexesSize += addressSize-remain;
+    }
+
+    rams.resize(numberOfRAMS);
+    std::vector<int> indexes(indexesSize);
+
+    for (int i = 0; i < entrySize; i++){
+      indexes[i]=i;
+    }
+    for (size_t i=entrySize; i<indexes.size(); i++){
+      indexes[i] = randint(0, entrySize-1, false);
+    }
+
+    if(!orderedMapping)
+      random_shuffle(indexes.begin(), indexes.end());
+
+    for (size_t i = 0; i < rams.size(); i++){
+      std::vector<int> subIndexes(indexes.begin() + (((int)i)*addressSize), indexes.begin() + ((((int)i)+1)*addressSize));
+      rams[i] = RegressionRAM(subIndexes, minZero, minOne);
+    }
+  }
+
+  void checkEntrySize(const int entry) const {
+    if(entrySize != entry){
+      throw Exception("The entry size defined on creation of RAM is different of entry size given as input!");
+    }
+  }
+
+  void checkAddressSize(const int entrySize, const int addressSize) const{
+    if( addressSize < 2){
+      throw Exception("The address size cann't be lesser than 2!");
+    }
+    if( entrySize < 2 ){
+      throw Exception("The entry size cann't be lesser than 2!");
+    }
+    if( entrySize < addressSize){
+      throw Exception("The address size cann't be bigger than entry size!");
+    }
+  }
+
+  void checkMinZeroOne(int min0, int min1){
+    if(min0+min1 > addressSize){
+      throw Exception("minZero + minOne is bigger than addressSize!");
+    }
+  }
+  
+  int addressSize;
+  bool completeAddressing;
+  bool orderedMapping;
+  Mean* mean;
+  int minZero;
+  int minOne;
+  int steps;
+
+  int numberOfTrainings;
+  int entrySize;
+  std::vector<RegressionRAM> rams;
+};
+
+
+class ClusRegressionWisard: public RegressionModel {
+public:
+  ClusRegressionWisard(){}
+
+  ClusRegressionWisard(nl::json c){
+    srand(randint(0,1000000));
+    nl::json value;
+
+    value = c["addressSize"];
+    addressSize = value.is_null() ? 3 : value.get<int>();
+
+    value = c["minScore"];
+    minScore = value.is_null() ? 0.2 : value.get<double>();
+
+    value = c["threshold"];
+    threshold = value.is_null() ? 3 : value.get<unsigned int>();
+
+    value = c["limit"];
+    limit = value.is_null() ? 10 : value.get<int>();
+
+    value = c["completeAddressing"];
+    completeAddressing = value.is_null() ? true : value.get<bool>();
+
+    value = c["orderedMapping"];
+    orderedMapping = value.is_null() ? false : value.get<bool>();
+
+    value = c["minZero"];
+    minZero = value.is_null() ? 0 : value.get<int>();
+
+    value = c["minOne"];
+    minOne = value.is_null() ? 0 : value.get<int>();
+
+    value = c["steps"];
+    steps = value.is_null() ? 0 : value.get<int>();
+
+    value = c["mean"];
+    mean = MeanHelper::load(value);
+
+    value = c["data"];
+    std::vector<nl::json> data = value.is_null() ? std::vector<nl::json>() : value.get<std::vector<nl::json>>();
+
+    for (size_t i = 0; i < data.size(); i++){
+      rews[i] = new RegressionWisard(data[i]);
+    }
+  }
+
+  ClusRegressionWisard(int addressSize, double minScore, int threshold, int limit) : addressSize(addressSize), minScore(minScore), threshold(threshold), limit(limit) {}
+
+  ~ClusRegressionWisard(){
+    rews.clear();
+  }
+
+  void train(const DataSet& dataset) {
+    for(size_t i=0; i<dataset.size(); i++){
+      train(dataset[i], dataset.getY(i));
+    }
+  }
+
+  void train(const BinInput& image, const double y) {
+    if(rews.size() == 0){
+      makeRegressionWisard(0);
+      rews[0]->train(image, y);
+      return;
+    }
+
+    double bestValue = 0.0;
+    bool trained = false;
+    RegressionWisard* bestOne = NULL;
+
+    for (unsigned int i = 0; i < rews.size(); i++)
+    {
+      auto votes = rews[i]->getVotes(image);
+      double score = getSimilarityScore(votes);
+      double count = rews[i]->getNumberOfTrainings();
+
+      if (score >= bestValue)
+      {
+        bestValue = score;
+        bestOne = rews[i];
+      }
+
+      double limit = minScore + count / threshold;
+      limit = limit > 1.0 ? 1.0 : limit;
+
+      if (score >= limit)
+      {
+        rews[i]->train(image, y);
+        trained = true;
+      }
+    }
+
+    if(!trained && (int)rews.size() < limit){
+      int index = rews.size();
+      makeRegressionWisard(index);
+      rews[index]->train(image, y);
+      trained = true;
+    }
+
+    if(!trained && bestOne != NULL){
+      bestOne->train(image, y);
+    }
+  }
+
+  double predict(const BinInput& image) const {
+    double bestScore = 0.0;
+    double bestValue = 0.0;
+    double localScore = 0.0;
+
+    for (size_t i = 0; i < rews.size(); i++) {
+      std::vector<double> votes = rews.at(i)->getVotes(image);
+      localScore = getSimilarityScore(votes);
+
+      if (localScore > bestScore){
+        bestValue = rews.at(i)->predict(image);
+        bestScore = localScore;
+      }
+    }
+
+    return bestValue;
+  }
+
+  std::vector<double> predict(const DataSet & dataset) const {
+    std::vector<double> output(dataset.size());
+
+    for (size_t i = 0; i < dataset.size(); i++)
+    {
+      output[i] = predict(dataset[i]);
+    }
+
+    return output;
+    return {};
+  }
+
+  unsigned int getNumberOfRegressionWisards() const {
+    return rews.size();
+  }
+
+  double getSimilarityScore(const std::vector<double>& votes) const{
+    double max = 0;
+    double sum = 0;
+    for(auto v: votes){
+      if(v>max) max=v;
+      sum += v;
+    }
+
+    if(max==0) return 0;
+
+    return sum/(max*votes.size());
+  }
+
+  long getsizeof() const{
+    long size = sizeof(ClusRegressionWisard);
+    for(auto it = rews.begin(); it != rews.end(); it++) {
+      size += it->second->getsizeof();
+    }
+    return size;
+  }
+
+ std::string json() const {
+    return json("");
+  }
+
+  std::string json(std::string filename) const {
+    nl::json config = getJSON();
+
+    if(filename.size() > 0){
+      std::string outfile = filename + config_sufix;
+      std::ofstream dataFile;
+      dataFile.open(outfile, std::ios::app);
+      dataFile << config.dump();
+      dataFile.close();
+      return outfile;
+    }
+
+    return config.dump();
+  }
+
+  nl::json getJSON() const {
+    std::vector<nl::json> data;
+
+    for(auto it = rews.begin(); it != rews.end(); it++) {
+      data.push_back(it->second->getJSON());
+    }
+
+    nl::json config = {
+      {"addressSize", addressSize},
+      {"minScore", minScore},
+      {"threshold", threshold},
+      {"limit", limit},
+      {"completeAddressing", completeAddressing},
+      {"orderedMapping", orderedMapping},
+      {"mean", MeanHelper::getJSON(mean)},
+      {"minZero", minZero},
+      {"minOne", minOne},
+      {"steps", steps},
+      {"data", data},
+      {"version", __version__}
+    };
+    return config;
+  }
+
+protected:
+  std::map<int,RegressionWisard*> rews;
+  unsigned int addressSize;
+  double minScore;
+  unsigned int threshold;
+  int limit;
+  bool completeAddressing;
+  bool orderedMapping;
+  Mean* mean;
+  int minZero;
+  int minOne;
+  int steps;
+
+  void makeRegressionWisard(const int index){
+    rews[index] = new RegressionWisard(addressSize, completeAddressing, orderedMapping, mean, minZero, minOne, steps);
+  }
 };
 
 }

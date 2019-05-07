@@ -10,18 +10,17 @@ int main(int argc, const char * argv[]){
   cout << baseOut << endl;
   cout << wp::Base64::decode(baseOut) << endl;
 
-  wp::Wisard w(3, {
-    {"bleachingActivated", true}
-  });
-  vector<vector<int>> X(1);
+  wp::Wisard w(3);
+  vector<vector<short>> X(1);
   vector<string> y(1);
 
   X[0] = {1,1,1,0,0,0};
   y[0] = 'a';
-  w.train(X,y);
+  wp::DataSet ds(X,y);
+  w.train(ds);
   cout << wp::__version__ << endl;
 
-  auto out = w.classify(X);
+  auto out = w.classify(ds);
   cout << "class: " << out[0] << endl;
 
   cout << "json: " << w.json() << endl;
@@ -30,15 +29,16 @@ int main(int argc, const char * argv[]){
     {"base", 2}
   });
 
-  d.train(X);
-  auto dout = d.classify(X[0]);
+  d.train(ds);
+  wp::BinInput b(X[0]);
+  auto dout = d.classify(b);
   cout << "rams = " << dout[0] << " : " << dout[1] << endl;
 
   wp::ClusWisard clus(3, 0.1, 100, 3, {
     {"bleachingActivated", true}
   });
 
-  clus.train(X, y);
-  auto clusout = clus.classify(X);
+  clus.train(ds);
+  auto clusout = clus.classify(ds);
   cout << "clus class: " << clusout[0] << endl;
 }
