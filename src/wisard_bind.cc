@@ -70,6 +70,16 @@ PYBIND11_MODULE(wisardpkg, m){
       .def(py::init<std::vector<int>, std::vector<double>>())
     ;
 
+    // regression mean functions
+    py::class_<Mean>(m, "Mean", py::module_local());
+    py::class_<SimpleMean, Mean>(m, "SimpleMean", py::module_local()).def(py::init());
+    py::class_<PowerMean, Mean>(m, "PowerMean", py::module_local()).def(py::init<int>());
+    py::class_<Median, Mean>(m, "Median", py::module_local()).def(py::init());
+    py::class_<HarmonicMean, Mean>(m, "HarmonicMean", py::module_local()).def(py::init());
+    py::class_<HarmonicPowerMean, Mean>(m, "HarmonicPowerMean", py::module_local()).def(py::init<int>());
+    py::class_<GeometricMean, Mean>(m, "GeometricMean", py::module_local()).def(py::init());
+    py::class_<ExponentialMean, Mean>(m, "ExponentialMean", py::module_local()).def(py::init());
+
     //sythesizer
     py::class_<Synthesizer>(m, "Synthesizer", py::module_local())
       .def(py::init<std::vector<int>>())
@@ -87,6 +97,20 @@ PYBIND11_MODULE(wisardpkg, m){
       .def("compare", &RAMDataHandle::compare)
     ;
 
+    py::class_<RegressionRAMDataHandle>(m, "RegressionRAMDataHandle", py::module_local())
+      .def(py::init<>())
+      .def(py::init<std::string>())
+      .def(py::init<regression_ram_t>())
+      .def(py::init<std::vector<regression_ram_t>>())
+      .def("set", (void (RegressionRAMDataHandle::*)(int,int,regression_content_t)) &RegressionRAMDataHandle::set)
+      .def("set", (void (RegressionRAMDataHandle::*)(int,regression_ram_t)) &RegressionRAMDataHandle::set)
+      .def("get", (regression_content_t (RegressionRAMDataHandle::*)(int,int)) &RegressionRAMDataHandle::get)
+      .def("get", (regression_ram_t (RegressionRAMDataHandle::*)(int)) &RegressionRAMDataHandle::get)
+      .def("data", (std::string (RegressionRAMDataHandle::*)()) &RegressionRAMDataHandle::data)
+      .def("data", (std::string (RegressionRAMDataHandle::*)(int)) &RegressionRAMDataHandle::data)
+      // .def("compare", &RegressionRAMDataHandle::compare)
+    ;
+
     //base to models
     py::class_<DiscriminatorWrapper>(m, "Discriminator", py::module_local())
       .def(py::init<std::string>())
@@ -100,16 +124,16 @@ PYBIND11_MODULE(wisardpkg, m){
     ;
 
     py::class_<Model>(m, "Model", py::module_local())
-      .def("train", &Model::train)
+      .def("train", (void (Model::*)(const DataSet&)) &Model::train)
       .def("json", (std::string (Model::*)() const) &Model::json)
       .def("json", (std::string (Model::*)(std::string) const) &Model::json)
-      .def("score", &Model::score)
       .def("getsizeof", &Model::getsizeof)
     ;
 
     py::class_<ClassificationModel, Model>(m, "ClassificationModel", py::module_local())
       .def("classify", (std::vector<std::string> (ClassificationModel::*)(const DataSet&) const) &ClassificationModel::classify)
       .def("classify", (std::string (ClassificationModel::*)(const BinInput&) const) &ClassificationModel::classify)
+      .def("score", &ClassificationModel::score)
     ;
 
     py::class_<RegressionModel, Model>(m, "RegressionModel", py::module_local())
@@ -146,4 +170,17 @@ PYBIND11_MODULE(wisardpkg, m){
       .def("getMentalImages", &ClusWisardWrapper::getMentalImages)
     ;
 
+    py::class_<RegressionWisardWrapper, RegressionModel>(m, "RegressionWisard", py::module_local())
+      .def(py::init<std::string>())
+      .def(py::init<int, py::kwargs>(), py::arg("addressSize"))
+      .def("train", (void (RegressionWisardWrapper::*)(const BinInput&, const double)) &RegressionWisardWrapper::train)
+      .def("train", (void (RegressionWisardWrapper::*)(const DataSet&)) &RegressionWisardWrapper::train)
+    ;
+
+     py::class_<ClusRegressionWisardWrapper, RegressionModel>(m, "ClusRegressionWisard", py::module_local())
+      .def(py::init<std::string>())
+      .def(py::init<int, double, int, int, py::kwargs>(), py::arg("addressSize"), py::arg("minScore"), py::arg("threshold"), py::arg("limit"))
+      .def("train", (void (ClusRegressionWisardWrapper::*)(const BinInput&, const double)) &ClusRegressionWisardWrapper::train)
+      .def("train", (void (ClusRegressionWisardWrapper::*)(const DataSet&)) &ClusRegressionWisardWrapper::train)
+    ;
 }

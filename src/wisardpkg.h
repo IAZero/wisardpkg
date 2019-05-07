@@ -34,18 +34,29 @@ namespace nl = nlohmann;
 #include "binarization/meanthresholding.cc"
 #include "binarization/thermometer.cc"
 
-//wisard model
+//models
 #include "models/base/model.cc"
 #include "models/base/classificationmodel.cc"
 #include "models/base/regressionmodel.cc"
+
+//wisard model
 #include "models/wisard/ramdatahandle.cc"
 #include "models/wisard/ram.cc"
 #include "models/wisard/discriminator.cc"
 #include "models/wisard/wisard.cc"
 
-//cluswisard wisard_model
+//cluswisard model
 #include "models/cluswisard/cluster.cc"
 #include "models/cluswisard/cluswisard.cc"
+
+//regressionwisard model
+#include "models/regressionwisard/meanfunctions.cc"
+#include "models/regressionwisard/regressionramdatahandle.cc"
+#include "models/regressionwisard/regressionram.cc"
+#include "models/regressionwisard/regressionwisard.cc"
+
+//clusregressionwisard model
+#include "models/clusregressionwisard/clusregressionwisard.cc"
 
 //wrappers
 #include <pybind11/pybind11.h>
@@ -56,3 +67,5 @@ namespace py = pybind11;
 #include "wrappers/wisardwrapper.cc"
 #include "wrappers/cluswisardwrapper.cc"
 #include "wrappers/kernelcanvaswrapper.cc"
+#include "wrappers/regressionwisardwrapper.cc"
+#include "wrappers/clusregressionwisardwrapper.cc"
