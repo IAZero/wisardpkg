@@ -205,6 +205,15 @@ public:
     return classificationMethod->run(allvotes);
   }
 
+  std::vector<std::map<std::string, int>> rank(const DataSet& images) const{
+    std::vector<std::map<std::string, int>> out(images.size());
+
+    for(unsigned int i=0; i<images.size(); i++){
+        out[i] = rank(images[i]);
+    }
+    return out;
+  }
+
   std::map<std::string, int> rankUnsupervised(const BinInput& image) const{
     std::map<std::string,std::vector<int>> allvotes;
     std::vector<std::vector<int>> votes = unsupervisedCluster.classify(image);

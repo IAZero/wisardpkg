@@ -11,13 +11,4 @@ public:
         }
         return out/dataset.size();
     }
-
-    std::vector<std::map<std::string, int>> rank(const DataSet& images) const{
-        std::vector<std::map<std::string, int>> out(images.size());
-
-        for(unsigned int i=0; i<images.size(); i++){
-            out[i] = rank(images[i]);
-        }
-        return out;
-    }
 };

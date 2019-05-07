@@ -140,7 +140,6 @@ PYBIND11_MODULE(wisardpkg, m){
       .def("classify", (std::vector<std::string> (ClassificationModel::*)(const DataSet&) const) &ClassificationModel::classify)
       .def("classify", (std::string (ClassificationModel::*)(const BinInput&) const) &ClassificationModel::classify)
       .def("score", &ClassificationModel::score)
-      .def("rank", (std::vector<std::map<std::string, int>> (ClassificationModel::*)(const DataSet&) const) &ClassificationModel::rank)
     ;
 
     py::class_<RegressionModel, Model>(m, "RegressionModel", py::module_local())
@@ -166,6 +165,7 @@ PYBIND11_MODULE(wisardpkg, m){
       .def("getMentalImages", &WisardWrapper::getMentalImages)
       .def("untrain", &WisardWrapper::untrain)
       .def("rank", (std::map<std::string, int> (WisardWrapper::*)(const BinInput&) const) &WisardWrapper::rank)
+      .def("rank", (std::vector<std::map<std::string, int>> (WisardWrapper::*)(const DataSet&) const) &WisardWrapper::rank)
     ;
 
     py::class_<ClusWisardWrapper, ClassificationModel>(m, "ClusWisard", py::module_local())
@@ -177,6 +177,7 @@ PYBIND11_MODULE(wisardpkg, m){
       .def("getMentalImage", &ClusWisardWrapper::getMentalImage)
       .def("getMentalImages", &ClusWisardWrapper::getMentalImages)
       .def("rank", (std::map<std::string, int> (ClusWisardWrapper::*)(const BinInput&) const) &ClusWisardWrapper::rank)
+      .def("rank", (std::vector<std::map<std::string, int>> (ClusWisardWrapper::*)(const DataSet&) const) &ClusWisardWrapper::rank)
       .def("rankUnsupervised", (std::map<std::string, int> (ClusWisardWrapper::*)(const BinInput&) const) &ClusWisardWrapper::rankUnsupervised)
       .def("rankUnsupervised", (std::vector<std::map<std::string, int>> (ClusWisardWrapper::*)(const DataSet&) const) &ClusWisardWrapper::rankUnsupervised)
     ;
