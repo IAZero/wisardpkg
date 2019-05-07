@@ -34,7 +34,7 @@ public:
     mean = new SimpleMean();
 
     value = c["data"];
-    std::vector<std::string> data = value.is_null() ? std::vector<std::string>() : value.get<std::vector<std::string>>();
+    std::vector<nl::json> data = value.is_null() ? std::vector<nl::json>() : value.get<std::vector<nl::json>>();
 
     for (size_t i = 0; i < data.size(); i++){
       rams.push_back(RegressionRAM(data[i]));
@@ -155,10 +155,10 @@ public:
   }
 
   nl::json getJSON() const {
-    std::vector<std::string> data;
+    std::vector<nl::json> data;
 
     for (size_t i = 0; i < rams.size(); i++){
-      data.push_back(rams[i].getJSON().dump());
+      data.push_back(rams[i].getJSON());
     }
 
     nl::json config = {
