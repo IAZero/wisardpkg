@@ -4,6 +4,48 @@ class ClusRegressionWisard: public RegressionModel {
 public:
   ClusRegressionWisard(){}
 
+  ClusRegressionWisard(nl::json c){
+    srand(randint(0,1000000));
+    nl::json value;
+
+    value = c["addressSize"];
+    addressSize = value.is_null() ? 3 : value.get<int>();
+
+    value = c["minScore"];
+    minScore = value.is_null() ? 0.2 : value.get<double>();
+
+    value = c["threshold"];
+    threshold = value.is_null() ? 3 : value.get<unsigned int>();
+
+    value = c["limit"];
+    limit = value.is_null() ? 10 : value.get<int>();
+
+    value = c["completeAddressing"];
+    completeAddressing = value.is_null() ? true : value.get<bool>();
+
+    value = c["orderedMapping"];
+    orderedMapping = value.is_null() ? false : value.get<bool>();
+
+    value = c["minZero"];
+    minZero = value.is_null() ? 0 : value.get<int>();
+
+    value = c["minOne"];
+    minOne = value.is_null() ? 0 : value.get<int>();
+
+    value = c["steps"];
+    steps = value.is_null() ? 0 : value.get<int>();
+
+    // TODO: Get mean from JSON file
+    mean = new SimpleMean();
+
+    value = c["data"];
+    std::vector<nl::json> data = value.is_null() ? std::vector<nl::json>() : value.get<std::vector<nl::json>>();
+
+    for (size_t i = 0; i < data.size(); i++){
+      rews[i] = new RegressionWisard(data[i]);
+    }
+  }
+
   ClusRegressionWisard(int addressSize, double minScore, int threshold, int limit) : addressSize(addressSize), minScore(minScore), threshold(threshold), limit(limit) {}
 
   ~ClusRegressionWisard(){
@@ -116,8 +158,46 @@ public:
     return size;
   }
 
+ std::string json() const {
+    return json("");
+  }
+
   std::string json(std::string filename) const {
-    return "";
+    nl::json config = getJSON();
+
+    if(filename.size() > 0){
+      std::string outfile = filename + config_sufix;
+      std::ofstream dataFile;
+      dataFile.open(outfile, std::ios::app);
+      dataFile << config.dump();
+      dataFile.close();
+      return outfile;
+    }
+
+    return config.dump();
+  }
+
+  nl::json getJSON() const {
+    std::vector<nl::json> data;
+
+    for(auto it = rews.begin(); it != rews.end(); it++) {
+      data.push_back(it->second->getJSON());
+    }
+
+    nl::json config = {
+      {"addressSize", addressSize},
+      {"minScore", minScore},
+      {"threshold", threshold},
+      {"limit", limit},
+      {"completeAddressing", completeAddressing},
+      {"orderedMapping", orderedMapping},
+      {"minZero", minZero},
+      {"minOne", minOne},
+      {"steps", steps},
+      {"data", data},
+      {"version", __version__}
+    };
+    return config;
   }
 
 protected:

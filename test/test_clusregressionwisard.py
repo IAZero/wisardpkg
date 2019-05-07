@@ -50,7 +50,7 @@ class ClusRegressionWisardTestCase(TestCase):
     
     def test_json(self):
         try:
-            wsd = wp.ClusRegressionWisard(3)
+            wsd = wp.ClusRegressionWisard(addressSize=3, minScore=0.2, threshold=2, limit=10, steps=20)
             wsd.train(self.X)
             ojsonout = wsd.json()
 

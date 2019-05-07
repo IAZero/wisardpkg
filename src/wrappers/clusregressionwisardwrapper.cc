@@ -1,5 +1,7 @@
 class ClusRegressionWisardWrapper : public ClusRegressionWisard{
 public:
+	ClusRegressionWisardWrapper(std::string config) : ClusRegressionWisard(nl::json::parse(config)) {}
+	
 	ClusRegressionWisardWrapper(int addressSize, double minScore, int threshold, int limit, py::kwargs kwargs) : ClusRegressionWisard(addressSize, minScore, threshold, limit)
 	{
 		completeAddressing = true;
