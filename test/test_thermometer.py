@@ -61,7 +61,7 @@ class DynamicThermometerTestCase(TestCase):
 
     def test_getSize(self):
         try:
-            therm = wp.DynamicThermometer(thermometerSize=[2, 2, 4, 2])
+            therm = wp.DynamicThermometer(thermometerSizes=[2, 2, 4, 2])
             self.assertEqual(10, therm.getSize())
         except RuntimeError and TypeError:
             self.fail("dynamic thermometer getSize fail!")

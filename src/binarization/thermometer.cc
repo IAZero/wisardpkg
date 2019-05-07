@@ -33,10 +33,10 @@ protected:
 class DynamicThermometer : public BinBase {
 public:
   DynamicThermometer(const std::vector<int>& thermometerSizes, const std::vector<double>& minimum=std::vector<double>(), const std::vector<double>& maximum=std::vector<double>()) : thermometerSize(0){
-    if (minimum.size() != 0 || minimum.size() != thermometerSizes.size()){
+    if (minimum.size() != 0 && minimum.size() != thermometerSizes.size()){
       throw Exception("The size of thermometerSizes is not the same of the size of minimum!");
     }
-    if (maximum.size() != 0 || maximum.size() != thermometerSizes.size()){
+    if (maximum.size() != 0 && maximum.size() != thermometerSizes.size()){
       throw Exception("The size of thermometerSizes is not the same of the size of maximum!");
     }
     
@@ -50,7 +50,7 @@ public:
   }
 
   BinInput transform(const std::vector<double>& data){
-    BinInput out(data.size()*thermometerSize);
+    BinInput out(thermometerSize);
     int k = 0;
     for(size_t i = 0; i < data.size(); i++){
       for (size_t j = 0; j < valueRanges[i].size(); j++){
