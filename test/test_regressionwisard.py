@@ -50,7 +50,7 @@ class RegressionWisardTestCase(TestCase):
 
     def test_json(self):
         try:
-            wsd = wp.RegressionWisard(3)
+            wsd = wp.RegressionWisard(3, mean=wp.PowerMean(2))
             wsd.train(self.X)
             ojsonout = wsd.json()
 

@@ -35,8 +35,8 @@ public:
     value = c["steps"];
     steps = value.is_null() ? 0 : value.get<int>();
 
-    // TODO: Get mean from JSON file
-    mean = new SimpleMean();
+    value = c["mean"];
+    mean = MeanHelper::load(value);
 
     value = c["data"];
     std::vector<nl::json> data = value.is_null() ? std::vector<nl::json>() : value.get<std::vector<nl::json>>();
@@ -191,6 +191,7 @@ public:
       {"limit", limit},
       {"completeAddressing", completeAddressing},
       {"orderedMapping", orderedMapping},
+      {"mean", MeanHelper::getJSON(mean)},
       {"minZero", minZero},
       {"minOne", minOne},
       {"steps", steps},

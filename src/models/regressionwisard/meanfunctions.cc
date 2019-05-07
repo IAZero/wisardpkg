@@ -2,6 +2,8 @@ class Mean {
 public:
   virtual Mean* clone() const = 0;
   virtual double calculate(const std::vector<std::vector<double>>& outputRams) = 0;
+
+  virtual nl::json getJSON() const = 0;
 };
 
 class SimpleMean: public Mean {
@@ -22,6 +24,17 @@ public:
 
   Mean* clone() const{
     return new SimpleMean();
+  }
+
+  std::string className() const{
+    return "SimpleMean";
+  }
+
+  nl::json getJSON() const{
+    nl::json config = {
+      {"type", className()}
+    };
+    return config;
   }
 };
 
@@ -49,6 +62,18 @@ public:
   Mean* clone() const{
     return new PowerMean(power);
   }
+
+  std::string className() const{
+    return "PowerMean";
+  }
+
+  nl::json getJSON() const{
+    nl::json config = {
+      {"type", className()},
+      {"power", power}
+    };
+    return config;
+  }
 };
 
 class Median: public Mean {
@@ -71,6 +96,17 @@ public:
 
   Mean* clone() const{
     return new Median();
+  }
+
+  std::string className() const{
+    return "Median";
+  }
+
+  nl::json getJSON() const{
+    nl::json config = {
+      {"type", className()}
+    };
+    return config;
   }
 };
 
@@ -97,6 +133,17 @@ public:
 
   Mean* clone() const{
     return new HarmonicMean();
+  }
+
+  std::string className() const{
+    return "HarmonicMean";
+  }
+
+  nl::json getJSON() const{
+    nl::json config = {
+      {"type", className()}
+    };
+    return config;
   }
 };
 
@@ -128,6 +175,18 @@ public:
   Mean* clone() const{
     return new HarmonicPowerMean(power);
   }
+
+  std::string className() const{
+    return "HarmonicPowerMean";
+  }
+
+  nl::json getJSON() const{
+    nl::json config = {
+      {"type", className()},
+      {"power", power}
+    };
+    return config;
+  }
 };
 
 class GeometricMean: public Mean {
@@ -154,6 +213,17 @@ public:
   Mean* clone() const{
     return new GeometricMean();
   }
+
+  std::string className() const{
+    return "GeometricMean";
+  }
+
+  nl::json getJSON() const{
+    nl::json config = {
+      {"type", className()}
+    };
+    return config;
+  }
 };
 
 
@@ -178,5 +248,49 @@ public:
 
   Mean* clone() const{
     return new ExponentialMean();
+  }
+
+  std::string className() const{
+    return "ExponentialMean";
+  }
+
+  nl::json getJSON() const{
+    nl::json config = {
+      {"type", className()}
+    };
+    return config;
+  }
+};
+
+class MeanHelper{
+public:
+  static nl::json getJSON(Mean* obj){
+    return obj->getJSON();
+  }
+
+  static Mean* load(nl::json config){
+    nl::json value = config["type"];
+    std::string className = value.is_null() ? "" : value.get<std::string>();
+    Mean* obj;
+
+    if(className == "PowerMean"){
+      nl::json powerj = config["power"];
+      obj = new PowerMean(powerj.get<int>());
+    } else if(className == "HarmonicPowerMean"){
+      nl::json powerj = config["power"];
+      obj = new HarmonicPowerMean(powerj.get<int>());
+    } else if(className == "Median"){
+      obj = new Median();
+    } else if(className == "HarmonicMean"){
+      obj = new HarmonicMean();
+    } else if(className == "GeometricMean"){
+      obj = new GeometricMean();
+    } else if(className == "ExponentialMean"){
+      obj = new ExponentialMean();
+    } else{
+      obj = new SimpleMean();
+    }
+
+    return obj;
   }
 };
