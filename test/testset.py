@@ -5,7 +5,7 @@ from test_cluswisard import ClusWisardTestCase
 from test_kernel_canvas import KernelCanvasTestCase
 from test_thresholding import ThresholdingTestCase
 from test_mean_thresholding import MeanThresholdingTestCase
-from test_thermometer import ThermometerTestCase
+from test_thermometer import SimpleThermometerTestCase, DynamicThermometerTestCase
 from test_bininput import BinInputTestCase
 from test_dataset import DataSetTestCase
 from test_ramdatahandle import RAMDataHandleTestCase
