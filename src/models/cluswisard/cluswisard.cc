@@ -30,15 +30,6 @@ public:
     value = options["base"];
     base = value.is_null() ? 2 : value.get<int>();
 
-    value = options["returnConfidence"];
-    returnConfidence = value.is_null() ? false : value.get<bool>();
-
-    value = options["returnActivationDegree"];
-    returnActivationDegree = value.is_null() ? false : value.get<bool>();
-
-    value = options["returnClassesDegrees"];
-    returnClassesDegrees = value.is_null() ? false : value.get<bool>();
-
     checkConfigInputs(minScore, threshold, discriminatorsLimit);
   }
   ClusWisard(std::string config):ClusWisard(0,0,1,1,nl::json::parse(config)){
@@ -152,10 +143,7 @@ public:
       {"classificationMethod", ClassificationMethods::json(classificationMethod)},
       {"ignoreZero", ignoreZero},
       {"completeAddressing", completeAddressing},
-      {"base", base},
-      {"returnConfidence", returnConfidence},
-      {"returnActivationDegree", returnActivationDegree},
-      {"returnClassesDegrees", returnClassesDegrees}
+      {"base", base}
     };
 
     bool isSave = filename.size() > 0;
@@ -298,9 +286,6 @@ protected:
   bool ignoreZero;
   int base;
   bool searchBestConfidence;
-  bool returnConfidence;
-  bool returnActivationDegree;
-  bool returnClassesDegrees;
   std::map<std::string, Cluster> clusters;
   Cluster unsupervisedCluster;
   ClassificationBase* classificationMethod;

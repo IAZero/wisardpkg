@@ -27,15 +27,6 @@ public:
 
       if(std::string(py::str(arg.first)).compare("ignoreZero") == 0)
         ignoreZero = arg.second.cast<bool>();
-
-      if(std::string(py::str(arg.first)).compare("returnConfidence") == 0)
-        returnConfidence = arg.second.cast<bool>();
-
-      if(std::string(py::str(arg.first)).compare("returnActivationDegree") == 0)
-        returnActivationDegree = arg.second.cast<bool>();
-
-      if(std::string(py::str(arg.first)).compare("returnClassesDegrees") == 0)
-        returnClassesDegrees = arg.second.cast<bool>();
     }
   }
 };

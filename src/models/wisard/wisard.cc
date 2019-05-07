@@ -31,15 +31,6 @@ public:
 
     value = c["base"];
     base = value.is_null() ? 2 : value.get<int>();
-
-    value = c["returnConfidence"];
-    returnConfidence = value.is_null() ? false : value.get<bool>();
-
-    value = c["returnActivationDegree"];
-    returnActivationDegree = value.is_null() ? false : value.get<bool>();
-
-    value = c["returnClassesDegrees"];
-    returnClassesDegrees = value.is_null() ? false : value.get<bool>();
   }
 
   Wisard(std::string config):Wisard(0,nl::json::parse(config)){
@@ -126,10 +117,7 @@ public:
       {"ignoreZero", ignoreZero},
       {"completeAddressing", completeAddressing},
       {"classificationMethod", ClassificationMethods::json(classificationMethod)},
-      {"base", base},
-      {"returnConfidence", returnConfidence},
-      {"returnActivationDegree", returnActivationDegree},
-      {"returnClassesDegrees", returnClassesDegrees}
+      {"base", base}
     };
     nl::json c;
     bool isSave = filename.size() > 0;
@@ -196,9 +184,6 @@ protected:
   bool ignoreZero;
   bool completeAddressing;
   int base;
-  bool returnConfidence;
-  bool returnActivationDegree;
-  bool returnClassesDegrees;
   ClassificationBase* classificationMethod;
   std::map<std::string, Discriminator> discriminators;
 };
