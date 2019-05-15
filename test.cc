@@ -41,4 +41,7 @@ int main(int argc, const char * argv[]){
   clus.train(ds);
   auto clusout = clus.classify(ds);
   cout << "clus class: " << clusout[0] << endl;
+  string original = "AgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAA////";
+  string outCompress = wp::Base64::compress(original);
+  cout << "test base64 :" << original << " ### " << outCompress << ": size: " << outCompress.size() << " uncompress: " << wp::Base64::uncompress(outCompress) << endl;
 }

@@ -2,11 +2,11 @@
 class Base64 {
 public:
   static std::string encode(const std::string& dataIn){
-    return Base64::_encode(dataIn);
+    return Base64::compress(Base64::_encode(dataIn));
   }
 
   static std::string decode(const std::string& dataIn){
-    return Base64::_decode(dataIn);
+    return Base64::_decode(Base64::uncompress(dataIn));
   }
   
   static std::string compress(const std::string& dataIn){
@@ -16,30 +16,29 @@ public:
     dataOut[j++] = dataIn[0];
     for(unsigned int i=1; i<dataIn.size(); i++){
         dataOut[j++] = dataIn[i];
-        if(dataIn[i-1]==dataIn[i] && count < 16777215){ // 3 bytes in base64, less one to stop before break
+        if(dataIn[i-1]==dataIn[i] && count < 16777215 && i < (dataIn.size()-1)){ // 3 bytes in base64, less one to stop before break
             count++;
         }
         else{
+            if((dataIn.size()-1) == i && dataIn[i-1]==dataIn[i]) count++;
             if(count>3){
-                std::string times;
                 count--;
-                if(count < 64){ // 2^6 = 1 byte in base64
-                    times = Base64::charsMap[count];
-                }
-                else if(count < 4096){ // 2^12 = 2 bytes in base64
-                    times = Base64::charsMap[count&0x3f];
-                    times += Base64::charsMap[(count>>6)&0x3f];
-                }
-                else { // 2^24 = 3 bytes in base64
-                    times = Base64::charsMap[count&0x3f];
-                    times += Base64::charsMap[(count>>6)&0x3f];
-                    times += Base64::charsMap[(count>>12)&0x3f];
-                }
+                // 2^6 = 1 byte in base64
+                std::string times;
+                times += Base64::charsMap[count&0x3f];
+
+                if(count > 63) // 2^12 = 2 bytes in base64
+                  times += Base64::charsMap[(count>>6)&0x3f];
+                
+                if(count > 4095) // 2^24 = 3 bytes in base64
+                  times += Base64::charsMap[(count>>12)&0x3f];
+                
                 j -= 2+count; // return position
+                if(i == (dataIn.size()-1)) j++;
                 for(unsigned int k=0; k<times.size(); k++) dataOut[j++] = '*';
                 for(unsigned int k=0; k<times.size(); k++) dataOut[j++] = times[k];
                 dataOut[j++] = dataIn[i-1];
-                dataOut[j++] = dataIn[i];
+                if(i != (dataIn.size()-1)) dataOut[j++] = dataIn[i];
             }
             count=1;
         }
@@ -49,7 +48,31 @@ public:
   }
 
   static std::string uncompress(const std::string& dataIn){
-    return "";
+    std::string dataOut = "";
+    int times=0;
+    std::string timesStr = "";
+    for(unsigned int i=0; i<dataIn.size(); i++){
+      if(dataIn[i]=='*'){
+        times++;
+        continue;
+      }
+      if(times > 0){
+        timesStr += dataIn[i];
+        times--;
+        continue;
+      }
+      if(timesStr.size()>0){
+        int count=1;
+        for(unsigned int k=0; k<timesStr.size(); k++){
+          count += Base64::indexMap[timesStr[k]] << (6*k);
+        }
+        timesStr = "";
+        dataOut += std::string(count,dataIn[i]);
+        continue;
+      }
+      dataOut += dataIn[i];
+    }
+    return dataOut;
   }
 
 private:
