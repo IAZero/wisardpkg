@@ -19,10 +19,10 @@ install:
 uninstall:
 	$(PIP) uninstall wisardpkg
 
-geninclude:
+include:
 	python generate_include.py
 
-cpptest:
+cpptest: include
 	g++ $(TEST_SRC) -o $(TEST_EXEC)
 	./$(TEST_EXEC)
 	rm $(TEST_EXEC)
