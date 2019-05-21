@@ -16,6 +16,7 @@ namespace nl = nlohmann;
 //classification methods
 #include "classification_methods/classificationbase.cc"
 #include "classification_methods/bleaching.cc"
+#include "classification_methods/bestbleaching.cc"
 
 //register classification methods as json
 #include "classification_methods/register.cc"

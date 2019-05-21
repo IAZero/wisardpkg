@@ -16,6 +16,8 @@ public:
     if(className.compare("Bleaching")==0){
       nl::json params = config[ClassificationMethods::params];
       return new Bleaching(params);
+    } else if(className.compare("BestBleaching")==0){
+      return new BestBleaching();
     }
 
     return new Bleaching();

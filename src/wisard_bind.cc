@@ -158,6 +158,10 @@ PYBIND11_MODULE(wisardpkg, m){
       .def(py::init<bool,int>())
     ;
 
+    py::class_<BestBleaching, ClassificationBase>(m, "BestBleaching", py::module_local())
+      .def(py::init<>())
+    ;
+
     // models
     py::class_<WisardWrapper, ClassificationModel>(m, "Wisard", py::module_local())
       .def(py::init<std::string>())
