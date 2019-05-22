@@ -160,6 +160,12 @@ PYBIND11_MODULE(wisardpkg, m){
 
     py::class_<BestBleaching, ClassificationBase>(m, "BestBleaching", py::module_local())
       .def(py::init<>())
+    ;    
+    
+    py::class_<Weighted, ClassificationBase>(m, "Weighted", py::module_local())
+      .def(py::init<std::map<std::string,std::vector<int>>>())
+      .def("setWeights", &Weighted::setWeights)
+      .def("getWeights", &Weighted::getWeights)
     ;
 
     // models
@@ -170,6 +176,7 @@ PYBIND11_MODULE(wisardpkg, m){
       .def("untrain", &WisardWrapper::untrain)
       .def("rank", (std::map<std::string, int> (WisardWrapper::*)(const BinInput&) const) &WisardWrapper::rank)
       .def("rank", (std::vector<std::map<std::string, int>> (WisardWrapper::*)(const DataSet&) const) &WisardWrapper::rank)
+      .def("getTupleSizes", &WisardWrapper::getTupleSizes)
     ;
 
     py::class_<ClusWisardWrapper, ClassificationModel>(m, "ClusWisard", py::module_local())
