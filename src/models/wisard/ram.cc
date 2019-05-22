@@ -5,27 +5,27 @@ public:
   RAM(nl::json c){
     ignoreZero = c["ignoreZero"];
     base=c["base"];
-    addresses = c["addresses"].get<std::vector<int>>();
-    checkLimitAddressSize(addresses.size(), base);
+    mapping = c["mapping"].get<std::vector<int>>();
+    checkLimitAddressSize(mapping.size(), base);
 
     RAMDataHandle handle(c["data"].get<std::string>());
-    positions = handle.get(0);
+    memory = handle.get(0);
   }
   RAM(const int addressSize, const int entrySize, const bool ignoreZero=false, int base=2): ignoreZero(ignoreZero), base(base){
     checkLimitAddressSize(addressSize, base);
-    addresses = std::vector<int>(addressSize);
-    generateRandomAddresses(entrySize);
+    mapping = std::vector<int>(addressSize);
+    generateRandommapping(entrySize);
   }
-  RAM(const std::vector<int> indexes, const bool ignoreZero=false, int base=2): addresses(indexes), ignoreZero(ignoreZero), base(base){
-    checkLimitAddressSize(indexes.size(), base);
+  RAM(const std::vector<int> mapping, const bool ignoreZero=false, int base=2): mapping(mapping), ignoreZero(ignoreZero), base(base){
+    checkLimitAddressSize(mapping.size(), base);
   }
 
   int getVote(const BinInput& image) const {
     addr_t index = getIndex(image);
     if(ignoreZero && index == 0)
       return 0;
-    auto it = positions.find(index);
-    if(it == positions.end()){
+    auto it = memory.find(index);
+    if(it == memory.end()){
       return 0;
     }
     else{
@@ -35,9 +35,9 @@ public:
 
   void train(const BinInput& image){
     addr_t index = getIndex(image);
-    auto it = positions.find(index);
-    if(it == positions.end()){
-      positions.insert(it,std::pair<addr_t,content_t>(index, 1));
+    auto it = memory.find(index);
+    if(it == memory.end()){
+      memory.insert(it,std::pair<addr_t,content_t>(index, 1));
     }
     else{
       it->second++;
@@ -46,27 +46,27 @@ public:
 
   void untrain(const BinInput& image){
       addr_t index = getIndex(image);
-      auto it = positions.find(index);
-      if(it != positions.end()){
+      auto it = memory.find(index);
+      if(it != memory.end()){
         it->second--;
       }
   }
 
   std::vector<std::vector<int>> getMentalImage() {
-    std::vector<std::vector<int>> mentalPiece(addresses.size());
+    std::vector<std::vector<int>> mentalPiece(mapping.size());
     for(unsigned int i=0; i<mentalPiece.size(); i++){
       mentalPiece[i].resize(2);
-      mentalPiece[i][0] = addresses[i];
+      mentalPiece[i][0] = mapping[i];
       mentalPiece[i][1] = 0;
     }
 
-    for(auto j=positions.begin(); j!=positions.end(); ++j){
+    for(auto j=memory.begin(); j!=memory.end(); ++j){
       if(j->first == 0) continue;
       const std::vector<int> address = convertToBase(j->first);
       for(unsigned int i=0; i<mentalPiece.size(); i++){
         if(mentalPiece[i].size() == 0){
           mentalPiece[i].resize(2);
-          mentalPiece[i][0] = addresses[i];
+          mentalPiece[i][0] = mapping[i];
           mentalPiece[i][1] = 0;
         }
         if(address[i] > 0){
@@ -86,40 +86,44 @@ public:
   }
 
   std::string getData() const {
-    RAMDataHandle handle(positions);
+    RAMDataHandle handle(memory);
     return handle.data(0);
   }
 
   void setMapping(std::vector<std::vector<int>>& mapping, int i) const {
-    int size = addresses.size();
+    int size = mapping.size();
     mapping[i].resize(size);
     for(int j=0; j<size; j++) {
-      mapping[i][j] = addresses[j];
+      mapping[i][j] = mapping[j];
     }
   }
 
   int getAddressSize(){
-    return addresses.size();
+    return mapping.size();
+  }
+
+  int getTupleSize(){
+    return mapping.size();
   }
 
   long getsizeof() const{
     long size = sizeof(RAM);
-    size += addresses.size()*sizeof(addr_t);
-    size += positions.size()*(sizeof(addr_t)+sizeof(content_t));
+    size += mapping.size()*sizeof(addr_t);
+    size += memory.size()*(sizeof(addr_t)+sizeof(content_t));
     return size;
   }
 
   ~RAM(){
-    addresses.clear();
-    positions.clear();
+    mapping.clear();
+    memory.clear();
   }
 
 protected:
   addr_t getIndex(const BinInput& image) const{
     addr_t index = 0;
     addr_t p = 1;
-    for(unsigned int i=0; i<addresses.size(); i++){
-      int bin = image[addresses[i]];
+    for(unsigned int i=0; i<mapping.size(); i++){
+      int bin = image[mapping[i]];
       checkPos(bin);
       index += bin*p;
       p *= base;
@@ -129,13 +133,13 @@ protected:
 
 
 private:
-  std::vector<int> addresses;
-  ram_t positions;
+  ram_t memory;
+  std::vector<int> mapping;
   bool ignoreZero;
   int base;
 
   const std::vector<int> convertToBase(const int number) const{
-    std::vector<int> numberConverted(addresses.size());
+    std::vector<int> numberConverted(mapping.size());
     int baseNumber = number;
     for(unsigned int i=0; i<numberConverted.size(); i++){
       numberConverted[i] = baseNumber % base;
@@ -158,9 +162,9 @@ private:
     }
   }
 
-  void generateRandomAddresses(int entrySize){
-    for(unsigned int i=0; i<addresses.size(); i++){
-      addresses[i] = randint(0, entrySize-1);
+  void generateRandommapping(int entrySize){
+    for(unsigned int i=0; i<mapping.size(); i++){
+      mapping[i] = randint(0, entrySize-1);
     }
   }
 };
