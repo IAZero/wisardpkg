@@ -18,6 +18,8 @@ public:
       return new Bleaching(params);
     } else if(className.compare("BestBleaching")==0){
       return new BestBleaching();
+    } else if(className.compare("Weighted")==0){
+      return new Weighted(params);
     }
 
     return new Bleaching();
