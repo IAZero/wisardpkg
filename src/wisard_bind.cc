@@ -163,7 +163,7 @@ PYBIND11_MODULE(wisardpkg, m){
     ;    
     
     py::class_<Weighted, ClassificationBase>(m, "Weighted", py::module_local())
-      .def(py::init<std::map<std::string,std::vector<double>>>())
+      .def(py::init<std::map<std::string,std::vector<int>>>())
       .def("setWeights", &Weighted::setWeights)
       .def("getWeights", &Weighted::getWeights)
     ;

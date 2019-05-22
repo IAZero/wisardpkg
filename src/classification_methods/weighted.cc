@@ -1,7 +1,7 @@
 
 class Weighted: public ClassificationBase {
 public:
-  Weighted(std::map<std::string,std::vector<double>> weights)
+  Weighted(std::map<std::string,std::vector<int>> weights)
     :weights(weights), bleachingActivated(true), confidence(1){}
   Weighted(nl::json config){
     nl::json value;
@@ -13,21 +13,21 @@ public:
     confidence = value.is_null() ? 1 : value.get<int>();
 
     value = config["weights"];
-    weights = value.get<std::map<std::string,std::vector<double>>>();
+    weights = value.get<std::map<std::string,std::vector<int>>>();
   }
 
-  Weighted(std::map<std::string,std::vector<double>> weights, const bool bleachingActivated,const int confidence)
+  Weighted(std::map<std::string,std::vector<int>> weights, const bool bleachingActivated,const int confidence)
     :weights(weights), bleachingActivated(bleachingActivated), confidence(confidence){}
 
   ClassificationBase* clone() const{
     return new Weighted(weights, bleachingActivated, confidence);
   }
 
-  void setWeights(std::map<std::string,std::vector<double>>& weights){
+  void setWeights(std::map<std::string,std::vector<int>>& weights){
     this->weights = weights;
   }
 
-  std::map<std::string,std::vector<double>> getWeights() const{
+  std::map<std::string,std::vector<int>> getWeights() const{
     return weights;
   }
 
@@ -40,17 +40,16 @@ public:
       int min=0;
       bool firstTime=true;
       for(std::map<std::string,std::vector<int>>::iterator i=allvotes.begin(); i!=allvotes.end(); ++i){
-        double totalVotes = 0.0;
+        labels[i->first] = 0;
         for(unsigned int j = 0; j < i->second.size(); j++){
           if(i->second[j] > bleaching){
-            totalVotes += weights[i->first][j];
+            labels[i->first] += weights[i->first][j];
             if(firstTime || i->second[j] < min){
               min = i->second[j];
               firstTime = false;
             }
           }
         }
-        labels[i->first] = (int)totalVotes;
       }
       if(!bleachingActivated) break;
       bleaching = min;
@@ -75,7 +74,7 @@ public:
 
 
 private:
-  std::map<std::string,std::vector<double>> weights;
+  std::map<std::string,std::vector<int>> weights;
   bool bleachingActivated;
   int confidence;
 };
