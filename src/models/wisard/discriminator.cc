@@ -100,8 +100,7 @@ public:
     return rams.size();
   }
 
-  std::vector<int> getMentalImage()
-  {
+  std::vector<int> getMentalImage(){
     std::vector<int> mentalImage(entrySize, 0);
     for (unsigned int r = 0; r < rams.size(); r++){
       std::vector<std::vector<int>> piece = rams[r].getMentalImage();
@@ -148,6 +147,14 @@ public:
       size += rams[i].getsizeof();
     }
     return size;
+  }
+
+  std::vector<int> getTupleSizes() const{
+    std::vector<int> sizes(rams.size());
+    for(unsigned int i = 0; i < rams.size(); i++){
+      sizes[i] = rams[i].getTupleSize();
+    }
+    return sizes;
   }
 
   ~Discriminator(){

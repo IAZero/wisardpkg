@@ -85,8 +85,8 @@ public:
   }
 
   std::string classify(const BinInput& input) const {
-      std::map<std::string,int> candidates = rank(input);
-      return classificationMethod->getBiggestCandidate(candidates);
+    std::map<std::string,int> candidates = rank(input);
+    return classificationMethod->getBiggestCandidate(candidates);
   }
 
   void untrain(const DataSet& images){
@@ -152,6 +152,15 @@ public:
         out[i] = rank(images[i]);
     }
     return out;
+  }
+
+  std::map<std::string,std::vector<int>> getTupleSizes() const{
+    std::map<std::string,std::vector<int>> sizes;
+
+    for(auto& i: discriminators){
+      sizes[i.first] = i.second.getTupleSizes();
+    }
+    return sizes;
   }
 
 protected:

@@ -98,7 +98,15 @@ public:
     }
   }
 
+  std::vector<int> getMapping() const{
+    return addresses;
+  }
+
   int getAddressSize(){
+    return addresses.size();
+  }
+
+  int getTupleSize() const{
     return addresses.size();
   }
 
