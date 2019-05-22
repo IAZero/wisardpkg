@@ -16,6 +16,7 @@ includes = [
     'classification_methods/classificationbase.cc',
     'classification_methods/bleaching.cc',
     'classification_methods/bestbleaching.cc',
+    'classification_methods/weighted.cc',
     'classification_methods/register.cc',
 
     'data/bininput.cc',

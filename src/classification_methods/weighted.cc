@@ -1,9 +1,9 @@
 
-class ClassificationWithWeights: public ClassificationBase {
+class Weighted: public ClassificationBase {
 public:
-  ClassificationWithWeights()
-    :bleachingActivated(true),confidence(1){}
-  ClassificationWithWeights(nl::json config){
+  Weighted(std::map<std::string,std::vector<int>> weights)
+    :weights(weights), bleachingActivated(true), confidence(1){}
+  Weighted(nl::json config){
     nl::json value;
 
     value = config["bleachingActivated"];
@@ -11,17 +11,24 @@ public:
 
     value = config["confidence"];
     confidence = value.is_null() ? 1 : value.get<int>();
+
+    value = config["weights"];
+    weights = value.get<std::map<std::string,std::vector<int>>>();
   }
 
-  ClassificationWithWeights(const bool bleachingActivated,const int confidence)
-    :bleachingActivated(bleachingActivated),confidence(confidence){}
+  Weighted(std::map<std::string,std::vector<int>> weights, const bool bleachingActivated,const int confidence)
+    :weights(weights), bleachingActivated(bleachingActivated), confidence(confidence){}
 
   ClassificationBase* clone() const{
-    return new ClassificationWithWeights(bleachingActivated,confidence);
+    return new Weighted(weights, bleachingActivated, confidence);
   }
 
   void setWeights(std::map<std::string,std::vector<int>>& weights){
     this->weights = weights;
+  }
+
+  std::map<std::string,std::vector<int>> getWeights() const{
+    return weights;
   }
 
   std::map<std::string, int> run(std::map<std::string,std::vector<int>>& allvotes) {
@@ -53,7 +60,7 @@ public:
   }
 
   std::string className() const{
-    return "ClassificationWithWeights";
+    return "Weighted";
   }
 
   std::string json() const{
@@ -67,7 +74,7 @@ public:
 
 
 private:
+  std::map<std::string,std::vector<int>> weights;
   bool bleachingActivated;
   int confidence;
-  std::map<std::string,std::vector<int>> weights;
 };
