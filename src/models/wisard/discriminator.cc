@@ -165,7 +165,7 @@ protected:
   void setRAMShuffle(int addressSize, bool ignoreZero, bool completeAddressing, int base){
     checkAddressSize(entrySize, addressSize);
     checkBase(base);
-    count=0;
+    count = 0;
 
     int numberOfRAMS = entrySize / addressSize;
     int remain = entrySize % addressSize;
@@ -178,13 +178,19 @@ protected:
     rams.resize(numberOfRAMS);
     std::vector<int> indexes(indexesSize);
 
-    for(int i=0; i<entrySize; i++) {
+    for(int i = 0; i < entrySize; i++) {
       indexes[i]=i;
     }
-    for(unsigned int i=entrySize; i<indexes.size(); i++){
-      indexes[i] = randint(0, entrySize-1, false);
+
+    std::random_device rd;
+    std::mt19937 mt(rd());
+    std::uniform_int_distribution<int> dist(0, entrySize);
+
+    for(unsigned int i = entrySize; i < indexes.size(); i++){
+      indexes[i] = indexes[dist(mt)];
     }
-    random_shuffle(indexes.begin(), indexes.end());
+
+    std::shuffle(indexes.begin(), indexes.end(), mt);
 
     for(unsigned int i=0; i<rams.size(); i++){
       std::vector<int> subIndexes(indexes.begin() + (i*addressSize), indexes.begin() + ((i+1)*addressSize));
