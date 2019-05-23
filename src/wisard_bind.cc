@@ -76,6 +76,18 @@ PYBIND11_MODULE(wisardpkg, m){
       .def("getSize", &DynamicThermometer::getSize)
     ;
 
+    // mapping generators
+    py::class_<MappingGeneratorBase>(m, "MappingGeneratorBase", py::module_local())
+      .def("getMapping", (std::vector<std::vector<int>> (MappingGeneratorBase::*)(const std::string)) &MappingGeneratorBase::getMapping)
+      .def("getMappings", &MappingGeneratorBase::getMappings)
+    ;
+
+    py::class_<RandomMapping, MappingGeneratorBase>(m, "RandomMapping", py::module_local())
+      .def(py::init<const unsigned int, const unsigned int, const bool, const bool>(), py::arg("entrySize"), py::arg("tupleSize"), py::arg("monoMapping") = false, py::arg("completeAddressing") = true)
+      .def(py::init<const std::vector<int>, const unsigned int, const bool, const bool>(), py::arg("indexes"), py::arg("tupleSize"), py::arg("monoMapping") = false, py::arg("completeAddressing") = true)
+      .def(py::init<const bool, const bool>(), py::arg("monoMapping") = false, py::arg("completeAddressing") = true)
+    ;
+
     // regression mean functions
     py::class_<Mean>(m, "Mean", py::module_local());
     py::class_<SimpleMean, Mean>(m, "SimpleMean", py::module_local()).def(py::init());
