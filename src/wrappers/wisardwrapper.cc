@@ -34,6 +34,12 @@ public:
         std::map<std::string, std::vector<std::vector<int>>> mapping = arg.second.cast<std::map<std::string, std::vector<std::vector<int>>>>();
         mappingGenerator->setMappings(mapping);
       }
+
+      if(std::string(py::str(arg.first)).compare("completeAddressing") == 0)
+        mappingGenerator->completeAddressing = arg.second.cast<bool>();
+
+      if(std::string(py::str(arg.first)).compare("monoMapping") == 0)
+        mappingGenerator->monoMapping = arg.second.cast<bool>();
     }
   }
 };
