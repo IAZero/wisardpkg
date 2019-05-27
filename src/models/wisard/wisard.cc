@@ -3,7 +3,6 @@ class Wisard: public ClassificationModel {
 public:
   Wisard(int addressSize): Wisard(addressSize, {}){}
   Wisard(int addressSize, nl::json c): addressSize(addressSize){
-    srand(randint(0,1000000));
     nl::json value;
 
     value = c["classificationMethod"];
@@ -20,17 +19,28 @@ public:
     value = c["ignoreZero"];
     ignoreZero = value.is_null() ? false : value.get<bool>();
 
-    value = c["completeAddressing"];
-    completeAddressing = value.is_null() ? true : value.get<bool>();
+    value = c["base"];
+    base = value.is_null() ? 2 : value.get<int>();
+
+    value = c["mappingGenerator"];
+    if(value.is_null()){
+      mappingGenerator = new RandomMapping();
+    }
+    // else{
+    //   mappingGenerator = MappingGeneratorBase::load(value);
+    // }
+
+    value = c["indexes"];
+    std::vector<int> indexes = value.is_null() ? std::vector<int>(0) : value.get<std::vector<int>>();
 
     value = c["mapping"];
     mapping = value.is_null() ? std::map<std::string, std::vector<std::vector<int>>>() : value.get<std::map<std::string, std::vector<std::vector<int>>>>();
 
-    value = c["indexes"];
-    indexes = value.is_null() ? std::vector<int>(0) : value.get<std::vector<int>>();
-
-    value = c["base"];
-    base = value.is_null() ? 2 : value.get<int>();
+    if(indexes.size() > 0){
+      mappingGenerator->monoMapping = true;
+      mappingGenerator->setIndexes(indexes);
+    }
+    mappingGenerator->setTupleSize(addressSize);
   }
 
   Wisard(std::string config):Wisard(0,nl::json::parse(config)){
@@ -51,7 +61,6 @@ public:
 
   long getsizeof() const{
     long size = sizeof(Wisard);
-    size += sizeof(int)*indexes.size();
     for(auto& d: discriminators){
       size += d.first.size() + d.second.getsizeof();
     }
@@ -59,7 +68,6 @@ public:
   }
 
   ~Wisard(){
-    indexes.clear();
     discriminators.clear();
   }
 
@@ -113,7 +121,6 @@ public:
       {"version", __version__},
       {"addressSize", addressSize},
       {"verbose", verbose},
-      {"indexes", indexes},
       {"ignoreZero", ignoreZero},
       {"completeAddressing", completeAddressing},
       {"classificationMethod", ClassificationMethods::json(classificationMethod)},
@@ -166,17 +173,13 @@ public:
 protected:
   void makeDiscriminator(std::string label, int entrySize){
     auto it = mapping.find(label);
-    if (it != mapping.end())
-    {
+    if (it != mapping.end()){
       discriminators[label] = Discriminator(it->second, entrySize, ignoreZero, base);
-    }
-    else if (indexes.size() != 0)
-    {
-      discriminators[label] = Discriminator(indexes, addressSize, entrySize, ignoreZero, base);
-    }
-    else
-    {
-      discriminators[label] = Discriminator(addressSize, entrySize, ignoreZero, completeAddressing, base);
+    } else{
+      if (!mappingGenerator->monoMapping){
+        mappingGenerator->setEntrySize(entrySize);
+      } 
+      discriminators[label] = Discriminator(mappingGenerator->getMapping(label), entrySize, ignoreZero, base);
     }
   }
 
@@ -189,10 +192,10 @@ protected:
   int addressSize;
   bool verbose;
   std::map<std::string, std::vector<std::vector<int>>> mapping;
-  std::vector<int> indexes;
   bool ignoreZero;
   bool completeAddressing;
   int base;
   ClassificationBase* classificationMethod;
+  MappingGeneratorBase* mappingGenerator;
   std::map<std::string, Discriminator> discriminators;
 };
