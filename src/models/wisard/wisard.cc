@@ -1,15 +1,52 @@
 
 class Wisard: public ClassificationModel {
 public:
-  Wisard(unsigned int addressSize){
-    init(addressSize, {});
+  Wisard(nl::json c){
+    nl::json value;
+
+    value = c["classificationMethod"];
+    if(value.is_null()){
+      classificationMethod = new Bleaching();
+    }
+    else{
+      classificationMethod = ClassificationMethods::load(value);
+    }
+
+    value = c["verbose"];
+    verbose = value.is_null() ? false : value.get<bool>();
+
+    value = c["ignoreZero"];
+    ignoreZero = value.is_null() ? false : value.get<bool>();
+
+    value = c["base"];
+    base = value.is_null() ? 2 : value.get<int>();
+
+    value = c["mappingGenerator"];
+    if(value.is_null()){
+      mappingGenerator = new RandomMapping();
+    }
+    else{
+      mappingGenerator = MappingGeneratorHelper::load(value);
+    }
+
+    value = c["indexes"];
+    std::vector<int> indexes = value.is_null() ? std::vector<int>(0) : value.get<std::vector<int>>();
+
+    value = c["mapping"];
+    mapping = value.is_null() ? std::map<std::string, std::vector<std::vector<int>>>() : value.get<std::map<std::string, std::vector<std::vector<int>>>>();
+
+    if(indexes.size() > 0){
+      mappingGenerator->monoMapping = true;
+      mappingGenerator->setIndexes(indexes);
+    }
   }
 
-  Wisard(std::string config){
+  Wisard(unsigned int addressSize) : Wisard({}){
+    mappingGenerator->setTupleSize(addressSize);
+  }
+
+  Wisard(std::string config) : Wisard(nl::json::parse(config)){
     nl::json c = nl::json::parse(config);
-    unsigned int addressSize = c["addressSize"];
-    
-    init(addressSize, {});
 
     nl::json classes = c["classes"];
     nl::json dConfig = {
@@ -21,14 +58,6 @@ public:
       d.merge_patch(dConfig);
       discriminators[it.key()] = Discriminator(d);
     }
-  }
-
-  long getsizeof() const{
-    long size = sizeof(Wisard);
-    for(auto& d: discriminators){
-      size += d.first.size() + d.second.getsizeof();
-    }
-    return size;
   }
 
   ~Wisard(){
@@ -133,6 +162,14 @@ public:
     return sizes;
   }
 
+  long getsizeof() const{
+    long size = sizeof(Wisard);
+    for(auto& d: discriminators){
+      size += d.first.size() + d.second.getsizeof();
+    }
+    return size;
+  }
+
 protected:
   void makeDiscriminator(std::string label, int entrySize){
     auto it = mapping.find(label);
@@ -150,47 +187,6 @@ protected:
     if(imageSize != labelsSize){
       throw Exception("The size of data is not the same of the size of labels!");
     }
-  }
-
-  void init(unsigned int addressSize, nl::json c){
-    nl::json value;
-
-    value = c["classificationMethod"];
-    if(value.is_null()){
-      classificationMethod = new Bleaching();
-    }
-    else{
-      classificationMethod = ClassificationMethods::load(value);
-    }
-
-    value = c["verbose"];
-    verbose = value.is_null() ? false : value.get<bool>();
-
-    value = c["ignoreZero"];
-    ignoreZero = value.is_null() ? false : value.get<bool>();
-
-    value = c["base"];
-    base = value.is_null() ? 2 : value.get<int>();
-
-    value = c["mappingGenerator"];
-    if(value.is_null()){
-      mappingGenerator = new RandomMapping();
-    }
-    else{
-      mappingGenerator = MappingGeneratorHelper::load(value);
-    }
-
-    value = c["indexes"];
-    std::vector<int> indexes = value.is_null() ? std::vector<int>(0) : value.get<std::vector<int>>();
-
-    value = c["mapping"];
-    mapping = value.is_null() ? std::map<std::string, std::vector<std::vector<int>>>() : value.get<std::map<std::string, std::vector<std::vector<int>>>>();
-
-    if(indexes.size() > 0){
-      mappingGenerator->monoMapping = true;
-      mappingGenerator->setIndexes(indexes);
-    }
-    mappingGenerator->setTupleSize(addressSize);
   }
 
   std::map<std::string, Discriminator> discriminators;
