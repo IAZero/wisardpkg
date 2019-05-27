@@ -12,6 +12,14 @@ public:
         return mapping;
     }
 
+    void setMappings(std::map<std::string, std::vector<std::vector<int>>> mappings){
+        mapping.insert(mappings.begin(), mappings.end());
+    }
+
+    void setMapping(std::vector<std::vector<int>> mapping, std::string label){
+        this->mapping[label] = mapping;
+    }
+
     void setIndexes(const std::vector<int> indexes){
         checkEntrySize(indexes.size());
         this->indexes = indexes;

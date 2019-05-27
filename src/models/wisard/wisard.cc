@@ -21,6 +21,8 @@ public:
     value = c["base"];
     base = value.is_null() ? 2 : value.get<int>();
 
+    // Mapping
+
     value = c["mappingGenerator"];
     if(value.is_null()){
       mappingGenerator = new RandomMapping();
@@ -32,16 +34,19 @@ public:
     value = c["indexes"];
     std::vector<int> indexes = value.is_null() ? std::vector<int>(0) : value.get<std::vector<int>>();
 
-    value = c["mapping"];
-    mapping = value.is_null() ? std::map<std::string, std::vector<std::vector<int>>>() : value.get<std::map<std::string, std::vector<std::vector<int>>>>();
-
     if(indexes.size() > 0){
-      mappingGenerator->monoMapping = true;
       mappingGenerator->setIndexes(indexes);
+    }
+
+    value = c["mapping"];
+    std::map<std::string, std::vector<std::vector<int>>> mapping = value.is_null() ? std::map<std::string, std::vector<std::vector<int>>>() : value.get<std::map<std::string, std::vector<std::vector<int>>>>();
+
+    if (mapping.size() > 0){
+      mappingGenerator->setMappings(mapping);
     }
   }
 
-  Wisard(unsigned int addressSize) : Wisard({}){
+  Wisard(unsigned int addressSize, nl::json c={}) : Wisard(c){
     mappingGenerator->setTupleSize(addressSize);
   }
 
@@ -172,15 +177,10 @@ public:
 
 protected:
   void makeDiscriminator(std::string label, int entrySize){
-    auto it = mapping.find(label);
-    if (it != mapping.end()){
-      discriminators[label] = Discriminator(it->second, entrySize, ignoreZero, base);
-    } else{
-      if (!mappingGenerator->monoMapping){
-        mappingGenerator->setEntrySize(entrySize);
-      } 
-      discriminators[label] = Discriminator(mappingGenerator->getMapping(label), entrySize, ignoreZero, base);
+    if (!mappingGenerator->monoMapping){
+      mappingGenerator->setEntrySize(entrySize);
     }
+    discriminators[label] = Discriminator(mappingGenerator->getMapping(label), entrySize, ignoreZero, base);
   }
 
   void checkInputSizes(const int imageSize, const int labelsSize){
@@ -192,7 +192,6 @@ protected:
   std::map<std::string, Discriminator> discriminators;
   ClassificationBase* classificationMethod;
   MappingGeneratorBase* mappingGenerator;
-  std::map<std::string, std::vector<std::vector<int>>> mapping;
   bool verbose;
   bool ignoreZero;
   int base;
