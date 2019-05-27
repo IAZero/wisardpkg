@@ -1,55 +1,15 @@
 
 class Wisard: public ClassificationModel {
 public:
-  Wisard(int addressSize): Wisard(addressSize, {}){}
-  Wisard(int addressSize, nl::json c): addressSize(addressSize){
-    nl::json value;
-
-    value = c["classificationMethod"];
-    if(value.is_null()){
-      classificationMethod = new Bleaching();
-    }
-    else{
-      classificationMethod = ClassificationMethods::load(value);
-    }
-
-    value = c["verbose"];
-    verbose = value.is_null() ? false : value.get<bool>();
-
-    value = c["ignoreZero"];
-    ignoreZero = value.is_null() ? false : value.get<bool>();
-
-    value = c["base"];
-    base = value.is_null() ? 2 : value.get<int>();
-
-    value = c["mappingGenerator"];
-    if(value.is_null()){
-      mappingGenerator = new RandomMapping();
-    }
-    else{
-      mappingGenerator = MappingGeneratorHelper::load(value);
-    }
-
-    value = c["indexes"];
-    std::vector<int> indexes = value.is_null() ? std::vector<int>(0) : value.get<std::vector<int>>();
-
-    value = c["mapping"];
-    mapping = value.is_null() ? std::map<std::string, std::vector<std::vector<int>>>() : value.get<std::map<std::string, std::vector<std::vector<int>>>>();
-
-    if(indexes.size() > 0){
-      mappingGenerator->monoMapping = true;
-      mappingGenerator->setIndexes(indexes);
-    }
-    if (addressSize > 0){
-      mappingGenerator->setTupleSize(addressSize);
-    }
+  Wisard(unsigned int addressSize){
+    init(addressSize, {});
   }
 
-  Wisard(std::string config):Wisard(0,nl::json::parse(config)){
+  Wisard(std::string config){
     nl::json c = nl::json::parse(config);
-    addressSize = c["addressSize"];
+    unsigned int addressSize = c["addressSize"];
     
-    mappingGenerator->setTupleSize(addressSize);
+    init(addressSize, {});
 
     nl::json classes = c["classes"];
     nl::json dConfig = {
@@ -123,11 +83,10 @@ public:
   std::string json(std::string filename="") const {
     nl::json config = {
       {"version", __version__},
-      {"addressSize", addressSize},
       {"verbose", verbose},
       {"ignoreZero", ignoreZero},
-      {"completeAddressing", completeAddressing},
       {"classificationMethod", ClassificationMethods::json(classificationMethod)},
+      {"mappingGenerator", MappingGeneratorHelper::json(mappingGenerator)},
       {"base", base}
     };
     nl::json c;
@@ -193,13 +152,52 @@ protected:
     }
   }
 
-  int addressSize;
-  bool verbose;
-  std::map<std::string, std::vector<std::vector<int>>> mapping;
-  bool ignoreZero;
-  bool completeAddressing;
-  int base;
+  void init(unsigned int addressSize, nl::json c){
+    nl::json value;
+
+    value = c["classificationMethod"];
+    if(value.is_null()){
+      classificationMethod = new Bleaching();
+    }
+    else{
+      classificationMethod = ClassificationMethods::load(value);
+    }
+
+    value = c["verbose"];
+    verbose = value.is_null() ? false : value.get<bool>();
+
+    value = c["ignoreZero"];
+    ignoreZero = value.is_null() ? false : value.get<bool>();
+
+    value = c["base"];
+    base = value.is_null() ? 2 : value.get<int>();
+
+    value = c["mappingGenerator"];
+    if(value.is_null()){
+      mappingGenerator = new RandomMapping();
+    }
+    else{
+      mappingGenerator = MappingGeneratorHelper::load(value);
+    }
+
+    value = c["indexes"];
+    std::vector<int> indexes = value.is_null() ? std::vector<int>(0) : value.get<std::vector<int>>();
+
+    value = c["mapping"];
+    mapping = value.is_null() ? std::map<std::string, std::vector<std::vector<int>>>() : value.get<std::map<std::string, std::vector<std::vector<int>>>>();
+
+    if(indexes.size() > 0){
+      mappingGenerator->monoMapping = true;
+      mappingGenerator->setIndexes(indexes);
+    }
+    mappingGenerator->setTupleSize(addressSize);
+  }
+
+  std::map<std::string, Discriminator> discriminators;
   ClassificationBase* classificationMethod;
   MappingGeneratorBase* mappingGenerator;
-  std::map<std::string, Discriminator> discriminators;
+  std::map<std::string, std::vector<std::vector<int>>> mapping;
+  bool verbose;
+  bool ignoreZero;
+  int base;
 };

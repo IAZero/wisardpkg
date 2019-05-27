@@ -1,7 +1,7 @@
 
 class WisardWrapper: public Wisard{
 public:
-  WisardWrapper(std::string config):Wisard(config){}
+  WisardWrapper(std::string config) : Wisard(config){}
   WisardWrapper(int addressSize, py::kwargs kwargs): Wisard(addressSize){
 
     for(auto arg: kwargs){
