@@ -26,35 +26,21 @@ public:
     value = options["completeAddressing"];
     bool completeAddressing = value.is_null() ? true : value.get<bool>();
 
-    value = options["indexes"];
-    std::vector<int> indexes = value.is_null() ? std::vector<int>(0) : value.get<std::vector<int>>();
-
     value = options["mapping"];
     std::vector<std::vector<int>> mapping = value.is_null() ? std::vector<std::vector<int>>(0) : value.get<std::vector<std::vector<int>>>();
 
     value = options["base"];
     int base = value.is_null() ? 2 : value.get<int>();
 
-    if (mapping.size() != 0)
-    {
+    if (mapping.size() != 0){
       setRAMByMapping(mapping, ignoreZero, base);
-    }
-    else if (indexes.size() != 0)
-    {
-      setRAMByIndex(indexes, addressSize, ignoreZero, base);
-    }
-    else
-    {
+    } else{
       setRAMShuffle(addressSize, ignoreZero, completeAddressing, base);
     }
   }
 
   Discriminator(int addressSize, int entrySize, bool ignoreZero, bool completeAddressing, int base=2): entrySize(entrySize){
     setRAMShuffle(addressSize, ignoreZero, completeAddressing, base);
-  }
-
-  Discriminator(std::vector<int> indexes, int addressSize, int entrySize, bool ignoreZero=false, int base=2): entrySize(entrySize){
-    setRAMByIndex(indexes, addressSize, ignoreZero, base);
   }
 
   Discriminator(std::vector<std::vector<int>> mapping, int entrySize, bool ignoreZero = false, int base = 2) : entrySize(entrySize){
@@ -165,7 +151,7 @@ protected:
   void setRAMShuffle(int addressSize, bool ignoreZero, bool completeAddressing, int base){
     checkAddressSize(entrySize, addressSize);
     checkBase(base);
-    count=0;
+    count = 0;
 
     int numberOfRAMS = entrySize / addressSize;
     int remain = entrySize % addressSize;
@@ -178,28 +164,19 @@ protected:
     rams.resize(numberOfRAMS);
     std::vector<int> indexes(indexesSize);
 
-    for(int i=0; i<entrySize; i++) {
+    for(int i = 0; i < entrySize; i++) {
       indexes[i]=i;
     }
-    for(unsigned int i=entrySize; i<indexes.size(); i++){
-      indexes[i] = randint(0, entrySize-1, false);
+
+    std::random_device rd;
+    std::mt19937 mt(rd());
+    std::uniform_int_distribution<int> dist(0, entrySize);
+
+    for(unsigned int i = entrySize; i < indexes.size(); i++){
+      indexes[i] = indexes[dist(mt)];
     }
-    random_shuffle(indexes.begin(), indexes.end());
 
-    for(unsigned int i=0; i<rams.size(); i++){
-      std::vector<int> subIndexes(indexes.begin() + (i*addressSize), indexes.begin() + ((i+1)*addressSize));
-      rams[i] = RAM(subIndexes, ignoreZero, base);
-    }
-  }
-
-  void setRAMByIndex(std::vector<int> indexes, int addressSize, bool ignoreZero=false, int base=2){
-    checkAddressSize(entrySize, addressSize);
-    checkBase(base);
-    checkListOfIndexes(indexes, entrySize);
-    count=0;
-
-    int numberOfRAMS = entrySize / addressSize;
-    rams = std::vector<RAM>(numberOfRAMS);
+    std::shuffle(indexes.begin(), indexes.end(), mt);
 
     for(unsigned int i=0; i<rams.size(); i++){
       std::vector<int> subIndexes(indexes.begin() + (i*addressSize), indexes.begin() + ((i+1)*addressSize));

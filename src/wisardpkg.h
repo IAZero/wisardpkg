@@ -22,6 +22,11 @@ namespace nl = nlohmann;
 //register classification methods as json
 #include "classification_methods/register.cc"
 
+//mapping generators
+#include "mapping/mappinggenerator.cc"
+#include "mapping/randommapping.cc"
+#include "mapping/mappinggeneratorhelper.cc"
+
 //data
 #include "data/bininput.cc"
 #include "data/dataset.cc"

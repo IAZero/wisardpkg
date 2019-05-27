@@ -76,6 +76,23 @@ PYBIND11_MODULE(wisardpkg, m){
       .def("getSize", &DynamicThermometer::getSize)
     ;
 
+    // mapping generators
+    py::class_<MappingGenerator>(m, "MappingGenerator", py::module_local())
+      .def("getMapping", (std::vector<std::vector<int>> (MappingGenerator::*)(const std::string)) &MappingGenerator::getMapping)
+      .def("getMappings", &MappingGenerator::getMappings)
+      .def("setMappings", &MappingGenerator::setMappings)
+      .def("setMapping", &MappingGenerator::setMapping)
+      .def("setIndexes", &MappingGenerator::setIndexes)
+      .def("setEntrySize", &MappingGenerator::setEntrySize)
+      .def("setTupleSize", &MappingGenerator::setTupleSize)
+    ;
+
+    py::class_<RandomMapping, MappingGenerator>(m, "RandomMapping", py::module_local())
+      .def(py::init<const unsigned int, const unsigned int, const bool, const bool>(), py::arg("entrySize"), py::arg("tupleSize"), py::arg("monoMapping") = false, py::arg("completeAddressing") = true)
+      .def(py::init<const std::vector<int>, const unsigned int, const bool, const bool>(), py::arg("indexes"), py::arg("tupleSize"), py::arg("monoMapping") = false, py::arg("completeAddressing") = true)
+      .def(py::init<const bool, const bool>(), py::arg("monoMapping") = false, py::arg("completeAddressing") = true)
+    ;
+
     // regression mean functions
     py::class_<Mean>(m, "Mean", py::module_local());
     py::class_<SimpleMean, Mean>(m, "SimpleMean", py::module_local()).def(py::init());

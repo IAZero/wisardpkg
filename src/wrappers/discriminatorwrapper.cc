@@ -28,16 +28,9 @@ public:
         mapping = arg.second.cast<std::vector<std::vector<int>>>();
     }
 
-    if (mapping.size() != 0)
-    {
+    if (mapping.size() != 0) {
       setRAMByMapping(mapping, ignoreZero, base);
-    }
-    else if (indexes.size() != 0)
-    {
-      setRAMByIndex(indexes, addressSize, ignoreZero, base);
-    }
-    else
-    {
+    } else {
       setRAMShuffle(addressSize, ignoreZero, completeAddressing, base);
     }
   }
