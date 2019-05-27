@@ -16,15 +16,15 @@ public:
         checkEntrySize(indexes.size());
         checkTupleSize(tupleSize);
 
-        auto it = tupleMappings.find(label);
-        if (it != tupleMappings.end()){
+        auto it = mapping.find(label);
+        if (it != mapping.end()){
             return it->second;
-        } else if (monoMapping && tupleMappings.size() > 0){
-            return tupleMappings.begin()->second;
+        } else if (monoMapping && mapping.size() > 0){
+            return mapping.begin()->second;
         }
         
-        tupleMappings[label] = createMapping(tupleSize, indexes, completeAddressing);
-        return tupleMappings[label];
+        mapping[label] = createMapping(tupleSize, indexes, completeAddressing);
+        return mapping[label];
     }
 
     MappingGeneratorBase* clone() const{

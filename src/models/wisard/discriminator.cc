@@ -26,25 +26,15 @@ public:
     value = options["completeAddressing"];
     bool completeAddressing = value.is_null() ? true : value.get<bool>();
 
-    value = options["indexes"];
-    std::vector<int> indexes = value.is_null() ? std::vector<int>(0) : value.get<std::vector<int>>();
-
     value = options["mapping"];
     std::vector<std::vector<int>> mapping = value.is_null() ? std::vector<std::vector<int>>(0) : value.get<std::vector<std::vector<int>>>();
 
     value = options["base"];
     int base = value.is_null() ? 2 : value.get<int>();
 
-    if (mapping.size() != 0)
-    {
+    if (mapping.size() != 0){
       setRAMByMapping(mapping, ignoreZero, base);
-    }
-    else if (indexes.size() != 0)
-    {
-      setRAMByIndex(indexes, addressSize, ignoreZero, base);
-    }
-    else
-    {
+    } else{
       setRAMShuffle(addressSize, ignoreZero, completeAddressing, base);
     }
   }
@@ -53,9 +43,9 @@ public:
     setRAMShuffle(addressSize, ignoreZero, completeAddressing, base);
   }
 
-  Discriminator(std::vector<int> indexes, int addressSize, int entrySize, bool ignoreZero=false, int base=2): entrySize(entrySize){
-    setRAMByIndex(indexes, addressSize, ignoreZero, base);
-  }
+  // Discriminator(std::vector<int> indexes, int addressSize, int entrySize, bool ignoreZero=false, int base=2): entrySize(entrySize){
+  //   setRAMByIndex(indexes, addressSize, ignoreZero, base);
+  // }
 
   Discriminator(std::vector<std::vector<int>> mapping, int entrySize, bool ignoreZero = false, int base = 2) : entrySize(entrySize){
     setRAMByMapping(mapping, ignoreZero, base);

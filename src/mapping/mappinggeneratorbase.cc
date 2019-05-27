@@ -7,7 +7,7 @@ public:
     virtual std::vector<std::vector<int>> getMapping(const std::string label) = 0;
 
     std::map<std::string, std::vector<std::vector<int>>> getMappings() const{
-        return tupleMappings;
+        return mapping;
     }
 
     void setIndexes(const std::vector<int> indexes){
@@ -23,9 +23,19 @@ public:
         checkTupleSize(tupleSize);
         this->tupleSize = tupleSize;
     }
+
+    std::string json() const{
+        nl::json config = {
+            {"indexes", indexes},
+            {"mapping", mapping},
+            {"tupleSize", tupleSize}
+        };
+        return config.dump();
+    }
+
 protected:
     std::vector<int> indexes;
-    std::map<std::string, std::vector<std::vector<int>>> tupleMappings;
+    std::map<std::string, std::vector<std::vector<int>>> mapping;
     unsigned int tupleSize;
 
     void checkEntrySize(const unsigned int size) const {

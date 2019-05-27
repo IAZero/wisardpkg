@@ -40,12 +40,16 @@ public:
       mappingGenerator->monoMapping = true;
       mappingGenerator->setIndexes(indexes);
     }
-    mappingGenerator->setTupleSize(addressSize);
+    if (addressSize > 0){
+      mappingGenerator->setTupleSize(addressSize);
+    }
   }
 
   Wisard(std::string config):Wisard(0,nl::json::parse(config)){
     nl::json c = nl::json::parse(config);
-    addressSize=c["addressSize"];
+    addressSize = c["addressSize"];
+    
+    mappingGenerator->setTupleSize(addressSize);
 
     nl::json classes = c["classes"];
     nl::json dConfig = {
