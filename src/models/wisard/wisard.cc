@@ -191,7 +191,7 @@ protected:
 
   std::map<std::string, Discriminator> discriminators;
   ClassificationBase* classificationMethod;
-  MappingGeneratorBase* mappingGenerator;
+  MappingGenerator* mappingGenerator;
   bool verbose;
   bool ignoreZero;
   int base;

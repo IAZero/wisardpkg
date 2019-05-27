@@ -21,7 +21,7 @@ public:
       // Mapping
 
       if(std::string(py::str(arg.first)).compare("mappingGenerator") == 0){
-        mappingGenerator = arg.second.cast<MappingGeneratorBase*>();
+        mappingGenerator = arg.second.cast<MappingGenerator*>();
         mappingGenerator = mappingGenerator->clone();
       }
 

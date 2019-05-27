@@ -1,4 +1,4 @@
-class RandomMapping : public MappingGeneratorBase{
+class RandomMapping : public MappingGenerator{
 public:
     RandomMapping(const bool monoMapping=false, const bool completeAddressing=true) {
         init(std::vector<int>(), 0, monoMapping, completeAddressing);
@@ -46,7 +46,7 @@ public:
         return mapping[label];
     }
 
-    MappingGeneratorBase* clone() const{
+    MappingGenerator* clone() const{
         return new RandomMapping(indexes, tupleSize, monoMapping, completeAddressing);
     }
 

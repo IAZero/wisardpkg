@@ -1,6 +1,6 @@
 class MappingGeneratorHelper {
 public:
-  static nl::json json(MappingGeneratorBase* obj){
+  static nl::json json(MappingGenerator* obj){
     nl::json params = nl::json::parse(obj->json());
     nl::json config = {
       {MappingGeneratorHelper::className, obj->className()},
@@ -9,7 +9,7 @@ public:
     return config;
   }
 
-  static MappingGeneratorBase* load(nl::json config){
+  static MappingGenerator* load(nl::json config){
     nl::json classNamej = config[MappingGeneratorHelper::className];
     std::string className = classNamej.is_null() ? "" : classNamej.get<std::string>();
 

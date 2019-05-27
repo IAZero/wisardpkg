@@ -23,8 +23,7 @@ namespace nl = nlohmann;
 #include "classification_methods/register.cc"
 
 //mapping generators
-#include "mapping/util.cc"
-#include "mapping/mappinggeneratorbase.cc"
+#include "mapping/mappinggenerator.cc"
 #include "mapping/randommapping.cc"
 #include "mapping/mappinggeneratorhelper.cc"
 
