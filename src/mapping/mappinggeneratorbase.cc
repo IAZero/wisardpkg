@@ -5,6 +5,8 @@ public:
 
     virtual MappingGeneratorBase* clone() const = 0;
     virtual std::vector<std::vector<int>> getMapping(const std::string label) = 0;
+    virtual std::string json() const = 0;
+    virtual std::string className() const = 0;
 
     std::map<std::string, std::vector<std::vector<int>>> getMappings() const{
         return mapping;
@@ -22,15 +24,6 @@ public:
     void setTupleSize(const unsigned int tupleSize){
         checkTupleSize(tupleSize);
         this->tupleSize = tupleSize;
-    }
-
-    std::string json() const{
-        nl::json config = {
-            {"indexes", indexes},
-            {"mapping", mapping},
-            {"tupleSize", tupleSize}
-        };
-        return config.dump();
     }
 
 protected:

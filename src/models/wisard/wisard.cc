@@ -26,9 +26,9 @@ public:
     if(value.is_null()){
       mappingGenerator = new RandomMapping();
     }
-    // else{
-    //   mappingGenerator = MappingGeneratorBase::load(value);
-    // }
+    else{
+      mappingGenerator = MappingGeneratorHelper::load(value);
+    }
 
     value = c["indexes"];
     std::vector<int> indexes = value.is_null() ? std::vector<int>(0) : value.get<std::vector<int>>();

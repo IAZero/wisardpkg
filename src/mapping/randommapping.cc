@@ -12,6 +12,25 @@ public:
         init(entrySizeToIndexes(entrySize), tupleSize, monoMapping, completeAddressing);
     }
 
+    RandomMapping(nl::json config){
+        nl::json value;
+
+        value = config["indexes"];
+        indexes = value.get<std::vector<int>>();
+
+        value = config["mapping"];
+        mapping = value.get<std::map<std::string, std::vector<std::vector<int>>>>();
+
+        value = config["tupleSize"];
+        tupleSize = value.get<unsigned int>();
+
+        value = config["completeAddressing"];
+        completeAddressing = value.get<bool>();
+
+        value = config["monoMapping"];
+        monoMapping = value.get<bool>();
+    }
+
     std::vector<std::vector<int>> getMapping(const std::string label){
         checkEntrySize(indexes.size());
         checkTupleSize(tupleSize);
@@ -31,12 +50,27 @@ public:
         return new RandomMapping(indexes, tupleSize, monoMapping, completeAddressing);
     }
 
+    std::string json() const{
+        nl::json config = {
+            {"indexes", indexes},
+            {"mapping", mapping},
+            {"tupleSize", tupleSize},
+            {"completeAddressing", completeAddressing},
+            {"monoMapping", monoMapping}
+        };
+        return config.dump();
+    }
+
+    std::string className() const{
+        return "RandomMapping";
+    }
+
 protected:
     std::vector<std::vector<int>> createMapping(const unsigned int tupleSize, const std::vector<int>& indexes, const bool completeAddressing) const{
         std::vector<int> mappingIndexes = indexes;
 
         if (completeAddressing){
-            mappingIndexes = mapping::completeMapping(tupleSize, mappingIndexes);
+            mappingIndexes = completeMapping(tupleSize, mappingIndexes);
         }
 
         std::random_device rd;

@@ -26,6 +26,7 @@ namespace nl = nlohmann;
 #include "mapping/util.cc"
 #include "mapping/mappinggeneratorbase.cc"
 #include "mapping/randommapping.cc"
+#include "mapping/mappinggeneratorhelper.cc"
 
 //data
 #include "data/bininput.cc"
