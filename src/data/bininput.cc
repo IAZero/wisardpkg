@@ -32,6 +32,14 @@ public:
     return (input[section] >> sectionIndex) & 0x01;
   }
 
+  std::vector<short> list() const {
+    std::vector<short> out(size());
+    for (size_t i = 0; i < out.size(); i++){
+      out[i] = get(i);
+    }
+    return out;
+  }
+
   void set(index_size_t index, int value){
     if(index >= size()) {
       throw Exception("Index out of range!");
@@ -50,6 +58,18 @@ public:
     return Base64::encode(sizeStr+input);
   }
 
+  void extend(const BinInput &b2) {
+    extend(b2.list());
+  }
+
+  void extend(const std::vector<short> &b2) {
+    std::vector<short> self = list();
+    self.insert(self.end(), b2.begin(), b2.end());
+    setConfig(self.size());
+    for (size_t i = 0; i < size(); i++){
+      set(i, self[i]);
+    }
+  }
 private:
   char remain;
   std::string input;

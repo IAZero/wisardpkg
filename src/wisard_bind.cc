@@ -14,7 +14,10 @@ PYBIND11_MODULE(wisardpkg, m){
       .def("__getitem__", &BinInput::get)
       .def("__setitem__", &BinInput::set)
       .def("__len__", &BinInput::size)
+      .def("list", &BinInput::list)
       .def("data", &BinInput::data)
+      .def("extend", (void (BinInput::*)(const BinInput&)) &BinInput::extend)
+      .def("extend", (void (BinInput::*)(const std::vector<short>&)) &BinInput::extend)
     ;
 
     py::class_<DataSet>(m, "DataSet", py::module_local())
