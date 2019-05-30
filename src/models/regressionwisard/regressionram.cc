@@ -119,10 +119,10 @@ protected:
       p *= 2;
     }
     if ((countOne < minOne) || (((int)mapping.size() - countOne) < minZero)){
-      return {index, true};
+      return std::make_tuple(index, true);
     }
 
-    return {index, false};
+    return std::make_tuple(index, false);
   }
 
 private:
