@@ -199,6 +199,10 @@ public:
     return Y.at(index);
   }
 
+  const std::unordered_map<int,double>& getYs() const {
+    return Y;
+  }
+
   const std::unordered_map<int,std::string>& getLabels() const {
     return labels;
   }
