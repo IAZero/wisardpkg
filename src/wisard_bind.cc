@@ -67,12 +67,12 @@ PYBIND11_MODULE(wisardpkg, m){
     ;
 
     py::class_<SimpleThermometer, BinBase>(m, "SimpleThermometer", py::module_local())
-      .def(py::init<const int, const double, const double>(), py::arg("thermometerSize") = 2, py::arg("minimum") = 0.0, py::arg("maximum") = 1.0)
+      .def(py::init<const size_t, const double, const double>(), py::arg("thermometerSize") = 2, py::arg("minimum") = 0.0, py::arg("maximum") = 1.0)
       .def("getSize", &SimpleThermometer::getSize)
     ;
 
     py::class_<DynamicThermometer, BinBase>(m, "DynamicThermometer", py::module_local())
-      .def(py::init<const std::vector<int>&, const std::vector<double>&, const std::vector<double>&>(), py::arg("thermometerSizes"), py::arg("minimum") = std::vector<double>(), py::arg("maximum") = std::vector<double>())
+      .def(py::init<const std::vector<size_t>&, const std::vector<double>&, const std::vector<double>&>(), py::arg("thermometerSizes"), py::arg("minimum") = std::vector<double>(), py::arg("maximum") = std::vector<double>())
       .def("getSize", &DynamicThermometer::getSize)
     ;
 

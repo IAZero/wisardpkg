@@ -204,4 +204,17 @@ namespace math
     return values;
   }
 
+  template<typename T>
+  std::vector<T> ranges(T start, T stop, size_t num) {
+    std::vector<T> values;
+    T step = (stop - start) / num;
+    T value = start;
+    for (size_t i = 0; i < num; i++){
+      values.push_back(value);
+      value += step;
+    }
+
+    return values;
+  }
+
 } // math
