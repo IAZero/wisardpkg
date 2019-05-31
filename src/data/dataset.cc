@@ -39,8 +39,25 @@ public:
     add(data);
   }
 
+  DataSet(const std::vector<BinInput>& data){
+    add(data);
+  }
+
   DataSet(const std::vector<std::string>& data){
     add(data);
+  }
+
+  // labels semi constructors
+  DataSet(const std::vector<std::vector<short>>& data, const std::unordered_map<int,std::string>& labels){
+    add(data, labels);
+  }
+
+  DataSet(const std::vector<BinInput>& data, const std::unordered_map<int,std::string>& labels){
+    add(data, labels);
+  }
+
+  DataSet(const std::vector<std::string>& data, const std::unordered_map<int,std::string>& labels){
+    add(data, labels);
   }
 
   // labels constructors
@@ -48,12 +65,33 @@ public:
     add(data, labels);
   }
 
+  DataSet(const std::vector<BinInput>& data, const std::vector<std::string>& labels){
+    add(data, labels);
+  }
+
   DataSet(const std::vector<std::string>& data, const std::vector<std::string>& labels){
     add(data, labels);
   }
 
+  // y semi constructors
+  DataSet(const std::vector<std::vector<short>>& data, const std::unordered_map<int,double>& Y){
+    add(data, Y);
+  }
+
+  DataSet(const std::vector<BinInput>& data, const std::unordered_map<int,double>& Y){
+    add(data, Y);
+  }
+
+  DataSet(const std::vector<std::string>& data, const std::unordered_map<int,double>& Y){
+    add(data, Y);
+  }
+
   // y constructors
   DataSet(const std::vector<std::vector<short>>& data, const std::vector<double>& Y){
+    add(data, Y);
+  }
+
+  DataSet(const std::vector<BinInput>& data, const std::vector<double>& Y){
     add(data, Y);
   }
 
@@ -122,6 +160,12 @@ public:
     }
   }
 
+  void add(const std::vector<BinInput>& data){
+    for(size_t i = 0; i < data.size(); i++){
+      add(data[i], "");
+    }
+  }
+
   void add(const std::vector<std::string>& data){
     for(size_t i = 0; i < data.size(); i++){
       add(data[i], "");
@@ -129,8 +173,65 @@ public:
   }
 
 
+  // label semi multi
+  void add(const std::vector<std::vector<short>>& data, const std::unordered_map<int,std::string>& labels){
+    if (data.size() != labels.size()) {
+      throw Exception("The size of data is not the same of the size of labels!");
+    }
+    
+    for(size_t i = 0; i < data.size(); i++){
+      auto it = labels.find(i);
+      if (it != labels.end()){
+        add(data[i], it->second);
+      }
+      
+      add(data[i], "");
+    }
+  }
+
+  void add(const std::vector<BinInput>& data, const std::unordered_map<int,std::string>& labels){
+    if (data.size() != labels.size()) {
+      throw Exception("The size of data is not the same of the size of labels!");
+    }
+    
+    for(size_t i = 0; i < data.size(); i++){
+      auto it = labels.find(i);
+      if (it != labels.end()){
+        add(data[i], it->second);
+      }
+      
+      add(data[i], "");
+    }
+  }
+
+  void add(const std::vector<std::string>& data, const std::unordered_map<int,std::string>& labels){
+    if (data.size() != labels.size()) {
+      throw Exception("The size of data is not the same of the size of labels!");
+    }
+    
+    for(size_t i = 0; i < data.size(); i++){
+      auto it = labels.find(i);
+      if (it != labels.end()){
+        add(data[i], it->second);
+      }
+      
+      add(data[i], "");
+    }
+  }
+
+
   // label multi
   void add(const std::vector<std::vector<short>>& data, const std::vector<std::string>& labels){
+    if (data.size() != labels.size()) {
+      throw Exception("The size of data is not the same of the size of labels!");
+    }
+    
+    for(size_t i = 0; i < data.size(); i++){
+      add(data[i], labels[i]);
+    }
+  }
+
+  void add(const std::vector<BinInput>& data, const std::vector<std::string>& labels){
     if (data.size() != labels.size()) {
       throw Exception("The size of data is not the same of the size of labels!");
     }
@@ -151,8 +252,65 @@ public:
   }
 
 
+  // y semi multi
+  void add(const std::vector<std::vector<short>>& data, const std::unordered_map<int,double>& Y){
+    if (data.size() != Y.size()) {
+      throw Exception("The size of data is not the same of the size of Y!");
+    }
+    
+    for(size_t i = 0; i < data.size(); i++){
+      auto it = Y.find(i);
+      if (it != Y.end()){
+        add(data[i], it->second);
+      }
+      
+      add(data[i], "");
+    }
+  }
+
+  void add(const std::vector<BinInput>& data, const std::unordered_map<int,double>& Y){
+    if (data.size() != Y.size()) {
+      throw Exception("The size of data is not the same of the size of Y!");
+    }
+    
+    for(size_t i = 0; i < data.size(); i++){
+      auto it = Y.find(i);
+      if (it != Y.end()){
+        add(data[i], it->second);
+      }
+      
+      add(data[i], "");
+    }
+  }
+
+  void add(const std::vector<std::string>& data, const std::unordered_map<int,double>& Y){
+    if (data.size() != Y.size()) {
+      throw Exception("The size of data is not the same of the size of Y!");
+    }
+    
+    for(size_t i = 0; i < data.size(); i++){
+      auto it = Y.find(i);
+      if (it != Y.end()){
+        add(data[i], it->second);
+      }
+      
+      add(data[i], "");
+    }
+  }
+
+
   // y multi
   void add(const std::vector<std::vector<short>>& data, const std::vector<double>& Y){
+    if (data.size() != Y.size()) {
+      throw Exception("The size of data is not the same of the size of labels!");
+    }
+    
+    for(size_t i = 0; i < data.size(); i++){
+      add(data[i], Y[i]);
+    }
+  }
+
+  void add(const std::vector<BinInput>& data, const std::vector<double>& Y){
     if (data.size() != Y.size()) {
       throw Exception("The size of data is not the same of the size of labels!");
     }
@@ -171,9 +329,6 @@ public:
       add(data[i], Y[i]);
     }
   }
-
-  
-
   
   // gets and sets
   const BinInput& operator[](int index) const {
@@ -265,8 +420,6 @@ public:
 
     dataFile.close();
   }
-
-  // TODO: sample method
 
   // TODO: addLabel/changeLabel at ith position
 

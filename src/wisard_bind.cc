@@ -26,14 +26,27 @@ PYBIND11_MODULE(wisardpkg, m){
       
       // unsupervised
       .def(py::init<const std::vector<std::vector<short>>&>())
+      .def(py::init<const std::vector<BinInput>&>())
       .def(py::init<const std::vector<std::string>&>())
+
+      // labels semi
+      .def(py::init<const std::vector<std::vector<short>>&, const std::unordered_map<int,std::string>&>())
+      .def(py::init<const std::vector<BinInput>&, const std::unordered_map<int,std::string>&>())
+      .def(py::init<const std::vector<std::string>&, const std::unordered_map<int,std::string>&>())
+
+      // y's semi
+      .def(py::init<const std::vector<std::vector<short>>&, const std::unordered_map<int,double>&>())
+      .def(py::init<const std::vector<BinInput>&, const std::unordered_map<int,double>&>())
+      .def(py::init<const std::vector<std::string>&, const std::unordered_map<int,double>&>())
 
       // labels
       .def(py::init<const std::vector<std::vector<short>>&, const std::vector<std::string>&>())
+      .def(py::init<const std::vector<BinInput>&, const std::vector<std::string>&>())
       .def(py::init<const std::vector<std::string>&, const std::vector<std::string>&>())
 
       // y's
       .def(py::init<const std::vector<std::vector<short>>&, const std::vector<double>&>())
+      .def(py::init<const std::vector<BinInput>&, const std::vector<double>&>())
       .def(py::init<const std::vector<std::string>&, const std::vector<double>&>())
 
       .def("add", (void (DataSet::*)(const BinInput&)) &DataSet::add)
