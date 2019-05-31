@@ -60,6 +60,7 @@ PYBIND11_MODULE(wisardpkg, m){
       .def("getLabels", &DataSet::getLabels)
       .def("getY", &DataSet::getY)
       .def("getYs", &DataSet::getYs)
+      .def("trainTestSplit", &DataSet::trainTestSplit, py::arg("testSize") = 0.1, py::arg("sampleSize") = 1.0, py::arg("randomSample") = true)
       .def("__getitem__", &DataSet::get)
       .def("__setitem__", &DataSet::set)
       .def("__len__", &DataSet::size)
