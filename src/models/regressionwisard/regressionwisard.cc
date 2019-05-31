@@ -177,6 +177,10 @@ public:
     return config;
   }
 
+  void setMean(Mean* newMean){
+    mean = newMean;
+  }
+
 protected:
   void setRAMShuffle(int entrySize){
     this->entrySize = entrySize;

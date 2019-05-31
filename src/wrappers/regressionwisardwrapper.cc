@@ -46,4 +46,8 @@ class RegressionWisardWrapper : public RegressionWisard{
 
         checkMinZeroOne(minZero, minOne);
     }
+
+    void setMeanFunc(Mean* newMean){
+        setMean(newMean->clone());
+    }
 };

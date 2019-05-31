@@ -45,4 +45,11 @@ public:
 
 		minZero = ignoreZero ? 1 : minZero;
 	}
+
+	void setMeanFunc(Mean* newMean){
+        mean = newMean->clone();
+		for(auto it = rews.begin(); it != rews.end(); it++) {
+			it->second->setMean(mean);
+		}
+    }
 };
