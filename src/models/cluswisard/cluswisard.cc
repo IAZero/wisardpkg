@@ -1,10 +1,10 @@
 
 class ClusWisard: public ClassificationModel{
 public:
-  ClusWisard(int addressSize, float minScore, int threshold, int discriminatorsLimit):
+  ClusWisard(const std::size_t addressSize, const double minScore, const std::size_t threshold, const std::size_t discriminatorsLimit):
     ClusWisard(addressSize, minScore, threshold, discriminatorsLimit, {})
   {}
-  ClusWisard(int addressSize, float minScore, int threshold, int discriminatorsLimit, nl::json options):
+  ClusWisard(const std::size_t addressSize, const double minScore, const std::size_t threshold, const std::size_t discriminatorsLimit, nl::json options):
     addressSize(addressSize), minScore(minScore), threshold(threshold), discriminatorsLimit(discriminatorsLimit)
   {
     srand(randint(0,1000000));
@@ -28,7 +28,7 @@ public:
     completeAddressing = value.is_null() ? true : value.get<bool>();
 
     value = options["base"];
-    base = value.is_null() ? 2 : value.get<int>();
+    base = value.is_null() ? 2 : value.get<std::size_t >();
 
     checkConfigInputs(minScore, threshold, discriminatorsLimit);
   }
@@ -66,23 +66,23 @@ public:
   }
 
   void train(const DataSet& images){
-    int j=1;
-    for(int i: images.getLabelIndices()){
+    std::size_t j = 1;
+    for(std::size_t i: images.getLabelIndices()){
       if(verbose) std::cout << "\rtraining supervised " << j++ << " of " << images.size();
       train(images[i],images.getLabel(i));
     }
     if(verbose) std::cout << "\r" << std::endl;
-    for(int i: images.getUnlabelIndices()){
+    for(std::size_t i: images.getUnlabelIndices()){
       if(verbose) std::cout << "\rtraining unsupervised " << j++ << " of " << images.size();
       train(images[i]);
     }
   }
 
   void trainUnsupervised(const DataSet& images){
-    if((int)clusters.size()==0){
+    if(clusters.size()==0){
       unsupervisedCluster = Cluster(images[0].size(), addressSize, minScore, threshold, discriminatorsLimit, completeAddressing, ignoreZero);
     }
-    for(int i: images.getUnlabelIndices()){
+    for(std::size_t i: images.getUnlabelIndices()){
       unsupervisedCluster.train(images[i]);
     }
   }
@@ -95,7 +95,7 @@ public:
   std::vector<std::string> classify(const DataSet& images) const{;
 
     std::vector<std::string> labels(images.size());
-    for(unsigned int i=0; i<images.size(); i++){
+    for(std::size_t i=0; i<images.size(); i++){
       if(verbose) std::cout << "\rclassifying " << i+1 << " of " << images.size();
       std::string label = classify(images[i]);
       labels[i] = label.substr(0,label.find("::"));
@@ -111,7 +111,7 @@ public:
 
   std::vector<std::string> classifyUnsupervised(const DataSet& images) const{
     std::vector<std::string> labels(images.size());
-    for(unsigned int i=0; i<images.size(); i++){
+    for(std::size_t i=0; i<images.size(); i++){
       if(verbose) std::cout << "\rclassifying unsupervised " << i+1 << " of " << images.size();
       std::string label = classifyUnsupervised(images[i]);
       labels[i] = label.substr(0,label.find("::"));
@@ -185,7 +185,7 @@ public:
 
     for(auto& i: clusters){
       std::vector<std::vector<int>> votes = i.second.classify(image);
-      for(unsigned int j=0; j<votes.size(); j++){
+      for(std::size_t j = 0; j < votes.size(); j++){
         allvotes[i.first+std::string("::")+std::to_string(j)] = votes[j];
       }
     }
@@ -196,7 +196,7 @@ public:
   std::vector<std::map<std::string, int>> rank(const DataSet& images) const{
     std::vector<std::map<std::string, int>> out(images.size());
 
-    for(unsigned int i=0; i<images.size(); i++){
+    for(std::size_t i = 0; i < images.size(); i++){
         out[i] = rank(images[i]);
     }
     return out;
@@ -205,7 +205,7 @@ public:
   std::map<std::string, int> rankUnsupervised(const BinInput& image) const{
     std::map<std::string,std::vector<int>> allvotes;
     std::vector<std::vector<int>> votes = unsupervisedCluster.classify(image);
-    for(unsigned int i=0; i<votes.size(); ++i){
+    for(std::size_t i = 0; i < votes.size(); ++i){
       allvotes[std::to_string(i)] = votes[i];
     }
     return classificationMethod->run(allvotes);
@@ -214,11 +214,35 @@ public:
   std::vector<std::map<std::string, int>> rankrankUnsupervised(const DataSet& images) const{
     std::vector<std::map<std::string, int>> out(images.size());
 
-    for(unsigned int i=0; i<images.size(); i++){
+    for(std::size_t i = 0; i < images.size(); i++){
       out[i] = rankUnsupervised(images[i]);
     }
     return out;
-}
+  }
+
+  void setMinScore(const std::size_t minScore){
+    this->minScore = minScore;
+
+    for(auto& i: clusters){
+      i.second.setMinScore(minScore);
+    }
+  }
+
+  void setThreshold(const std::size_t threshold){
+    this->threshold = threshold;
+
+    for(auto& i: clusters){
+      i.second.setThreshold(threshold);
+    }
+  }
+
+  void setDiscriminatorsLimit(const std::size_t discriminatorsLimit){
+    this->discriminatorsLimit = discriminatorsLimit;
+
+    for(auto& i: clusters){
+      i.second.setDiscriminatorsLimit(discriminatorsLimit);
+    }
+  }
 
 protected:
   void train(const BinInput& image, const std::string& label){
@@ -235,8 +259,8 @@ protected:
     clusters[label].train(image);
   }
 
-  void checkInputLabels(const int numberOfInputs, std::map<int, std::string>& labels){
-    if((int)labels.size() > numberOfInputs){
+  void checkInputLabels(const std::size_t numberOfInputs, std::map<int, std::string>& labels){
+    if(labels.size() > numberOfInputs){
       throw Exception("The total of labels given is bigger than the inputs given!");
     }
   }
@@ -247,7 +271,7 @@ protected:
     }
   }
 
-  void checkConfigInputs(const float minScore, const int threshold, const int discriminatorsLimit){
+  void checkConfigInputs(const double minScore, const std::size_t threshold, const std::size_t discriminatorsLimit){
     if(minScore < 0 || minScore > 1){
       throw Exception("min score must be between 0 and 1 inclusive!");
     }
@@ -259,13 +283,13 @@ protected:
     }
   }
 
-  void checkInputSizes(const int imageSize, const int labelsSize){
+  void checkInputSizes(const std::size_t imageSize, const std::size_t labelsSize){
     if(imageSize != labelsSize){
       throw Exception("The size of data is not the same of the size of labels!");
     }
   }
 
-  void makeClusters(const std::string label,const int entrySize){
+  void makeClusters(const std::string label, const std::size_t entrySize){
     clusters[label] = Cluster(entrySize, addressSize, minScore, threshold, discriminatorsLimit, completeAddressing, ignoreZero, base);
   }
 
@@ -277,14 +301,14 @@ protected:
     return config;
   }
 
-  int addressSize;
-  float minScore;
-  int threshold;
-  int discriminatorsLimit;
+  std::size_t addressSize;
+  double minScore;
+  std::size_t threshold;
+  std::size_t discriminatorsLimit;
   bool verbose;
   bool completeAddressing;
   bool ignoreZero;
-  int base;
+  std::size_t base;
   bool searchBestConfidence;
   std::map<std::string, Cluster> clusters;
   Cluster unsupervisedCluster;

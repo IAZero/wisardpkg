@@ -2,9 +2,9 @@
 class Cluster {
 public:
   Cluster(){}
-  Cluster(int entrySize, int addressSize, float minScore, unsigned int threshold,
-    int discriminatorsLimit, bool completeAddressing=true, bool ignoreZero=false, int base=2):
-    addressSize(addressSize), entrySize(entrySize), minScore(minScore),
+  Cluster(const std::size_t entrySize, const std::size_t addressSize, const double minScore, const std::size_t threshold,
+    const std::size_t discriminatorsLimit, const bool completeAddressing=true, const bool ignoreZero=false, const std::size_t base=2):
+    entrySize(entrySize), addressSize(addressSize), minScore(minScore),
     threshold(threshold), discriminatorsLimit(discriminatorsLimit),
     completeAddressing(completeAddressing), ignoreZero(ignoreZero), base(base){
     }
@@ -12,19 +12,19 @@ public:
     nl::json value;
 
     value = options["addressSize"];
-    addressSize = value.is_null() ? 2 : value.get<int>();
+    addressSize = value.is_null() ? 2 : value.get<std::size_t>();
 
     value = options["entrySize"];
-    entrySize = value.is_null() ? 2 : value.get<int>();
+    entrySize = value.is_null() ? 2 : value.get<std::size_t>();
 
     value = options["minScore"];
-    minScore = value.is_null() ? 2 : value.get<float>();
+    minScore = value.is_null() ? 2 : value.get<double>();
 
     value = options["discriminatorsLimit"];
-    discriminatorsLimit = value.is_null() ? 2 : value.get<int>();
+    discriminatorsLimit = value.is_null() ? 2 : value.get<std::size_t>();
 
     value = options["threshold"];
-    threshold = value.is_null() ? 2 : value.get<unsigned int>();
+    threshold = value.is_null() ? 2 : value.get<std::size_t>();
 
     value = options["ignoreZero"];
     ignoreZero = value.is_null() ? false : value.get<bool>();
@@ -33,7 +33,7 @@ public:
     completeAddressing = value.is_null() ? true : value.get<bool>();
 
     value = options["base"];
-    base = value.is_null() ? 2 : value.get<int>();
+    base = value.is_null() ? 2 : value.get<std::size_t>();
 
     nl::json dConfig = {
       {"ignoreZero", ignoreZero},
@@ -48,9 +48,9 @@ public:
     }
   }
 
-  float getScore(const std::vector<int>& votes) const{
+  double getScore(const std::vector<int>& votes) const{
     int max = 0;
-    float sum = 0;
+    double sum = 0;
     for(auto v: votes){
       if(v>max) max=v;
       sum += v;
@@ -62,27 +62,27 @@ public:
   }
 
   void train(const BinInput& image){
-    if(discriminators.size()==0){
+    if(discriminators.size() == 0){
       makeDiscriminator(0);
       discriminators[0]->train(image);
       return;
     }
 
-    float bestValue = 0.0;
+    double bestValue = 0.0;
     bool trained = false;
     Discriminator* bestDiscriminator = NULL;
 
-    for(unsigned int i=0; i<discriminators.size(); i++){
+    for(std::size_t i = 0; i < discriminators.size(); i++){
       auto votes = discriminators[i]->classify(image);
-      float score = getScore(votes);
-      float count = discriminators[i]->getNumberOfTrainings();
+      double score = getScore(votes);
+      double count = discriminators[i]->getNumberOfTrainings();
 
       if(score>=bestValue){
           bestValue = score;
           bestDiscriminator = discriminators[i];
       }
 
-      float limit = minScore + count/threshold;
+      double limit = minScore + count/threshold;
       limit = limit > 1.0 ? 1.0 : limit;
 
       if(score >= limit){
@@ -91,7 +91,7 @@ public:
       }
     }
 
-    if(!trained && (int)discriminators.size() < discriminatorsLimit){
+    if(!trained && discriminators.size() < discriminatorsLimit){
       int index = discriminators.size();
       makeDiscriminator(index);
       discriminators[index]->train(image);
@@ -112,13 +112,13 @@ public:
     return output;
   }
 
-  unsigned int getNumberOfDiscriminators(){
+  std::size_t getSize() const{
     return discriminators.size();
   }
 
   std::vector<std::vector<int>> getMentalImages(){
     std::vector<std::vector<int>> images(discriminators.size());
-    for(std::map<int, Discriminator*>::iterator d=discriminators.begin(); d!=discriminators.end(); ++d){
+    for(std::map<std::size_t, Discriminator*>::iterator d=discriminators.begin(); d!=discriminators.end(); ++d){
       images[d->first] = d->second->getMentalImage();
     }
     return images;
@@ -137,10 +137,6 @@ public:
     return config;
   }
 
-  int getSize() const{
-    return discriminators.size();
-  }
-
   long getsizeof() const{
     long size = sizeof(Cluster);
     for(auto& d: discriminators){
@@ -153,18 +149,30 @@ public:
     discriminators.clear();
   }
 
+  void setMinScore(const std::size_t minScore){
+    this->minScore = minScore;
+  }
+
+  void setThreshold(const std::size_t threshold){
+    this->threshold = threshold;
+  }
+
+  void setDiscriminatorsLimit(const std::size_t discriminatorsLimit){
+    this->discriminatorsLimit = discriminatorsLimit;
+  }
+
 private:
-  std::map<int,Discriminator*> discriminators;
-  unsigned int addressSize;
-  unsigned int entrySize;
-  float minScore;
-  unsigned int threshold;
-  int discriminatorsLimit;
+  std::map<std::size_t, Discriminator*> discriminators;
+  std::size_t entrySize;
+  std::size_t addressSize;
+  double minScore;
+  std::size_t threshold;
+  std::size_t discriminatorsLimit;
   bool completeAddressing;
   bool ignoreZero;
-  int base;
+  std::size_t base;
 
-  void makeDiscriminator(const int index){
+  void makeDiscriminator(const std::size_t index){
     discriminators[index] = new Discriminator(addressSize, entrySize, ignoreZero, completeAddressing, base);
   }
 };

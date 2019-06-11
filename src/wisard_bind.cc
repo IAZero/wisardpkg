@@ -217,7 +217,7 @@ PYBIND11_MODULE(wisardpkg, m){
 
     py::class_<ClusWisardWrapper, ClassificationModel>(m, "ClusWisard", py::module_local())
       .def(py::init<std::string>())
-      .def(py::init<int, float, int, int, py::kwargs>())
+      .def(py::init<std::size_t, double, std::size_t, std::size_t, py::kwargs>())
       .def("trainUnsupervised", (void (ClusWisardWrapper::*)(const DataSet&)) &ClusWisardWrapper::trainUnsupervised)
       .def("classifyUnsupervised", (std::vector<std::string> (ClusWisardWrapper::*)(const DataSet&) const) &ClusWisardWrapper::classifyUnsupervised)
       .def("classifyUnsupervised", (std::string (ClusWisardWrapper::*)(const BinInput&) const) &ClusWisardWrapper::classifyUnsupervised)
@@ -227,6 +227,9 @@ PYBIND11_MODULE(wisardpkg, m){
       .def("rank", (std::vector<std::map<std::string, int>> (ClusWisardWrapper::*)(const DataSet&) const) &ClusWisardWrapper::rank)
       .def("rankUnsupervised", (std::map<std::string, int> (ClusWisardWrapper::*)(const BinInput&) const) &ClusWisardWrapper::rankUnsupervised)
       .def("rankUnsupervised", (std::vector<std::map<std::string, int>> (ClusWisardWrapper::*)(const DataSet&) const) &ClusWisardWrapper::rankUnsupervised)
+      .def("setMinScore", &ClusWisardWrapper::setMinScore)
+      .def("setThreshold", &ClusWisardWrapper::setThreshold)
+      .def("setDiscriminatorsLimit", &ClusWisardWrapper::setDiscriminatorsLimit)
     ;
 
     py::class_<RegressionWisardWrapper, RegressionModel>(m, "RegressionWisard", py::module_local())
