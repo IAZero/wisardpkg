@@ -218,7 +218,31 @@ public:
       out[i] = rankUnsupervised(images[i]);
     }
     return out;
-}
+  }
+
+  void setMinScore(const std::size_t minScore){
+    this->minScore = minScore;
+
+    for(auto& i: clusters){
+      i.second.setMinScore(minScore);
+    }
+  }
+
+  void setThreshold(const std::size_t threshold){
+    this->threshold = threshold;
+
+    for(auto& i: clusters){
+      i.second.setThreshold(threshold);
+    }
+  }
+
+  void setDiscriminatorsLimit(const std::size_t discriminatorsLimit){
+    this->discriminatorsLimit = discriminatorsLimit;
+
+    for(auto& i: clusters){
+      i.second.setDiscriminatorsLimit(discriminatorsLimit);
+    }
+  }
 
 protected:
   void train(const BinInput& image, const std::string& label){

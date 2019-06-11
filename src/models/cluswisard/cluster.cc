@@ -149,6 +149,18 @@ public:
     discriminators.clear();
   }
 
+  void setMinScore(const std::size_t minScore){
+    this->minScore = minScore;
+  }
+
+  void setThreshold(const std::size_t threshold){
+    this->threshold = threshold;
+  }
+
+  void setDiscriminatorsLimit(const std::size_t discriminatorsLimit){
+    this->discriminatorsLimit = discriminatorsLimit;
+  }
+
 private:
   std::map<std::size_t, Discriminator*> discriminators;
   std::size_t entrySize;

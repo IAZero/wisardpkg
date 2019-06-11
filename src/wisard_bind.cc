@@ -227,6 +227,9 @@ PYBIND11_MODULE(wisardpkg, m){
       .def("rank", (std::vector<std::map<std::string, int>> (ClusWisardWrapper::*)(const DataSet&) const) &ClusWisardWrapper::rank)
       .def("rankUnsupervised", (std::map<std::string, int> (ClusWisardWrapper::*)(const BinInput&) const) &ClusWisardWrapper::rankUnsupervised)
       .def("rankUnsupervised", (std::vector<std::map<std::string, int>> (ClusWisardWrapper::*)(const DataSet&) const) &ClusWisardWrapper::rankUnsupervised)
+      .def("setMinScore", &ClusWisardWrapper::setMinScore)
+      .def("setThreshold", &ClusWisardWrapper::setThreshold)
+      .def("setDiscriminatorsLimit", &ClusWisardWrapper::setDiscriminatorsLimit)
     ;
 
     py::class_<RegressionWisardWrapper, RegressionModel>(m, "RegressionWisard", py::module_local())
