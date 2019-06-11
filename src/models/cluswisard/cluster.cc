@@ -2,8 +2,8 @@
 class Cluster {
 public:
   Cluster(){}
-  Cluster(std::size_t entrySize, std::size_t addressSize, double minScore, std::size_t threshold,
-    std::size_t discriminatorsLimit, bool completeAddressing=true, bool ignoreZero=false, std::size_t base=2):
+  Cluster(const std::size_t entrySize, const std::size_t addressSize, const double minScore, const std::size_t threshold,
+    const std::size_t discriminatorsLimit, const bool completeAddressing=true, const bool ignoreZero=false, const std::size_t base=2):
     entrySize(entrySize), addressSize(addressSize), minScore(minScore),
     threshold(threshold), discriminatorsLimit(discriminatorsLimit),
     completeAddressing(completeAddressing), ignoreZero(ignoreZero), base(base){
