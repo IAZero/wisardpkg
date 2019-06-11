@@ -2,7 +2,7 @@
 class Cluster {
 public:
   Cluster(){}
-  Cluster(std::size_t entrySize, std::size_t addressSize, float minScore, std::size_t threshold,
+  Cluster(std::size_t entrySize, std::size_t addressSize, double minScore, std::size_t threshold,
     std::size_t discriminatorsLimit, bool completeAddressing=true, bool ignoreZero=false, std::size_t base=2):
     entrySize(entrySize), addressSize(addressSize), minScore(minScore),
     threshold(threshold), discriminatorsLimit(discriminatorsLimit),
@@ -18,7 +18,7 @@ public:
     entrySize = value.is_null() ? 2 : value.get<std::size_t>();
 
     value = options["minScore"];
-    minScore = value.is_null() ? 2 : value.get<float>();
+    minScore = value.is_null() ? 2 : value.get<double>();
 
     value = options["discriminatorsLimit"];
     discriminatorsLimit = value.is_null() ? 2 : value.get<std::size_t>();
@@ -48,9 +48,9 @@ public:
     }
   }
 
-  float getScore(const std::vector<int>& votes) const{
+  double getScore(const std::vector<int>& votes) const{
     int max = 0;
-    float sum = 0;
+    double sum = 0;
     for(auto v: votes){
       if(v>max) max=v;
       sum += v;
@@ -68,21 +68,21 @@ public:
       return;
     }
 
-    float bestValue = 0.0;
+    double bestValue = 0.0;
     bool trained = false;
     Discriminator* bestDiscriminator = NULL;
 
     for(std::size_t i = 0; i < discriminators.size(); i++){
       auto votes = discriminators[i]->classify(image);
-      float score = getScore(votes);
-      float count = discriminators[i]->getNumberOfTrainings();
+      double score = getScore(votes);
+      double count = discriminators[i]->getNumberOfTrainings();
 
       if(score>=bestValue){
           bestValue = score;
           bestDiscriminator = discriminators[i];
       }
 
-      float limit = minScore + count/threshold;
+      double limit = minScore + count/threshold;
       limit = limit > 1.0 ? 1.0 : limit;
 
       if(score >= limit){
@@ -153,7 +153,7 @@ private:
   std::map<std::size_t, Discriminator*> discriminators;
   std::size_t entrySize;
   std::size_t addressSize;
-  float minScore;
+  double minScore;
   std::size_t threshold;
   std::size_t discriminatorsLimit;
   bool completeAddressing;
