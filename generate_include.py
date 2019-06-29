@@ -19,6 +19,10 @@ includes = [
     'classification_methods/weighted.cc',
     'classification_methods/register.cc',
 
+    'mapping/mappinggenerator.cc',
+    'mapping/randommapping.cc',
+    'mapping/mappinggeneratorhelper.cc',
+
     'data/bininput.cc',
     'data/dataset.cc',
 
