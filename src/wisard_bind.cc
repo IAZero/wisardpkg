@@ -13,6 +13,7 @@ PYBIND11_MODULE(wisardpkg, m){
       .def(py::init<const std::string&>())
       .def("__getitem__", &BinInput::get)
       .def("__setitem__", &BinInput::set)
+      .def("size", &BinInput::size) // yes, it has two equal functions let's keep both
       .def("__len__", &BinInput::size)
       .def("list", &BinInput::list)
       .def("data", &BinInput::data)
@@ -64,7 +65,7 @@ PYBIND11_MODULE(wisardpkg, m){
       .def("set", &DataSet::set)
       .def("__setitem__", &DataSet::set)
       .def("__len__", &DataSet::size)
-      .def("size", &DataSet::size)
+      .def("size", &DataSet::size) // yes again, it has two equal functions of each type let's keep all of them
       .def("save", &DataSet::save)
     ;
 
