@@ -180,12 +180,16 @@ class DataSetTestCase(TestCase):
             filename = "test-dataset983"
             y2 = [0.1, 0.2, 0.3, 0.7, 0.8]
             ds = wp.DataSet(self.X,y2)
-            ds.save(filename)
-            import os
             out = filename+wp.dataset_sufix
+
+            import os
+            if os.path.exists(out):
+                os.remove(out)
+            ds.save(filename)
             ds2 = wp.DataSet(out)
             if os.path.exists(out):
                 os.remove(out)
+                
             for i,x in enumerate(self.X):
                 with self.subTest(i=i,type="bin"):
                     bin = ds2[i]

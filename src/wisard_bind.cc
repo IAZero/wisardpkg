@@ -56,13 +56,15 @@ PYBIND11_MODULE(wisardpkg, m){
       .def("add", (void (DataSet::*)(const std::vector<short>&,const std::string&)) &DataSet::add)
       .def("add", (void (DataSet::*)(const std::vector<short>&,double)) &DataSet::add)
       .def("get", &DataSet::get)
+      .def("__getitem__", &DataSet::get)
       .def("getLabel", &DataSet::getLabel)
       .def("getLabels", &DataSet::getLabels)
       .def("getY", &DataSet::getY)
       .def("getYs", &DataSet::getYs)
-      .def("__getitem__", &DataSet::get)
+      .def("set", &DataSet::set)
       .def("__setitem__", &DataSet::set)
       .def("__len__", &DataSet::size)
+      .def("size", &DataSet::size)
       .def("save", &DataSet::save)
     ;
 

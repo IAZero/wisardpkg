@@ -396,7 +396,7 @@ public:
     return data.size();
   }
 
-  void save(std::string prefix) {
+  std::string save(std::string prefix) {
     std::string filename = prefix + dataset_sufix;
     std::ofstream dataFile;
     dataFile.open(filename, std::ios::app);
@@ -419,6 +419,7 @@ public:
     }
 
     dataFile.close();
+    return filename;
   }
 
   // TODO: addLabel/changeLabel at ith position
