@@ -1,7 +1,7 @@
 /*
 
 wisardpkg for c++11
-version 2.0.0a2
+version 2.0.0a3
 https://github.com/IAZero/wisardpkg
 */
 
@@ -16,12 +16,14 @@ https://github.com/IAZero/wisardpkg
 #include <map>
 #include <tuple>
 #include <cstdlib>
+#include <cstddef>
 #include <unordered_map>
 #include <algorithm>    // std::random_shuffle
 #include <time.h>
 #include <exception>
 #include <cmath>
 #include <numeric> // std::accumulate
+#include <random>
 /*
 JSON for Modern C++
 version 3.1.2
@@ -17304,7 +17306,7 @@ inline nlohmann::json::json_pointer operator "" _json_pointer(const char* s, std
 
 namespace wisardpkg {
 
-const std::string  __version__ = "2.0.0a2"; 
+const std::string  __version__ = "2.0.0a3"; 
 
 
 
@@ -17542,6 +17544,19 @@ namespace math
     return values;
   }
 
+  template<typename T>
+  std::vector<T> ranges(T start, T stop, size_t num) {
+    std::vector<T> values;
+    T step = (stop - start) / num;
+    T value = start;
+    for (size_t i = 0; i < num; i++){
+      values.push_back(value);
+      value += step;
+    }
+
+    return values;
+  }
+
 } // math
 
 class ClassificationBase {
@@ -17657,6 +17672,155 @@ private:
   bool bleachingActivated;
   int confidence;
 };
+
+class BestBleaching: public ClassificationBase {
+public:
+  BestBleaching(){}
+  
+  ClassificationBase* clone() const{
+    return new BestBleaching();
+  }
+
+  std::map<std::string, int> run(std::map<std::string,std::vector<int>>& allvotes) {
+    std::map<std::string, int> bestLabels;
+    std::map<std::string, int> labels;
+    int bleaching = 0;
+    int bestConfidence = 0;
+    bool activeVotes;
+    
+    do{
+      int min = 0;
+      bool firstTime = true;
+      bool newBestConfidence = false;
+      bool ambiguity = false;
+      int biggest = 0;
+      activeVotes = false;
+      for(std::map<std::string,std::vector<int>>::iterator i=allvotes.begin(); i!=allvotes.end(); ++i){
+        labels[i->first] = 0;
+        for(unsigned int j=0; j<i->second.size(); j++){
+          if(i->second[j] > bleaching){
+            labels[i->first]++;
+            activeVotes = true;
+            if(firstTime || i->second[j] < min){
+              min = i->second[j];
+              firstTime = false;
+            }
+          }
+        }
+
+        if (labels[i->first] > biggest){
+          if (biggest > 0 && (labels[i->first] - biggest) > bestConfidence){
+            bestConfidence = labels[i->first] - biggest;
+            newBestConfidence = true;
+          }
+          ambiguity = false;
+          biggest = labels[i->first];
+        } else if(biggest > 0 && biggest == labels[i->first]){
+          ambiguity = true;
+        }
+      }
+
+      if (newBestConfidence && !ambiguity){
+        bestLabels = labels;
+      }
+
+      bleaching = min;
+    }while(activeVotes);
+    
+    if (bestLabels.size() == 0) return labels;
+    
+    return bestLabels;
+  }
+
+  std::string className() const{
+    return "BestBleaching";
+  }
+
+  std::string json() const{
+    return "";
+  }
+};
+
+class Weighted: public ClassificationBase {
+public:
+  Weighted(std::map<std::string,std::vector<double>> weights)
+    :weights(weights), bleachingActivated(true), confidence(1){}
+  Weighted(nl::json config){
+    nl::json value;
+
+    value = config["bleachingActivated"];
+    bleachingActivated = value.is_null() ? true : value.get<bool>();
+
+    value = config["confidence"];
+    confidence = value.is_null() ? 1 : value.get<int>();
+
+    value = config["weights"];
+    weights = value.get<std::map<std::string,std::vector<double>>>();
+  }
+
+  Weighted(std::map<std::string,std::vector<double>> weights, const bool bleachingActivated, const int confidence)
+    :weights(weights), bleachingActivated(bleachingActivated), confidence(confidence){}
+
+  ClassificationBase* clone() const{
+    return new Weighted(weights, bleachingActivated, confidence);
+  }
+
+  void setWeights(std::map<std::string,std::vector<double>>& weights){
+    this->weights = weights;
+  }
+
+  std::map<std::string,std::vector<double>> getWeights() const{
+    return weights;
+  }
+
+  std::map<std::string, int> run(std::map<std::string,std::vector<int>>& allvotes) {
+    std::map<std::string, int> labels;
+    int bleaching = 0;
+    std::tuple<bool,int> ambiguity;
+
+    do{
+      int min=0;
+      bool firstTime=true;
+      for(std::map<std::string,std::vector<int>>::iterator i=allvotes.begin(); i!=allvotes.end(); ++i){
+        double totalVotes = 0.0;
+        for(unsigned int j = 0; j < i->second.size(); j++){
+          if(i->second[j] > bleaching){
+            totalVotes += weights[i->first][j];
+            if(firstTime || i->second[j] < min){
+              min = i->second[j];
+              firstTime = false;
+            }
+          }
+        }
+        labels[i->first] = (int)totalVotes;
+      }
+      if(!bleachingActivated) break;
+      bleaching = min;
+      ambiguity = isThereAmbiguity(labels, confidence);
+    }while( std::get<0>(ambiguity) && std::get<1>(ambiguity) > 1 );
+
+    return labels;
+  }
+
+  std::string className() const{
+    return "Weighted";
+  }
+
+  std::string json() const{
+    nl::json config = {
+      {"bleachingActivated", bleachingActivated},
+      {"confidence", confidence},
+      {"weights", weights}
+    };
+    return config.dump();
+  }
+
+
+private:
+  std::map<std::string,std::vector<double>> weights;
+  bool bleachingActivated;
+  int confidence;
+};
 class ClassificationMethods {
 public:
   static nl::json json(ClassificationBase* obj){
@@ -17675,6 +17839,10 @@ public:
     if(className.compare("Bleaching")==0){
       nl::json params = config[ClassificationMethods::params];
       return new Bleaching(params);
+    } else if(className.compare("BestBleaching")==0){
+      return new BestBleaching();
+    } else if(className.compare("Weighted")==0){
+      return new Weighted(params);
     }
 
     return new Bleaching();
@@ -17686,6 +17854,211 @@ private:
 
 const std::string ClassificationMethods::className = "className";
 const std::string ClassificationMethods::params = "params";
+class MappingGenerator{
+public:
+    bool completeAddressing;
+    bool monoMapping;
+
+    virtual MappingGenerator* clone() const = 0;
+    virtual std::vector<std::vector<int>> getMapping(const std::string label) = 0;
+    virtual std::string json() const = 0;
+    virtual std::string className() const = 0;
+
+    std::map<std::string, std::vector<std::vector<int>>> getMappings() const{
+        return mapping;
+    }
+
+    void setMappings(std::map<std::string, std::vector<std::vector<int>>> mappings){
+        mapping.insert(mappings.begin(), mappings.end());
+    }
+
+    void setMapping(std::vector<std::vector<int>> mapping, std::string label){
+        this->mapping[label] = mapping;
+    }
+
+    void setIndexes(const std::vector<int> indexes){
+        checkEntrySize(indexes.size());
+        this->indexes = indexes;
+    }
+
+    void setEntrySize(const unsigned int entrySize){
+        setIndexes(entrySizeToIndexes(entrySize));
+    }
+
+    void setTupleSize(const unsigned int tupleSize){
+        checkTupleSize(tupleSize);
+        this->tupleSize = tupleSize;
+    }
+
+protected:
+    std::vector<int> indexes;
+    std::map<std::string, std::vector<std::vector<int>>> mapping;
+    unsigned int tupleSize;
+
+    void checkEntrySize(const unsigned int size) const {
+        if(size < 2){
+            throw Exception("The entry size is not valid!");
+        }
+    }
+
+    void checkTupleSize(const unsigned int size) const {
+        if(size < 2){
+            throw Exception("The tuple size is not valid!");
+        }
+    }
+
+    std::vector<int> entrySizeToIndexes(const unsigned int entrySize) const{
+        std::vector<int> temp(entrySize);
+        for (size_t i = 0; i < entrySize; i++){
+            temp[i] = i;
+        }
+        return temp;
+    }
+
+    static std::vector<int> completeMapping(const int _tupleSize, std::vector<int>& _indexes){
+        std::random_device rd;
+        std::mt19937 mt(rd());
+        int indexesSize = _indexes.size();
+        int numberOfRAMS = indexesSize / _tupleSize;
+        int remain = indexesSize % _tupleSize;
+        std::uniform_int_distribution<int> distribution(0, indexesSize);
+
+        if(remain > 0) {
+            numberOfRAMS++;
+            _indexes.resize(indexesSize + (_tupleSize-remain));
+        }
+
+        for(unsigned int i = indexesSize; i < _indexes.size(); i++){
+            _indexes[i] = _indexes[distribution(mt)];
+        }
+
+        return _indexes;
+    }
+};class RandomMapping : public MappingGenerator{
+public:
+    RandomMapping(const bool monoMapping=false, const bool completeAddressing=true) {
+        init(std::vector<int>(), 0, monoMapping, completeAddressing);
+    }
+    
+    RandomMapping(const std::vector<int> indexes, const unsigned int tupleSize, const bool monoMapping=false, const bool completeAddressing=true) {
+        init(indexes, tupleSize, monoMapping, completeAddressing);
+    }
+
+    RandomMapping(const unsigned int entrySize, const unsigned int tupleSize, const bool monoMapping=false, const bool completeAddressing=true) {
+        init(entrySizeToIndexes(entrySize), tupleSize, monoMapping, completeAddressing);
+    }
+
+    RandomMapping(nl::json config){
+        nl::json value;
+
+        value = config["indexes"];
+        indexes = value.get<std::vector<int>>();
+
+        value = config["mapping"];
+        mapping = value.get<std::map<std::string, std::vector<std::vector<int>>>>();
+
+        value = config["tupleSize"];
+        tupleSize = value.get<unsigned int>();
+
+        value = config["completeAddressing"];
+        completeAddressing = value.get<bool>();
+
+        value = config["monoMapping"];
+        monoMapping = value.get<bool>();
+    }
+
+    std::vector<std::vector<int>> getMapping(const std::string label){
+        checkEntrySize(indexes.size());
+        checkTupleSize(tupleSize);
+
+        auto it = mapping.find(label);
+        if (it != mapping.end()){
+            return it->second;
+        } else if (monoMapping && mapping.size() > 0){
+            return mapping.begin()->second;
+        }
+        
+        mapping[label] = createMapping(tupleSize, indexes, completeAddressing);
+        return mapping[label];
+    }
+
+    MappingGenerator* clone() const{
+        return new RandomMapping(indexes, tupleSize, monoMapping, completeAddressing);
+    }
+
+    std::string json() const{
+        nl::json config = {
+            {"indexes", indexes},
+            {"mapping", mapping},
+            {"tupleSize", tupleSize},
+            {"completeAddressing", completeAddressing},
+            {"monoMapping", monoMapping}
+        };
+        return config.dump();
+    }
+
+    std::string className() const{
+        return "RandomMapping";
+    }
+
+protected:
+    std::vector<std::vector<int>> createMapping(const unsigned int tupleSize, const std::vector<int>& indexes, const bool completeAddressing) const{
+        std::vector<int> mappingIndexes = indexes;
+
+        if (completeAddressing){
+            mappingIndexes = completeMapping(tupleSize, mappingIndexes);
+        }
+
+        std::random_device rd;
+        std::mt19937 mt(rd());
+        std::shuffle(mappingIndexes.begin(), mappingIndexes.end(), mt);
+                
+        unsigned int numberOfRAMS = mappingIndexes.size() / tupleSize;
+        std::vector<std::vector<int>> mapping(numberOfRAMS);
+
+        for(unsigned int i = 0; i < numberOfRAMS; i++){
+            mapping[i] = std::vector<int>(mappingIndexes.begin() + (i*tupleSize), mappingIndexes.begin() + ((i+1)*tupleSize)); 
+        }
+
+        return mapping;
+    }
+
+    void init(const std::vector<int> indexes, const unsigned int tupleSize, const bool monoMapping, const bool completeAddressing){
+        this->indexes = indexes;
+        this->tupleSize = tupleSize;
+        this->monoMapping = monoMapping; 
+        this->completeAddressing = completeAddressing;
+    }
+};
+class MappingGeneratorHelper {
+public:
+  static nl::json json(MappingGenerator* obj){
+    nl::json params = nl::json::parse(obj->json());
+    nl::json config = {
+      {MappingGeneratorHelper::className, obj->className()},
+      {MappingGeneratorHelper::params, params}
+    };
+    return config;
+  }
+
+  static MappingGenerator* load(nl::json config){
+    nl::json classNamej = config[MappingGeneratorHelper::className];
+    std::string className = classNamej.is_null() ? "" : classNamej.get<std::string>();
+
+    if(className.compare("RandomMapping")==0){
+      nl::json params = config[MappingGeneratorHelper::params];
+      return new RandomMapping(params);
+    }
+
+    return new RandomMapping();
+  }
+private:
+  static const std::string className;
+  static const std::string params;
+};
+
+const std::string MappingGeneratorHelper::className = "className";
+const std::string MappingGeneratorHelper::params = "params";
 class BinInput {
 public:
   BinInput():remain(0){}
@@ -17720,6 +18093,14 @@ public:
     return (input[section] >> sectionIndex) & 0x01;
   }
 
+  std::vector<short> list() const {
+    std::vector<short> out(size());
+    for (size_t i = 0; i < out.size(); i++){
+      out[i] = get(i);
+    }
+    return out;
+  }
+
   void set(index_size_t index, int value){
     if(index >= size()) {
       throw Exception("Index out of range!");
@@ -17738,6 +18119,18 @@ public:
     return Base64::encode(sizeStr+input);
   }
 
+  void extend(const BinInput &b2) {
+    extend(b2.list());
+  }
+
+  void extend(const std::vector<short> &b2) {
+    std::vector<short> self = list();
+    self.insert(self.end(), b2.begin(), b2.end());
+    setConfig(self.size());
+    for (size_t i = 0; i < size(); i++){
+      set(i, self[i]);
+    }
+  }
 private:
   char remain;
   std::string input;
@@ -17788,8 +18181,25 @@ public:
     add(data);
   }
 
+  DataSet(const std::vector<BinInput>& data){
+    add(data);
+  }
+
   DataSet(const std::vector<std::string>& data){
     add(data);
+  }
+
+  // labels semi constructors
+  DataSet(const std::vector<std::vector<short>>& data, const std::unordered_map<int,std::string>& labels){
+    add(data, labels);
+  }
+
+  DataSet(const std::vector<BinInput>& data, const std::unordered_map<int,std::string>& labels){
+    add(data, labels);
+  }
+
+  DataSet(const std::vector<std::string>& data, const std::unordered_map<int,std::string>& labels){
+    add(data, labels);
   }
 
   // labels constructors
@@ -17797,12 +18207,33 @@ public:
     add(data, labels);
   }
 
+  DataSet(const std::vector<BinInput>& data, const std::vector<std::string>& labels){
+    add(data, labels);
+  }
+
   DataSet(const std::vector<std::string>& data, const std::vector<std::string>& labels){
     add(data, labels);
   }
 
+  // y semi constructors
+  DataSet(const std::vector<std::vector<short>>& data, const std::unordered_map<int,double>& Y){
+    add(data, Y);
+  }
+
+  DataSet(const std::vector<BinInput>& data, const std::unordered_map<int,double>& Y){
+    add(data, Y);
+  }
+
+  DataSet(const std::vector<std::string>& data, const std::unordered_map<int,double>& Y){
+    add(data, Y);
+  }
+
   // y constructors
   DataSet(const std::vector<std::vector<short>>& data, const std::vector<double>& Y){
+    add(data, Y);
+  }
+
+  DataSet(const std::vector<BinInput>& data, const std::vector<double>& Y){
     add(data, Y);
   }
 
@@ -17871,6 +18302,12 @@ public:
     }
   }
 
+  void add(const std::vector<BinInput>& data){
+    for(size_t i = 0; i < data.size(); i++){
+      add(data[i], "");
+    }
+  }
+
   void add(const std::vector<std::string>& data){
     for(size_t i = 0; i < data.size(); i++){
       add(data[i], "");
@@ -17878,8 +18315,65 @@ public:
   }
 
 
+  // label semi multi
+  void add(const std::vector<std::vector<short>>& data, const std::unordered_map<int,std::string>& labels){
+    if (data.size() != labels.size()) {
+      throw Exception("The size of data is not the same of the size of labels!");
+    }
+    
+    for(size_t i = 0; i < data.size(); i++){
+      auto it = labels.find(i);
+      if (it != labels.end()){
+        add(data[i], it->second);
+      }
+      
+      add(data[i], "");
+    }
+  }
+
+  void add(const std::vector<BinInput>& data, const std::unordered_map<int,std::string>& labels){
+    if (data.size() != labels.size()) {
+      throw Exception("The size of data is not the same of the size of labels!");
+    }
+    
+    for(size_t i = 0; i < data.size(); i++){
+      auto it = labels.find(i);
+      if (it != labels.end()){
+        add(data[i], it->second);
+      }
+      
+      add(data[i], "");
+    }
+  }
+
+  void add(const std::vector<std::string>& data, const std::unordered_map<int,std::string>& labels){
+    if (data.size() != labels.size()) {
+      throw Exception("The size of data is not the same of the size of labels!");
+    }
+    
+    for(size_t i = 0; i < data.size(); i++){
+      auto it = labels.find(i);
+      if (it != labels.end()){
+        add(data[i], it->second);
+      }
+      
+      add(data[i], "");
+    }
+  }
+
+
   // label multi
   void add(const std::vector<std::vector<short>>& data, const std::vector<std::string>& labels){
+    if (data.size() != labels.size()) {
+      throw Exception("The size of data is not the same of the size of labels!");
+    }
+    
+    for(size_t i = 0; i < data.size(); i++){
+      add(data[i], labels[i]);
+    }
+  }
+
+  void add(const std::vector<BinInput>& data, const std::vector<std::string>& labels){
     if (data.size() != labels.size()) {
       throw Exception("The size of data is not the same of the size of labels!");
     }
@@ -17900,8 +18394,65 @@ public:
   }
 
 
+  // y semi multi
+  void add(const std::vector<std::vector<short>>& data, const std::unordered_map<int,double>& Y){
+    if (data.size() != Y.size()) {
+      throw Exception("The size of data is not the same of the size of Y!");
+    }
+    
+    for(size_t i = 0; i < data.size(); i++){
+      auto it = Y.find(i);
+      if (it != Y.end()){
+        add(data[i], it->second);
+      }
+      
+      add(data[i], "");
+    }
+  }
+
+  void add(const std::vector<BinInput>& data, const std::unordered_map<int,double>& Y){
+    if (data.size() != Y.size()) {
+      throw Exception("The size of data is not the same of the size of Y!");
+    }
+    
+    for(size_t i = 0; i < data.size(); i++){
+      auto it = Y.find(i);
+      if (it != Y.end()){
+        add(data[i], it->second);
+      }
+      
+      add(data[i], "");
+    }
+  }
+
+  void add(const std::vector<std::string>& data, const std::unordered_map<int,double>& Y){
+    if (data.size() != Y.size()) {
+      throw Exception("The size of data is not the same of the size of Y!");
+    }
+    
+    for(size_t i = 0; i < data.size(); i++){
+      auto it = Y.find(i);
+      if (it != Y.end()){
+        add(data[i], it->second);
+      }
+      
+      add(data[i], "");
+    }
+  }
+
+
   // y multi
   void add(const std::vector<std::vector<short>>& data, const std::vector<double>& Y){
+    if (data.size() != Y.size()) {
+      throw Exception("The size of data is not the same of the size of labels!");
+    }
+    
+    for(size_t i = 0; i < data.size(); i++){
+      add(data[i], Y[i]);
+    }
+  }
+
+  void add(const std::vector<BinInput>& data, const std::vector<double>& Y){
     if (data.size() != Y.size()) {
       throw Exception("The size of data is not the same of the size of labels!");
     }
@@ -17920,9 +18471,6 @@ public:
       add(data[i], Y[i]);
     }
   }
-
-  
-
   
   // gets and sets
   const BinInput& operator[](int index) const {
@@ -17946,6 +18494,10 @@ public:
 
   double getY(int index) const {
     return Y.at(index);
+  }
+
+  const std::unordered_map<int,double>& getYs() const {
+    return Y;
   }
 
   const std::unordered_map<int,std::string>& getLabels() const {
@@ -17986,7 +18538,7 @@ public:
     return data.size();
   }
 
-  void save(std::string prefix) {
+  std::string save(std::string prefix) {
     std::string filename = prefix + dataset_sufix;
     std::ofstream dataFile;
     dataFile.open(filename, std::ios::app);
@@ -18009,9 +18561,8 @@ public:
     }
 
     dataFile.close();
+    return filename;
   }
-
-  // TODO: sample method
 
   // TODO: addLabel/changeLabel at ith position
 
@@ -18363,8 +18914,8 @@ public:
 };
 class SimpleThermometer : public BinBase {
 public:
-  SimpleThermometer(const int thermometerSize=2, const double minimum=0.0, const double maximum=0.0) : thermometerSize(thermometerSize){
-    valueRanges = math::arange(minimum, maximum, (minimum + maximum)/thermometerSize);
+  SimpleThermometer(const size_t thermometerSize=2, const double minimum=0.0, const double maximum=0.0) : thermometerSize(thermometerSize){
+    valueRanges = math::ranges(minimum, maximum, thermometerSize);
   }
 
   BinInput transform(const std::vector<double>& data){
@@ -18383,19 +18934,19 @@ public:
     return out;
   }
 
-  int getSize() const{
+  size_t getSize() const{
     return thermometerSize;
   }
   
 protected:
-  int thermometerSize;
+  size_t thermometerSize;
   std::vector<double> valueRanges;
 };
 
 
 class DynamicThermometer : public BinBase {
 public:
-  DynamicThermometer(const std::vector<int>& thermometerSizes, const std::vector<double>& minimum=std::vector<double>(), const std::vector<double>& maximum=std::vector<double>()) : thermometerSize(0){
+  DynamicThermometer(const std::vector<size_t>& thermometerSizes, const std::vector<double>& minimum=std::vector<double>(), const std::vector<double>& maximum=std::vector<double>()) : thermometerSize(0){
     if (minimum.size() != 0 && minimum.size() != thermometerSizes.size()){
       throw Exception("The size of thermometerSizes is not the same of the size of minimum!");
     }
@@ -18407,14 +18958,14 @@ public:
     for (size_t i = 0; i < valueRanges.size(); i++){
       double min = minimum.size() > 0 ? minimum[i] : 0.0;
       double max = maximum.size() > 0 ? maximum[i] : 1.0;
-      valueRanges[i] = math::arange(min, max, (min + max)/thermometerSizes[i]);
+      valueRanges[i] = math::ranges(min, max, thermometerSizes[i]);
       thermometerSize += thermometerSizes[i];
     }
   }
 
   BinInput transform(const std::vector<double>& data){
     BinInput out(thermometerSize);
-    int k = 0;
+    size_t k = 0;
     for(size_t i = 0; i < data.size(); i++){
       for (size_t j = 0; j < valueRanges[i].size(); j++){
         if (data[i] > valueRanges[i][j]){
@@ -18428,12 +18979,12 @@ public:
     return out;
   }
 
-  int getSize() const{
+  size_t getSize() const{
     return thermometerSize;
   }
 
 protected:
-  int thermometerSize;
+  size_t thermometerSize;
   std::vector<std::vector<double>> valueRanges;
 };
 
@@ -18751,7 +19302,15 @@ public:
     }
   }
 
+  std::vector<int> getMapping() const{
+    return addresses;
+  }
+
   int getAddressSize(){
+    return addresses.size();
+  }
+
+  int getTupleSize() const{
     return addresses.size();
   }
 
@@ -18845,35 +19404,21 @@ public:
     value = options["completeAddressing"];
     bool completeAddressing = value.is_null() ? true : value.get<bool>();
 
-    value = options["indexes"];
-    std::vector<int> indexes = value.is_null() ? std::vector<int>(0) : value.get<std::vector<int>>();
-
     value = options["mapping"];
     std::vector<std::vector<int>> mapping = value.is_null() ? std::vector<std::vector<int>>(0) : value.get<std::vector<std::vector<int>>>();
 
     value = options["base"];
     int base = value.is_null() ? 2 : value.get<int>();
 
-    if (mapping.size() != 0)
-    {
+    if (mapping.size() != 0){
       setRAMByMapping(mapping, ignoreZero, base);
-    }
-    else if (indexes.size() != 0)
-    {
-      setRAMByIndex(indexes, addressSize, ignoreZero, base);
-    }
-    else
-    {
+    } else{
       setRAMShuffle(addressSize, ignoreZero, completeAddressing, base);
     }
   }
 
   Discriminator(int addressSize, int entrySize, bool ignoreZero, bool completeAddressing, int base=2): entrySize(entrySize){
     setRAMShuffle(addressSize, ignoreZero, completeAddressing, base);
-  }
-
-  Discriminator(std::vector<int> indexes, int addressSize, int entrySize, bool ignoreZero=false, int base=2): entrySize(entrySize){
-    setRAMByIndex(indexes, addressSize, ignoreZero, base);
   }
 
   Discriminator(std::vector<std::vector<int>> mapping, int entrySize, bool ignoreZero = false, int base = 2) : entrySize(entrySize){
@@ -18919,8 +19464,7 @@ public:
     return rams.size();
   }
 
-  std::vector<int> getMentalImage()
-  {
+  std::vector<int> getMentalImage(){
     std::vector<int> mentalImage(entrySize, 0);
     for (unsigned int r = 0; r < rams.size(); r++){
       std::vector<std::vector<int>> piece = rams[r].getMentalImage();
@@ -18969,6 +19513,14 @@ public:
     return size;
   }
 
+  std::vector<int> getTupleSizes() const{
+    std::vector<int> sizes(rams.size());
+    for(unsigned int i = 0; i < rams.size(); i++){
+      sizes[i] = rams[i].getTupleSize();
+    }
+    return sizes;
+  }
+
   ~Discriminator(){
     rams.clear();
   }
@@ -18977,7 +19529,7 @@ protected:
   void setRAMShuffle(int addressSize, bool ignoreZero, bool completeAddressing, int base){
     checkAddressSize(entrySize, addressSize);
     checkBase(base);
-    count=0;
+    count = 0;
 
     int numberOfRAMS = entrySize / addressSize;
     int remain = entrySize % addressSize;
@@ -18990,28 +19542,19 @@ protected:
     rams.resize(numberOfRAMS);
     std::vector<int> indexes(indexesSize);
 
-    for(int i=0; i<entrySize; i++) {
+    for(int i = 0; i < entrySize; i++) {
       indexes[i]=i;
     }
-    for(unsigned int i=entrySize; i<indexes.size(); i++){
-      indexes[i] = randint(0, entrySize-1, false);
+
+    std::random_device rd;
+    std::mt19937 mt(rd());
+    std::uniform_int_distribution<int> dist(0, entrySize);
+
+    for(unsigned int i = entrySize; i < indexes.size(); i++){
+      indexes[i] = indexes[dist(mt)];
     }
-    random_shuffle(indexes.begin(), indexes.end());
 
-    for(unsigned int i=0; i<rams.size(); i++){
-      std::vector<int> subIndexes(indexes.begin() + (i*addressSize), indexes.begin() + ((i+1)*addressSize));
-      rams[i] = RAM(subIndexes, ignoreZero, base);
-    }
-  }
-
-  void setRAMByIndex(std::vector<int> indexes, int addressSize, bool ignoreZero=false, int base=2){
-    checkAddressSize(entrySize, addressSize);
-    checkBase(base);
-    checkListOfIndexes(indexes, entrySize);
-    count=0;
-
-    int numberOfRAMS = entrySize / addressSize;
-    rams = std::vector<RAM>(numberOfRAMS);
+    std::shuffle(indexes.begin(), indexes.end(), mt);
 
     for(unsigned int i=0; i<rams.size(); i++){
       std::vector<int> subIndexes(indexes.begin() + (i*addressSize), indexes.begin() + ((i+1)*addressSize));
@@ -19155,9 +19698,7 @@ private:
 
 class Wisard: public ClassificationModel {
 public:
-  Wisard(int addressSize): Wisard(addressSize, {}){}
-  Wisard(int addressSize, nl::json c): addressSize(addressSize){
-    srand(randint(0,1000000));
+  Wisard(nl::json c){
     nl::json value;
 
     value = c["classificationMethod"];
@@ -19174,31 +19715,40 @@ public:
     value = c["ignoreZero"];
     ignoreZero = value.is_null() ? false : value.get<bool>();
 
-    value = c["completeAddressing"];
-    completeAddressing = value.is_null() ? true : value.get<bool>();
-
-    value = c["mapping"];
-    mapping = value.is_null() ? std::map<std::string, std::vector<std::vector<int>>>() : value.get<std::map<std::string, std::vector<std::vector<int>>>>();
-
-    value = c["indexes"];
-    indexes = value.is_null() ? std::vector<int>(0) : value.get<std::vector<int>>();
-
     value = c["base"];
     base = value.is_null() ? 2 : value.get<int>();
 
-    value = c["returnConfidence"];
-    returnConfidence = value.is_null() ? false : value.get<bool>();
+    // Mapping
 
-    value = c["returnActivationDegree"];
-    returnActivationDegree = value.is_null() ? false : value.get<bool>();
+    value = c["mappingGenerator"];
+    if(value.is_null()){
+      mappingGenerator = new RandomMapping();
+    }
+    else{
+      mappingGenerator = MappingGeneratorHelper::load(value);
+    }
 
-    value = c["returnClassesDegrees"];
-    returnClassesDegrees = value.is_null() ? false : value.get<bool>();
+    value = c["indexes"];
+    std::vector<int> indexes = value.is_null() ? std::vector<int>(0) : value.get<std::vector<int>>();
+
+    if(indexes.size() > 0){
+      mappingGenerator->setIndexes(indexes);
+    }
+
+    value = c["mapping"];
+    std::map<std::string, std::vector<std::vector<int>>> mapping = value.is_null() ? std::map<std::string, std::vector<std::vector<int>>>() : value.get<std::map<std::string, std::vector<std::vector<int>>>>();
+
+    if (mapping.size() > 0){
+      mappingGenerator->setMappings(mapping);
+    }
   }
 
-  Wisard(std::string config):Wisard(0,nl::json::parse(config)){
+  Wisard(unsigned int addressSize, nl::json c={}) : Wisard(c){
+    mappingGenerator->setTupleSize(addressSize);
+  }
+
+  Wisard(std::string config) : Wisard(nl::json::parse(config)){
     nl::json c = nl::json::parse(config);
-    addressSize=c["addressSize"];
 
     nl::json classes = c["classes"];
     nl::json dConfig = {
@@ -19212,17 +19762,7 @@ public:
     }
   }
 
-  long getsizeof() const{
-    long size = sizeof(Wisard);
-    size += sizeof(int)*indexes.size();
-    for(auto& d: discriminators){
-      size += d.first.size() + d.second.getsizeof();
-    }
-    return size;
-  }
-
   ~Wisard(){
-    indexes.clear();
     discriminators.clear();
   }
 
@@ -19248,8 +19788,8 @@ public:
   }
 
   std::string classify(const BinInput& input) const {
-      std::map<std::string,int> candidates = rank(input);
-      return classificationMethod->getBiggestCandidate(candidates);
+    std::map<std::string,int> candidates = rank(input);
+    return classificationMethod->getBiggestCandidate(candidates);
   }
 
   void untrain(const DataSet& images){
@@ -19274,16 +19814,11 @@ public:
   std::string json(std::string filename="") const {
     nl::json config = {
       {"version", __version__},
-      {"addressSize", addressSize},
       {"verbose", verbose},
-      {"indexes", indexes},
       {"ignoreZero", ignoreZero},
-      {"completeAddressing", completeAddressing},
       {"classificationMethod", ClassificationMethods::json(classificationMethod)},
-      {"base", base},
-      {"returnConfidence", returnConfidence},
-      {"returnActivationDegree", returnActivationDegree},
-      {"returnClassesDegrees", returnClassesDegrees}
+      {"mappingGenerator", MappingGeneratorHelper::json(mappingGenerator)},
+      {"base", base}
     };
     nl::json c;
     bool isSave = filename.size() > 0;
@@ -19320,21 +19855,29 @@ public:
     return out;
   }
 
+  std::map<std::string,std::vector<int>> getTupleSizes() const{
+    std::map<std::string,std::vector<int>> sizes;
+
+    for(auto& i: discriminators){
+      sizes[i.first] = i.second.getTupleSizes();
+    }
+    return sizes;
+  }
+
+  long getsizeof() const{
+    long size = sizeof(Wisard);
+    for(auto& d: discriminators){
+      size += d.first.size() + d.second.getsizeof();
+    }
+    return size;
+  }
+
 protected:
   void makeDiscriminator(std::string label, int entrySize){
-    auto it = mapping.find(label);
-    if (it != mapping.end())
-    {
-      discriminators[label] = Discriminator(it->second, entrySize, ignoreZero, base);
+    if (!mappingGenerator->monoMapping){
+      mappingGenerator->setEntrySize(entrySize);
     }
-    else if (indexes.size() != 0)
-    {
-      discriminators[label] = Discriminator(indexes, addressSize, entrySize, ignoreZero, base);
-    }
-    else
-    {
-      discriminators[label] = Discriminator(addressSize, entrySize, ignoreZero, completeAddressing, base);
-    }
+    discriminators[label] = Discriminator(mappingGenerator->getMapping(label), entrySize, ignoreZero, base);
   }
 
   void checkInputSizes(const int imageSize, const int labelsSize){
@@ -19343,26 +19886,20 @@ protected:
     }
   }
 
-  int addressSize;
-  bool verbose;
-  std::map<std::string, std::vector<std::vector<int>>> mapping;
-  std::vector<int> indexes;
-  bool ignoreZero;
-  bool completeAddressing;
-  int base;
-  bool returnConfidence;
-  bool returnActivationDegree;
-  bool returnClassesDegrees;
-  ClassificationBase* classificationMethod;
   std::map<std::string, Discriminator> discriminators;
+  ClassificationBase* classificationMethod;
+  MappingGenerator* mappingGenerator;
+  bool verbose;
+  bool ignoreZero;
+  int base;
 };
 
 class Cluster {
 public:
   Cluster(){}
-  Cluster(int entrySize, int addressSize, float minScore, unsigned int threshold,
-    int discriminatorsLimit, bool completeAddressing=true, bool ignoreZero=false, int base=2):
-    addressSize(addressSize), entrySize(entrySize), minScore(minScore),
+  Cluster(const std::size_t entrySize, const std::size_t addressSize, const double minScore, const std::size_t threshold,
+    const std::size_t discriminatorsLimit, const bool completeAddressing=true, const bool ignoreZero=false, const std::size_t base=2):
+    entrySize(entrySize), addressSize(addressSize), minScore(minScore),
     threshold(threshold), discriminatorsLimit(discriminatorsLimit),
     completeAddressing(completeAddressing), ignoreZero(ignoreZero), base(base){
     }
@@ -19370,19 +19907,19 @@ public:
     nl::json value;
 
     value = options["addressSize"];
-    addressSize = value.is_null() ? 2 : value.get<int>();
+    addressSize = value.is_null() ? 2 : value.get<std::size_t>();
 
     value = options["entrySize"];
-    entrySize = value.is_null() ? 2 : value.get<int>();
+    entrySize = value.is_null() ? 2 : value.get<std::size_t>();
 
     value = options["minScore"];
-    minScore = value.is_null() ? 2 : value.get<float>();
+    minScore = value.is_null() ? 2 : value.get<double>();
 
     value = options["discriminatorsLimit"];
-    discriminatorsLimit = value.is_null() ? 2 : value.get<int>();
+    discriminatorsLimit = value.is_null() ? 2 : value.get<std::size_t>();
 
     value = options["threshold"];
-    threshold = value.is_null() ? 2 : value.get<unsigned int>();
+    threshold = value.is_null() ? 2 : value.get<std::size_t>();
 
     value = options["ignoreZero"];
     ignoreZero = value.is_null() ? false : value.get<bool>();
@@ -19391,7 +19928,7 @@ public:
     completeAddressing = value.is_null() ? true : value.get<bool>();
 
     value = options["base"];
-    base = value.is_null() ? 2 : value.get<int>();
+    base = value.is_null() ? 2 : value.get<std::size_t>();
 
     nl::json dConfig = {
       {"ignoreZero", ignoreZero},
@@ -19406,9 +19943,9 @@ public:
     }
   }
 
-  float getScore(const std::vector<int>& votes) const{
+  double getScore(const std::vector<int>& votes) const{
     int max = 0;
-    float sum = 0;
+    double sum = 0;
     for(auto v: votes){
       if(v>max) max=v;
       sum += v;
@@ -19420,27 +19957,27 @@ public:
   }
 
   void train(const BinInput& image){
-    if(discriminators.size()==0){
+    if(discriminators.size() == 0){
       makeDiscriminator(0);
       discriminators[0]->train(image);
       return;
     }
 
-    float bestValue = 0.0;
+    double bestValue = 0.0;
     bool trained = false;
     Discriminator* bestDiscriminator = NULL;
 
-    for(unsigned int i=0; i<discriminators.size(); i++){
+    for(std::size_t i = 0; i < discriminators.size(); i++){
       auto votes = discriminators[i]->classify(image);
-      float score = getScore(votes);
-      float count = discriminators[i]->getNumberOfTrainings();
+      double score = getScore(votes);
+      double count = discriminators[i]->getNumberOfTrainings();
 
       if(score>=bestValue){
           bestValue = score;
           bestDiscriminator = discriminators[i];
       }
 
-      float limit = minScore + count/threshold;
+      double limit = minScore + count/threshold;
       limit = limit > 1.0 ? 1.0 : limit;
 
       if(score >= limit){
@@ -19449,7 +19986,7 @@ public:
       }
     }
 
-    if(!trained && (int)discriminators.size() < discriminatorsLimit){
+    if(!trained && discriminators.size() < discriminatorsLimit){
       int index = discriminators.size();
       makeDiscriminator(index);
       discriminators[index]->train(image);
@@ -19470,13 +20007,13 @@ public:
     return output;
   }
 
-  unsigned int getNumberOfDiscriminators(){
+  std::size_t getSize() const{
     return discriminators.size();
   }
 
   std::vector<std::vector<int>> getMentalImages(){
     std::vector<std::vector<int>> images(discriminators.size());
-    for(std::map<int, Discriminator*>::iterator d=discriminators.begin(); d!=discriminators.end(); ++d){
+    for(std::map<std::size_t, Discriminator*>::iterator d=discriminators.begin(); d!=discriminators.end(); ++d){
       images[d->first] = d->second->getMentalImage();
     }
     return images;
@@ -19495,10 +20032,6 @@ public:
     return config;
   }
 
-  int getSize() const{
-    return discriminators.size();
-  }
-
   long getsizeof() const{
     long size = sizeof(Cluster);
     for(auto& d: discriminators){
@@ -19511,28 +20044,40 @@ public:
     discriminators.clear();
   }
 
+  void setMinScore(const std::size_t minScore){
+    this->minScore = minScore;
+  }
+
+  void setThreshold(const std::size_t threshold){
+    this->threshold = threshold;
+  }
+
+  void setDiscriminatorsLimit(const std::size_t discriminatorsLimit){
+    this->discriminatorsLimit = discriminatorsLimit;
+  }
+
 private:
-  std::map<int,Discriminator*> discriminators;
-  unsigned int addressSize;
-  unsigned int entrySize;
-  float minScore;
-  unsigned int threshold;
-  int discriminatorsLimit;
+  std::map<std::size_t, Discriminator*> discriminators;
+  std::size_t entrySize;
+  std::size_t addressSize;
+  double minScore;
+  std::size_t threshold;
+  std::size_t discriminatorsLimit;
   bool completeAddressing;
   bool ignoreZero;
-  int base;
+  std::size_t base;
 
-  void makeDiscriminator(const int index){
+  void makeDiscriminator(const std::size_t index){
     discriminators[index] = new Discriminator(addressSize, entrySize, ignoreZero, completeAddressing, base);
   }
 };
 
 class ClusWisard: public ClassificationModel{
 public:
-  ClusWisard(int addressSize, float minScore, int threshold, int discriminatorsLimit):
+  ClusWisard(const std::size_t addressSize, const double minScore, const std::size_t threshold, const std::size_t discriminatorsLimit):
     ClusWisard(addressSize, minScore, threshold, discriminatorsLimit, {})
   {}
-  ClusWisard(int addressSize, float minScore, int threshold, int discriminatorsLimit, nl::json options):
+  ClusWisard(const std::size_t addressSize, const double minScore, const std::size_t threshold, const std::size_t discriminatorsLimit, nl::json options):
     addressSize(addressSize), minScore(minScore), threshold(threshold), discriminatorsLimit(discriminatorsLimit)
   {
     srand(randint(0,1000000));
@@ -19556,16 +20101,7 @@ public:
     completeAddressing = value.is_null() ? true : value.get<bool>();
 
     value = options["base"];
-    base = value.is_null() ? 2 : value.get<int>();
-
-    value = options["returnConfidence"];
-    returnConfidence = value.is_null() ? false : value.get<bool>();
-
-    value = options["returnActivationDegree"];
-    returnActivationDegree = value.is_null() ? false : value.get<bool>();
-
-    value = options["returnClassesDegrees"];
-    returnClassesDegrees = value.is_null() ? false : value.get<bool>();
+    base = value.is_null() ? 2 : value.get<std::size_t >();
 
     checkConfigInputs(minScore, threshold, discriminatorsLimit);
   }
@@ -19603,23 +20139,23 @@ public:
   }
 
   void train(const DataSet& images){
-    int j=1;
-    for(int i: images.getLabelIndices()){
+    std::size_t j = 1;
+    for(std::size_t i: images.getLabelIndices()){
       if(verbose) std::cout << "\rtraining supervised " << j++ << " of " << images.size();
       train(images[i],images.getLabel(i));
     }
     if(verbose) std::cout << "\r" << std::endl;
-    for(int i: images.getUnlabelIndices()){
+    for(std::size_t i: images.getUnlabelIndices()){
       if(verbose) std::cout << "\rtraining unsupervised " << j++ << " of " << images.size();
       train(images[i]);
     }
   }
 
   void trainUnsupervised(const DataSet& images){
-    if((int)clusters.size()==0){
+    if(clusters.size()==0){
       unsupervisedCluster = Cluster(images[0].size(), addressSize, minScore, threshold, discriminatorsLimit, completeAddressing, ignoreZero);
     }
-    for(int i: images.getUnlabelIndices()){
+    for(std::size_t i: images.getUnlabelIndices()){
       unsupervisedCluster.train(images[i]);
     }
   }
@@ -19632,7 +20168,7 @@ public:
   std::vector<std::string> classify(const DataSet& images) const{;
 
     std::vector<std::string> labels(images.size());
-    for(unsigned int i=0; i<images.size(); i++){
+    for(std::size_t i=0; i<images.size(); i++){
       if(verbose) std::cout << "\rclassifying " << i+1 << " of " << images.size();
       std::string label = classify(images[i]);
       labels[i] = label.substr(0,label.find("::"));
@@ -19648,7 +20184,7 @@ public:
 
   std::vector<std::string> classifyUnsupervised(const DataSet& images) const{
     std::vector<std::string> labels(images.size());
-    for(unsigned int i=0; i<images.size(); i++){
+    for(std::size_t i=0; i<images.size(); i++){
       if(verbose) std::cout << "\rclassifying unsupervised " << i+1 << " of " << images.size();
       std::string label = classifyUnsupervised(images[i]);
       labels[i] = label.substr(0,label.find("::"));
@@ -19680,10 +20216,7 @@ public:
       {"classificationMethod", ClassificationMethods::json(classificationMethod)},
       {"ignoreZero", ignoreZero},
       {"completeAddressing", completeAddressing},
-      {"base", base},
-      {"returnConfidence", returnConfidence},
-      {"returnActivationDegree", returnActivationDegree},
-      {"returnClassesDegrees", returnClassesDegrees}
+      {"base", base}
     };
 
     bool isSave = filename.size() > 0;
@@ -19725,7 +20258,7 @@ public:
 
     for(auto& i: clusters){
       std::vector<std::vector<int>> votes = i.second.classify(image);
-      for(unsigned int j=0; j<votes.size(); j++){
+      for(std::size_t j = 0; j < votes.size(); j++){
         allvotes[i.first+std::string("::")+std::to_string(j)] = votes[j];
       }
     }
@@ -19736,7 +20269,7 @@ public:
   std::vector<std::map<std::string, int>> rank(const DataSet& images) const{
     std::vector<std::map<std::string, int>> out(images.size());
 
-    for(unsigned int i=0; i<images.size(); i++){
+    for(std::size_t i = 0; i < images.size(); i++){
         out[i] = rank(images[i]);
     }
     return out;
@@ -19745,7 +20278,7 @@ public:
   std::map<std::string, int> rankUnsupervised(const BinInput& image) const{
     std::map<std::string,std::vector<int>> allvotes;
     std::vector<std::vector<int>> votes = unsupervisedCluster.classify(image);
-    for(unsigned int i=0; i<votes.size(); ++i){
+    for(std::size_t i = 0; i < votes.size(); ++i){
       allvotes[std::to_string(i)] = votes[i];
     }
     return classificationMethod->run(allvotes);
@@ -19754,11 +20287,35 @@ public:
   std::vector<std::map<std::string, int>> rankrankUnsupervised(const DataSet& images) const{
     std::vector<std::map<std::string, int>> out(images.size());
 
-    for(unsigned int i=0; i<images.size(); i++){
+    for(std::size_t i = 0; i < images.size(); i++){
       out[i] = rankUnsupervised(images[i]);
     }
     return out;
-}
+  }
+
+  void setMinScore(const std::size_t minScore){
+    this->minScore = minScore;
+
+    for(auto& i: clusters){
+      i.second.setMinScore(minScore);
+    }
+  }
+
+  void setThreshold(const std::size_t threshold){
+    this->threshold = threshold;
+
+    for(auto& i: clusters){
+      i.second.setThreshold(threshold);
+    }
+  }
+
+  void setDiscriminatorsLimit(const std::size_t discriminatorsLimit){
+    this->discriminatorsLimit = discriminatorsLimit;
+
+    for(auto& i: clusters){
+      i.second.setDiscriminatorsLimit(discriminatorsLimit);
+    }
+  }
 
 protected:
   void train(const BinInput& image, const std::string& label){
@@ -19775,8 +20332,8 @@ protected:
     clusters[label].train(image);
   }
 
-  void checkInputLabels(const int numberOfInputs, std::map<int, std::string>& labels){
-    if((int)labels.size() > numberOfInputs){
+  void checkInputLabels(const std::size_t numberOfInputs, std::map<int, std::string>& labels){
+    if(labels.size() > numberOfInputs){
       throw Exception("The total of labels given is bigger than the inputs given!");
     }
   }
@@ -19787,7 +20344,7 @@ protected:
     }
   }
 
-  void checkConfigInputs(const float minScore, const int threshold, const int discriminatorsLimit){
+  void checkConfigInputs(const double minScore, const std::size_t threshold, const std::size_t discriminatorsLimit){
     if(minScore < 0 || minScore > 1){
       throw Exception("min score must be between 0 and 1 inclusive!");
     }
@@ -19799,13 +20356,13 @@ protected:
     }
   }
 
-  void checkInputSizes(const int imageSize, const int labelsSize){
+  void checkInputSizes(const std::size_t imageSize, const std::size_t labelsSize){
     if(imageSize != labelsSize){
       throw Exception("The size of data is not the same of the size of labels!");
     }
   }
 
-  void makeClusters(const std::string label,const int entrySize){
+  void makeClusters(const std::string label, const std::size_t entrySize){
     clusters[label] = Cluster(entrySize, addressSize, minScore, threshold, discriminatorsLimit, completeAddressing, ignoreZero, base);
   }
 
@@ -19817,18 +20374,15 @@ protected:
     return config;
   }
 
-  int addressSize;
-  float minScore;
-  int threshold;
-  int discriminatorsLimit;
+  std::size_t addressSize;
+  double minScore;
+  std::size_t threshold;
+  std::size_t discriminatorsLimit;
   bool verbose;
   bool completeAddressing;
   bool ignoreZero;
-  int base;
+  std::size_t base;
   bool searchBestConfidence;
-  bool returnConfidence;
-  bool returnActivationDegree;
-  bool returnClassesDegrees;
   std::map<std::string, Cluster> clusters;
   Cluster unsupervisedCluster;
   ClassificationBase* classificationMethod;
@@ -20381,10 +20935,10 @@ protected:
       p *= 2;
     }
     if ((countOne < minOne) || (((int)mapping.size() - countOne) < minZero)){
-      return {index, true};
+      return std::make_tuple(index, true);
     }
 
-    return {index, false};
+    return std::make_tuple(index, false);
   }
 
 private:
@@ -20570,6 +21124,10 @@ public:
       {"version", __version__}
     };
     return config;
+  }
+
+  void setMean(Mean* newMean){
+    mean = newMean;
   }
 
 protected:
