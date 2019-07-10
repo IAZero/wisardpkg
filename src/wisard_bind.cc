@@ -123,6 +123,7 @@ PYBIND11_MODULE(wisardpkg, m){
     py::class_<HarmonicPowerMean, Mean>(m, "HarmonicPowerMean", py::module_local()).def(py::init<int>());
     py::class_<GeometricMean, Mean>(m, "GeometricMean", py::module_local()).def(py::init());
     py::class_<ExponentialMean, Mean>(m, "ExponentialMean", py::module_local()).def(py::init());
+    py::class_<LogisticMean, Mean>(m, "LogisticMean", py::module_local()).def(py::init<double,double,double>());
 
     //sythesizer
     py::class_<Synthesizer>(m, "Synthesizer", py::module_local())

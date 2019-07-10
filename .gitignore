@@ -14,5 +14,9 @@ __pycache__
 *.wdpkg
 *.wpkds
 
+# images
+*.jpg
+*.png
+
 # ide
 .vscode
