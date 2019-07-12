@@ -1,7 +1,7 @@
 /*
 
 wisardpkg for c++11
-version 2.0.0a3
+version 2.0.0a4
 https://github.com/IAZero/wisardpkg
 */
 
@@ -17306,7 +17306,7 @@ inline nlohmann::json::json_pointer operator "" _json_pointer(const char* s, std
 
 namespace wisardpkg {
 
-const std::string  __version__ = "2.0.0a3"; 
+const std::string  __version__ = "2.0.0a4"; 
 
 
 
@@ -20651,6 +20651,49 @@ public:
   }
 };
 
+class LogisticMean: public Mean {
+private:
+  double beta1;
+  double beta2;
+  double gamma;
+public:
+  LogisticMean(double beta1, double beta2, double gamma):
+    beta1(beta1),beta2(beta2),gamma(gamma){}
+
+  double calculate(const std::vector<std::vector<double>>& outputRams){
+    double sumy = 0;
+    double counter = 0;
+    for(unsigned int i=0; i<outputRams.size(); i++){
+      if(outputRams[i][0]!=0){
+        sumy += outputRams[i][1]/outputRams[i][0];
+        counter++;
+      }
+    }
+    if(counter>0)
+      return 1.0/(1.0+exp(-(sumy/counter*beta1 + counter/outputRams.size()*beta2 + gamma)));
+
+    return 0;
+  }
+
+  Mean* clone() const{
+    return new LogisticMean(beta1,beta2,gamma);
+  }
+
+  std::string className() const{
+    return "LogisticMean";
+  }
+
+  nl::json getJSON() const{
+    nl::json config = {
+      {"type", className()},
+      {"beta1", beta1},
+      {"beta2", beta2},
+      {"gamma", gamma}
+    };
+    return config;
+  }
+};
+
 class MeanHelper{
 public:
   static nl::json getJSON(Mean* obj){
@@ -20676,6 +20719,14 @@ public:
       obj = new GeometricMean();
     } else if(className == "ExponentialMean"){
       obj = new ExponentialMean();
+    } else if(className == "LogisticMean"){
+      nl::json beta1j = config["beta1"];
+      nl::json beta2j = config["beta2"];
+      nl::json gammaj = config["gamma"];
+      obj = new LogisticMean(
+        beta1j.get<double>(),
+        beta2j.get<double>(),
+        gammaj.get<double>());
     } else{
       obj = new SimpleMean();
     }
