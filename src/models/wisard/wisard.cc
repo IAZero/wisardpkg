@@ -1,4 +1,3 @@
-
 class Wisard: public ClassificationModel {
 public:
   Wisard(nl::json c){
@@ -44,6 +43,12 @@ public:
     if (mapping.size() > 0){
       mappingGenerator->setMappings(mapping);
     }
+
+    value = c["monoMapping"];
+    mappingGenerator->monoMapping = value.is_null() ? false : value.get<bool>();
+
+    value = c["completeAddressing"];
+    mappingGenerator->completeAddressing = value.is_null() ? true : value.get<bool>();
   }
 
   Wisard(unsigned int addressSize, nl::json c={}) : Wisard(c){
@@ -177,7 +182,7 @@ public:
 
 protected:
   void makeDiscriminator(std::string label, int entrySize){
-    if (!mappingGenerator->monoMapping){
+    if (mappingGenerator->getEntrySize() < 2){
       mappingGenerator->setEntrySize(entrySize);
     }
     discriminators[label] = Discriminator(mappingGenerator->getMapping(label), entrySize, ignoreZero, base);

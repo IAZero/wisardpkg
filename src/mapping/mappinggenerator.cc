@@ -25,6 +25,10 @@ public:
         this->indexes = indexes;
     }
 
+    unsigned int getEntrySize() const{
+        return indexes.size();
+    }
+
     void setEntrySize(const unsigned int entrySize){
         setIndexes(entrySizeToIndexes(entrySize));
     }
