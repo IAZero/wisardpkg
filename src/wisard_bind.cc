@@ -233,6 +233,8 @@ PYBIND11_MODULE(wisardpkg, m){
       .def("setMinScore", &ClusWisardWrapper::setMinScore)
       .def("setThreshold", &ClusWisardWrapper::setThreshold)
       .def("setDiscriminatorsLimit", &ClusWisardWrapper::setDiscriminatorsLimit)
+      .def("getAllScores", (std::map<std::string, std::map<size_t, double>> (ClusWisardWrapper::*)(const BinInput&)) &ClusWisardWrapper::getAllScores)
+      .def("getAllScores", (std::vector<std::map<std::string, std::map<size_t, double>>> (ClusWisardWrapper::*)(const DataSet&)) &ClusWisardWrapper::getAllScores)
     ;
 
     py::class_<RegressionWisardWrapper, RegressionModel>(m, "RegressionWisard", py::module_local())

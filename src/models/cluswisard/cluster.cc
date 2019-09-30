@@ -61,6 +61,14 @@ public:
     return sum/(max*votes.size());
   }
 
+  std::map<size_t, double> getScores(const BinInput& image) {
+    std::map<size_t, double> scores;
+    for (auto &discriminator : discriminators){
+      scores[discriminator.first] = getScore(discriminator.second->classify(image));
+    }
+    return scores;
+  }
+
   void train(const BinInput& image){
     if(discriminators.size() == 0){
       makeDiscriminator(0);
@@ -162,7 +170,7 @@ public:
   }
 
 private:
-  std::map<std::size_t, Discriminator*> discriminators;
+  std::map<size_t, Discriminator*> discriminators;
   std::size_t entrySize;
   std::size_t addressSize;
   double minScore;
