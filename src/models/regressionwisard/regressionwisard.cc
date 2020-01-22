@@ -30,6 +30,9 @@ public:
     value = c["entrySize"];
     entrySize = value.is_null() ? 0 : value.get<int>();
 
+    value = c["mapping"];
+    mapping = value.is_null() ? std::vector<int>() : value.get<std::vector<int>>();
+
     value = c["mean"];
     mean = MeanHelper::load(value);
 
@@ -44,10 +47,10 @@ public:
   RegressionWisard(int addressSize) : addressSize(addressSize) {}
 
   RegressionWisard(int addressSize, bool completeAddressing, bool orderedMapping,
-                  Mean* mean, int minZero=0, int minOne=0, int steps=0):
+                  Mean* mean, int minZero=0, int minOne=0, int steps=0, std::vector<int> mapping = {}):
                   addressSize(addressSize), completeAddressing(completeAddressing),
                   orderedMapping(orderedMapping), mean(mean),
-                  minZero(minZero), minOne(minOne), steps(steps), numberOfTrainings(0){
+                  minZero(minZero), minOne(minOne), steps(steps), numberOfTrainings(0), mapping(mapping){
 
     srand(randint(0, 100000));
 
@@ -169,6 +172,7 @@ public:
       {"minZero", minZero},
       {"minOne", minOne},
       {"steps", steps},
+      {"mapping", mapping},
       {"numberOfTrainings", numberOfTrainings},
       {"entrySize", entrySize},
       {"data", data},
@@ -185,29 +189,35 @@ protected:
   void setRAMShuffle(int entrySize){
     this->entrySize = entrySize;
     checkAddressSize(entrySize, addressSize);
-    int numberOfRAMS = entrySize / addressSize;
-    int remain = entrySize % addressSize;
-    int indexesSize = entrySize;
-    if(completeAddressing && remain > 0) {
-      numberOfRAMS++;
-      indexesSize += addressSize-remain;
-    }
 
-    rams.resize(numberOfRAMS);
-    std::vector<int> indexes(indexesSize);
+    if(mapping.size()==0){
+      int numberOfRAMS = entrySize / addressSize;
+      int remain = entrySize % addressSize;
+      int indexesSize = entrySize;
+      if(completeAddressing && remain > 0) {
+        numberOfRAMS++;
+        indexesSize += addressSize-remain;
+      }
 
-    for (int i = 0; i < entrySize; i++){
-      indexes[i]=i;
-    }
-    for (size_t i=entrySize; i<indexes.size(); i++){
-      indexes[i] = randint(0, entrySize-1, false);
-    }
+      rams.resize(numberOfRAMS);
+      mapping.resize(indexesSize);
 
-    if(!orderedMapping)
-      random_shuffle(indexes.begin(), indexes.end());
+      for (int i = 0; i < entrySize; i++){
+        mapping[i]=i;
+      }
+      for (size_t i=entrySize; i<mapping.size(); i++){
+        mapping[i] = randint(0, entrySize-1, false);
+      }
+
+      if(!orderedMapping)
+        random_shuffle(mapping.begin(), mapping.end());
+    }
+    else{
+      rams.resize(mapping.size()/addressSize);
+    }
 
     for (size_t i = 0; i < rams.size(); i++){
-      std::vector<int> subIndexes(indexes.begin() + (((int)i)*addressSize), indexes.begin() + ((((int)i)+1)*addressSize));
+      std::vector<int> subIndexes(mapping.begin() + (((int)i)*addressSize), mapping.begin() + ((((int)i)+1)*addressSize));
       rams[i] = RegressionRAM(subIndexes, minZero, minOne);
     }
   }
@@ -247,4 +257,5 @@ protected:
   int numberOfTrainings;
   int entrySize;
   std::vector<RegressionRAM> rams;
+  std::vector<int> mapping; 
 };

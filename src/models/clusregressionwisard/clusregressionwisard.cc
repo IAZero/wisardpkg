@@ -26,6 +26,9 @@ public:
     value = c["orderedMapping"];
     orderedMapping = value.is_null() ? false : value.get<bool>();
 
+    value = c["mapping"];
+    mapping = value.is_null() ? std::vector<int>() : value.get<std::vector<int>>();
+
     value = c["minZero"];
     minZero = value.is_null() ? 0 : value.get<int>();
 
@@ -194,6 +197,7 @@ public:
       {"mean", MeanHelper::getJSON(mean)},
       {"minZero", minZero},
       {"minOne", minOne},
+      {"mapping", mapping},
       {"steps", steps},
       {"data", data},
       {"version", __version__}
@@ -213,8 +217,9 @@ protected:
   int minZero;
   int minOne;
   int steps;
+  std::vector<int> mapping;
 
   void makeRegressionWisard(const int index){
-    rews[index] = new RegressionWisard(addressSize, completeAddressing, orderedMapping, mean, minZero, minOne, steps);
+    rews[index] = new RegressionWisard(addressSize, completeAddressing, orderedMapping, mean, minZero, minOne, steps, mapping);
   }
 };
