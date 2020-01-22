@@ -1,7 +1,7 @@
 /*
 
 wisardpkg for c++11
-version 2.0.0a4
+version 2.0.0a5
 https://github.com/IAZero/wisardpkg
 */
 
@@ -17306,7 +17306,7 @@ inline nlohmann::json::json_pointer operator "" _json_pointer(const char* s, std
 
 namespace wisardpkg {
 
-const std::string  __version__ = "2.0.0a4"; 
+const std::string  __version__ = "2.0.0a5"; 
 
 
 
