@@ -29,6 +29,9 @@ class RegressionWisardWrapper : public RegressionWisard{
             if (std::string(py::str(arg.first)).compare("ignoreZero") == 0)
                 ignoreZero = arg.second.cast<bool>();
 
+            if (std::string(py::str(arg.first)).compare("mapping") == 0)
+                mapping = arg.second.cast<std::vector<int>>();
+
             if (std::string(py::str(arg.first)).compare("completeAddressing") == 0)
                 completeAddressing = arg.second.cast<bool>();
 
