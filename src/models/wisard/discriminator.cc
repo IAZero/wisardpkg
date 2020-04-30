@@ -47,11 +47,16 @@ public:
     setRAMByMapping(mapping, ignoreZero, base);
   }
 
-  std::vector<int> classify(const BinInput& image) const {
+  std::vector<int> classify(const BinInput& image, float totalTrainned=0) const {
     checkEntrySize(image.size());
     std::vector<int> votes(rams.size());
+    float relevance = totalTrainned==0 ? 0 : count/totalTrainned;
+
     for(unsigned int i=0; i<rams.size(); i++){
-      votes[i] = rams[i].getVote(image);
+      if(totalTrainned==0)
+        votes[i] = rams[i].getVote(image);
+      else
+        votes[i] = rams[i].getVote(image)*relevance;
     }
     return votes;
   }

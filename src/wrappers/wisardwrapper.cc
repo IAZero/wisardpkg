@@ -12,6 +12,9 @@ public:
       if(std::string(py::str(arg.first)).compare("verbose") == 0)
         verbose = arg.second.cast<bool>();
 
+      if(std::string(py::str(arg.first)).compare("balanced") == 0)
+        balanced = arg.second.cast<bool>();
+
       if(std::string(py::str(arg.first)).compare("base") == 0)
         base = arg.second.cast<int>();
 

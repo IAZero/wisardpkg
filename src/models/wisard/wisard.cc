@@ -14,6 +14,9 @@ public:
     value = c["verbose"];
     verbose = value.is_null() ? false : value.get<bool>();
 
+    value = c["balanced"];
+    balanced = value.is_null() ? false : value.get<bool>();
+
     value = c["ignoreZero"];
     ignoreZero = value.is_null() ? false : value.get<bool>();
 
@@ -148,8 +151,15 @@ public:
   std::map<std::string, int> rank(const BinInput& image) const{
     std::map<std::string,std::vector<int>> allvotes;
 
+    float totalTrainned = 0;
+    if(balanced){
+      for(auto& i: discriminators){
+        totalTrainned += i.second.getNumberOfTrainings();
+      }
+    }
+    
     for(auto& i: discriminators){
-      allvotes[i.first] = i.second.classify(image);
+      allvotes[i.first] = i.second.classify(image,totalTrainned);
     }
     return classificationMethod->run(allvotes);
   }
@@ -200,4 +210,5 @@ protected:
   bool verbose;
   bool ignoreZero;
   int base;
+  bool balanced;
 };
