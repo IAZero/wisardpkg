@@ -1,7 +1,7 @@
 /*
 
 wisardpkg for c++11
-version 2.0.0a6
+version 2.0.0a7
 https://github.com/IAZero/wisardpkg
 */
 
@@ -17306,7 +17306,7 @@ inline nlohmann::json::json_pointer operator "" _json_pointer(const char* s, std
 
 namespace wisardpkg {
 
-const std::string  __version__ = "2.0.0a6"; 
+const std::string  __version__ = "2.0.0a7"; 
 
 
 
@@ -19429,11 +19429,16 @@ public:
     setRAMByMapping(mapping, ignoreZero, base);
   }
 
-  std::vector<int> classify(const BinInput& image) const {
+  std::vector<int> classify(const BinInput& image, float totalTrainned=0) const {
     checkEntrySize(image.size());
     std::vector<int> votes(rams.size());
+    float relevance = totalTrainned==0 ? 0 : count/totalTrainned;
+
     for(unsigned int i=0; i<rams.size(); i++){
-      votes[i] = rams[i].getVote(image);
+      if(totalTrainned==0)
+        votes[i] = rams[i].getVote(image);
+      else
+        votes[i] = rams[i].getVote(image)*relevance;
     }
     return votes;
   }
@@ -19715,6 +19720,9 @@ public:
     value = c["verbose"];
     verbose = value.is_null() ? false : value.get<bool>();
 
+    value = c["balanced"];
+    balanced = value.is_null() ? false : value.get<bool>();
+
     value = c["ignoreZero"];
     ignoreZero = value.is_null() ? false : value.get<bool>();
 
@@ -19849,8 +19857,15 @@ public:
   std::map<std::string, int> rank(const BinInput& image) const{
     std::map<std::string,std::vector<int>> allvotes;
 
+    float totalTrainned = 0;
+    if(balanced){
+      for(auto& i: discriminators){
+        totalTrainned += i.second.getNumberOfTrainings();
+      }
+    }
+    
     for(auto& i: discriminators){
-      allvotes[i.first] = i.second.classify(image);
+      allvotes[i.first] = i.second.classify(image,totalTrainned);
     }
     return classificationMethod->run(allvotes);
   }
@@ -19901,6 +19916,7 @@ protected:
   bool verbose;
   bool ignoreZero;
   int base;
+  bool balanced;
 };
 
 class Cluster {
